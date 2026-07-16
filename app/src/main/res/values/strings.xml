@@ -212,8 +212,6 @@
     <string name="editor_sheet_done">تأكيد</string>
 
     <!-- المتابعة حتى الإنجاز -->
-    <string name="editor_follow_title">المتابعة حتى الإنجاز</string>
-    <string name="editor_follow_body">إيقاف الصوت لا يعني أنك أنجزت المهمة. مع المتابعة، تسألك رَنّة بعد التنبيه حتى تؤكد، وإن لم تجب تُسجَّل المرة كفائتة ولا تُحسب منجزة.</string>
     <string name="editor_follow_off">بدون متابعة</string>
     <string name="editor_follow_on">متابعة حتى الإنجاز</string>
     <!-- الاختيار يُشرح بأثره على المستخدم، لا بحالاته الداخلية -->
@@ -310,7 +308,6 @@
     <string name="settings_group_alerts">التنبيهات والأذونات</string>
     <string name="settings_group_log">سجل التذكيرات</string>
     <string name="settings_group_about">عن رَنّة</string>
-    <string name="settings_theme">المظهر</string>
     <string name="settings_theme_system">تلقائي</string>
     <string name="settings_theme_light">نهاري</string>
     <string name="settings_theme_dark">ليلي</string>
@@ -483,7 +480,6 @@
     <!-- شاشة المنبّه -->
     <string name="alarm_stop">إيقاف الصوت فقط</string>
     <string name="alarm_stopped_title">توقّف المنبّه</string>
-    <string name="alarm_done_question">هل أنجزت «%s»؟</string>
     <string name="alarm_not_yet">ليس الآن</string>
     <string name="alarm_ringing_now">المنبّه يرنّ الآن</string>
     <!-- السحب للتأكيد: النص نفسه هو عبارة الإنجاز، فيقول المستخدم ما فعله لا «تم» مجردة -->

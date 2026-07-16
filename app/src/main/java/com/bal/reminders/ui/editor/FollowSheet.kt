@@ -69,8 +69,18 @@ fun FollowSheet(state: EditorState, viewModel: EditorViewModel) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                // The card names the choice the user is currently on, and says
+                // what it means in one sentence. It used to carry a paragraph
+                // about states and budgets, which is رَنّة's bookkeeping, not the
+                // user's decision.
                 Text(
-                    stringResource(R.string.editor_follow_title),
+                    stringResource(
+                        if (state.followUntilComplete) {
+                            R.string.editor_follow_on
+                        } else {
+                            R.string.editor_follow_off
+                        },
+                    ),
                     style = MaterialTheme.typography.titleMedium,
                     color = contentFor(state.followUntilComplete),
                     modifier = Modifier.weight(1f),
@@ -78,7 +88,13 @@ fun FollowSheet(state: EditorState, viewModel: EditorViewModel) {
                 Switch(checked = state.followUntilComplete, onCheckedChange = null)
             }
             Text(
-                stringResource(R.string.editor_follow_body),
+                stringResource(
+                    if (state.followUntilComplete) {
+                        R.string.editor_follow_on_body
+                    } else {
+                        R.string.editor_follow_off_body
+                    },
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = contentFor(state.followUntilComplete),
             )
