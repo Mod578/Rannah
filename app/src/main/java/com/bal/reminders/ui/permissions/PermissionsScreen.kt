@@ -97,6 +97,10 @@ fun PermissionsScreen(onBack: () -> Unit) {
                 .padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            // The verdict first, in one sentence, before any of the machinery:
+            // «رَنّة جاهزة للتنبيه» is the only thing most people came to learn.
+            ReadinessSummary(status)
+
             Text(
                 stringResource(R.string.permissions_intro),
                 style = MaterialTheme.typography.bodyLarge,
@@ -246,6 +250,61 @@ private fun PermissionCard(
             if (!granted) {
                 Button(onClick = onAction, shape = MaterialTheme.shapes.small) {
                     Text(actionLabel)
+                }
+            }
+        }
+    }
+}
+
+/**
+ * «رَنّة جاهزة للتنبيه», or the list of what is stopping it.
+ *
+ * Reports only what is actionable: when nothing is wrong it is one calm line,
+ * not a wall of green ticks asking to be audited.
+ */
+@Composable
+private fun ReadinessSummary(status: PermissionsStatus) {
+    val issues = status.issues()
+    Card(
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(
+            containerColor = if (issues.isEmpty()) {
+                MaterialTheme.colorScheme.secondaryContainer
+            } else {
+                MaterialTheme.colorScheme.surfaceContainerHigh
+            },
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            if (issues.isEmpty()) {
+                Text(
+                    stringResource(R.string.readiness_ready_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+                Text(
+                    stringResource(R.string.readiness_ready_body),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+            } else {
+                Text(
+                    stringResource(R.string.readiness_section),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                issues.forEach { issue ->
+                    Text(
+                        stringResource(issue.titleRes),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (issue.blocking) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        },
+                    )
                 }
             }
         }

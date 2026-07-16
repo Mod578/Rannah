@@ -767,6 +767,22 @@ internal fun SummaryCard(state: EditorState) {
         schedule.calendar == CalendarSystem.HIJRI -> stringResource(R.string.editor_summary_hijri_basis)
         else -> stringResource(R.string.editor_summary_gregorian_basis)
     }
+    // The follow-up changes what "done" means, so the summary says so in the
+    // same breath as the schedule rather than leaving it to a sheet.
+    val follow = if (state.followUntilComplete) {
+        stringResource(
+            R.string.editor_summary_follow,
+            state.completionLabel?.takeIf { it.isNotBlank() }
+                ?: stringResource(R.string.editor_completion_default),
+            context.resources.getQuantityString(
+                R.plurals.duration_minutes,
+                state.followUpWindowMinutes,
+                BalFormats.arabicDigits(state.followUpWindowMinutes.toString()),
+            ),
+        )
+    } else {
+        null
+    }
 
     Card(
         shape = MaterialTheme.shapes.medium,
@@ -787,6 +803,13 @@ internal fun SummaryCard(state: EditorState) {
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
+            if (follow != null) {
+                Text(
+                    follow,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                )
+            }
             if (basis != null) {
                 Text(
                     basis,

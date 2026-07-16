@@ -10,6 +10,7 @@ import android.os.Build
 import android.os.PowerManager
 import android.provider.Settings
 import androidx.core.app.NotificationManagerCompat
+import com.bal.reminders.scheduling.NotificationPresenter
 
 data class PermissionsStatus(
     val notificationsGranted: Boolean,
@@ -19,6 +20,10 @@ data class PermissionsStatus(
     val fullScreenAlarmGranted: Boolean,
     /** The device's alarm stream is muted: a «منبّه مهم» would ring silently. */
     val alarmVolumeMuted: Boolean,
+    /** The user turned the alarm channel off: notifications on, alarms silent. */
+    val alarmChannelBlocked: Boolean = false,
+    /** The follow-up channel is off, so «بانتظار تأكيدك» cannot reach them. */
+    val followUpChannelBlocked: Boolean = false,
 ) {
     val essentialsGranted: Boolean get() = notificationsGranted && exactAlarmsGranted
 }
@@ -36,8 +41,26 @@ object Permissions {
             batteryUnrestricted = powerManager.isIgnoringBatteryOptimizations(context.packageName),
             fullScreenAlarmGranted = canUseFullScreenIntent(context),
             alarmVolumeMuted = audioManager.getStreamVolume(AudioManager.STREAM_ALARM) == 0,
+            alarmChannelBlocked = channelBlocked(context, NotificationPresenter.CHANNEL_ALARM),
+            followUpChannelBlocked = channelBlocked(context, NotificationPresenter.CHANNEL_FOLLOW_UP),
         )
     }
+
+    /**
+     * A channel the user switched off. Worth reporting on its own: app-level
+     * notifications can be fully allowed while the one channel that carries
+     * real alarms is silent, which looks like رَنّة simply failing.
+     */
+    private fun channelBlocked(context: Context, channelId: String): Boolean {
+        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val channel = nm.getNotificationChannel(channelId) ?: return false
+        return channel.importance == NotificationManager.IMPORTANCE_NONE
+    }
+
+    fun channelSettingsIntent(context: Context, channelId: String): Intent =
+        Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+            .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+            .putExtra(Settings.EXTRA_CHANNEL_ID, channelId)
 
     fun canUseFullScreenIntent(context: Context): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return true

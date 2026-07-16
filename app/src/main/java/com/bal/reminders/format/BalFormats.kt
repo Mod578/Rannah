@@ -132,6 +132,25 @@ object BalFormats {
         return ordered.joinToString(" و") { dayName(it) }
     }
 
+    /**
+     * Names the common week shapes instead of listing them out. «أيام العمل»
+     * is how people say it, and it stays readable on a card; spelling out five
+     * day names for a clock-in reminder is technically true and useless.
+     */
+    private fun dayNamesShort(context: Context, days: Set<DayOfWeek>): String = when (days) {
+        WORKDAYS -> context.getString(R.string.schedule_days_workdays)
+        WEEKEND -> context.getString(R.string.schedule_days_weekend)
+        ALL_DAYS -> context.getString(R.string.schedule_days_all)
+        else -> dayNames(days)
+    }
+
+    private val WORKDAYS = setOf(
+        DayOfWeek.SUNDAY, DayOfWeek.MONDAY, DayOfWeek.TUESDAY,
+        DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY,
+    )
+    private val WEEKEND = setOf(DayOfWeek.FRIDAY, DayOfWeek.SATURDAY)
+    private val ALL_DAYS = DayOfWeek.entries.toSet()
+
     /** «يوميًا، ٩:٠٠ صباحًا» — the one-line schedule description. */
     fun scheduleSummary(context: Context, schedule: Schedule, today: LocalDate = LocalDate.now()): String {
         val timeText = time(context, schedule.time)
@@ -141,7 +160,7 @@ object BalFormats {
             is Schedule.Daily ->
                 context.getString(R.string.schedule_daily, timeText)
             is Schedule.Weekly ->
-                context.getString(R.string.schedule_weekly, dayNames(schedule.days), timeText)
+                context.getString(R.string.schedule_weekly, dayNamesShort(context, schedule.days), timeText)
             is Schedule.Monthly ->
                 if (schedule.dayOfMonth >= 29) {
                     context.getString(

@@ -22,9 +22,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
@@ -39,6 +36,7 @@ import com.bal.reminders.R
 import com.bal.reminders.data.DateDisplay
 import com.bal.reminders.data.ThemeMode
 import com.bal.reminders.format.BalFormats
+import com.bal.reminders.ui.components.ChoiceChips
 import com.bal.reminders.ui.components.SectionTitle
 import java.time.LocalDate
 
@@ -72,51 +70,33 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             SectionTitle(stringResource(R.string.settings_theme))
-            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                val options = listOf(
-                    ThemeMode.SYSTEM to R.string.settings_theme_system,
-                    ThemeMode.LIGHT to R.string.settings_theme_light,
-                    ThemeMode.DARK to R.string.settings_theme_dark,
-                )
-                options.forEachIndexed { index, (mode, labelRes) ->
-                    SegmentedButton(
-                        selected = state.themeMode == mode,
-                        onClick = { viewModel.setThemeMode(mode) },
-                        shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
-                        label = { Text(stringResource(labelRes)) },
-                    )
-                }
-            }
+            ChoiceChips(
+                options = listOf(
+                    ThemeMode.SYSTEM to stringResource(R.string.settings_theme_system),
+                    ThemeMode.LIGHT to stringResource(R.string.settings_theme_light),
+                    ThemeMode.DARK to stringResource(R.string.settings_theme_dark),
+                ),
+                selected = state.themeMode,
+                onSelect = viewModel::setThemeMode,
+            )
 
             SectionTitle(stringResource(R.string.settings_date_display))
-            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                val options = listOf(
-                    DateDisplay.BOTH to R.string.settings_date_both,
-                    DateDisplay.HIJRI to R.string.settings_date_hijri,
-                    DateDisplay.GREGORIAN to R.string.settings_date_gregorian,
-                )
-                options.forEachIndexed { index, (display, labelRes) ->
-                    SegmentedButton(
-                        selected = state.dateDisplay == display,
-                        onClick = { viewModel.setDateDisplay(display) },
-                        shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
-                        label = { Text(stringResource(labelRes)) },
-                    )
-                }
-            }
+            ChoiceChips(
+                options = listOf(
+                    DateDisplay.BOTH to stringResource(R.string.settings_date_both),
+                    DateDisplay.HIJRI to stringResource(R.string.settings_date_hijri),
+                    DateDisplay.GREGORIAN to stringResource(R.string.settings_date_gregorian),
+                ),
+                selected = state.dateDisplay,
+                onSelect = viewModel::setDateDisplay,
+            )
             if (state.dateDisplay != DateDisplay.GREGORIAN) {
                 SectionTitle(stringResource(R.string.settings_hijri_adjust))
-                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                    val options = listOf(-2, -1, 0, 1, 2)
-                    options.forEachIndexed { index, days ->
-                        SegmentedButton(
-                            selected = state.hijriAdjustmentDays == days,
-                            onClick = { viewModel.setHijriAdjustment(days) },
-                            shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
-                            label = { Text(adjustmentLabel(days)) },
-                        )
-                    }
-                }
+                ChoiceChips(
+                    options = listOf(-2, -1, 0, 1, 2).map { it to adjustmentLabel(it) },
+                    selected = state.hijriAdjustmentDays,
+                    onSelect = viewModel::setHijriAdjustment,
+                )
                 Text(
                     stringResource(R.string.settings_hijri_adjust_hint),
                     style = MaterialTheme.typography.bodySmall,
@@ -137,24 +117,16 @@ fun SettingsScreen(
             }
 
             SectionTitle(stringResource(R.string.settings_default_snooze))
-            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                val options = listOf(5, 10, 15, 30)
-                options.forEachIndexed { index, minutes ->
-                    SegmentedButton(
-                        selected = state.defaultSnoozeMinutes == minutes,
-                        onClick = { viewModel.setDefaultSnooze(minutes) },
-                        shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
-                        label = {
-                            Text(
-                                stringResource(
-                                    R.string.editor_snooze_option,
-                                    BalFormats.arabicDigits(minutes.toString()),
-                                ),
-                            )
-                        },
+            ChoiceChips(
+                options = listOf(5, 10, 15, 30).map { minutes ->
+                    minutes to stringResource(
+                        R.string.editor_snooze_option,
+                        BalFormats.arabicDigits(minutes.toString()),
                     )
-                }
-            }
+                },
+                selected = state.defaultSnoozeMinutes,
+                onSelect = viewModel::setDefaultSnooze,
+            )
             Text(
                 stringResource(R.string.settings_default_snooze_hint),
                 style = MaterialTheme.typography.bodySmall,

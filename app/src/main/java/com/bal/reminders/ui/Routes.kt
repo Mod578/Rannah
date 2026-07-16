@@ -12,6 +12,8 @@ object Routes {
     const val LOG = "log"
     const val PERMISSIONS = "permissions"
     const val ABOUT = "about"
+    const val PRIVACY = "privacy"
+    const val LICENSES = "licenses"
     const val DETAILS = "details/{id}"
     const val EDITOR =
         "editor?id={id}&title={title}&type={type}&time={time}&date={date}&days={days}&dom={dom}" +

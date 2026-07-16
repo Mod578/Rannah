@@ -276,13 +276,11 @@ class NotificationPresenter @Inject constructor(
                     8,
                 ),
             )
-        if (reminder.schedule.isRecurring) {
-            builder.addAction(
-                0,
-                context.getString(R.string.notification_skip),
-                actionIntent(NotificationActionReceiver.ACTION_SKIP, reminder, occurrenceAt, notifId, 3),
-            )
-        }
+        // Two actions, deliberately. A third («تخطي هذه المرة») squeezed all
+        // three into a third of the width each and Android truncated every one
+        // of them: «أخذت الد...» is not an answer anyone can give. Skipping is
+        // a rarer, more considered choice, so it lives in the app where it has
+        // room for its full name.
         notifySafely(notifId, builder.build())
     }
 

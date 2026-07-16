@@ -39,6 +39,9 @@
     <string name="schedule_once_hijri">مرة واحدة، %1$s الساعة %2$s</string>
     <string name="schedule_daily">يوميًا، الساعة %1$s</string>
     <string name="schedule_weekly">كل %1$s، الساعة %2$s</string>
+    <string name="schedule_days_workdays">أيام العمل</string>
+    <string name="schedule_days_weekend">نهاية الأسبوع</string>
+    <string name="schedule_days_all">يوم</string>
     <string name="schedule_monthly">يوم %1$s من كل شهر، الساعة %2$s</string>
     <string name="schedule_monthly_clamped">يوم %1$s من كل شهر (أو آخر يوم في الشهور الأقصر)، الساعة %2$s</string>
     <string name="schedule_hijri_monthly">يوم %1$s من كل شهر هجري، الساعة %2$s</string>
@@ -89,8 +92,9 @@
     <string name="category_personal">شخصي</string>
 
     <!-- الشاشة الرئيسية -->
-    <string name="greeting_morning">صباح النور 🌞</string>
-    <string name="greeting_evening">مساء النور 🌙</string>
+    <!-- بلا إيموجي: الرمز يأتي من طبقة الأيقونات نفسها -->
+    <string name="greeting_morning">صباح النور</string>
+    <string name="greeting_evening">مساء النور</string>
     <string name="home_input_hint">اكتب تذكيرك… مثل: ذكّرني بكرة الساعة ٨ بالاجتماع</string>
     <string name="home_input_submit">فهم التذكير</string>
     <string name="home_parse_failed">ما قدرت أفهم الوقت. جرّب مثل: «ذكّرني كل يوم الساعة ٩ ببصمة الدوام»</string>
@@ -108,8 +112,6 @@
     <string name="home_pending_since">نبّهتك الساعة %s</string>
     <string name="home_missed_today">فات موعدها اليوم</string>
     <string name="home_missed_at">فات موعده الساعة %s</string>
-    <string name="home_permissions_title">التذكيرات قد لا تصلك</string>
-    <string name="home_permissions_body">فيه أذونات ناقصة تمنع وصول التنبيهات في وقتها. اضغط للإصلاح.</string>
 
     <!-- رسائل التراجع -->
     <string name="undo_completed_message">تم إنجاز «%s»</string>
@@ -158,7 +160,6 @@
     <string name="editor_title_edit">تعديل التذكير</string>
     <string name="editor_field_title">وش أذكّرك فيه؟</string>
     <string name="editor_error_title">اكتب عنوان التذكير أول</string>
-    <string name="editor_section_schedule">الموعد والتكرار</string>
     <string name="schedule_type_once">مرة واحدة</string>
     <string name="schedule_type_daily">يوميًا</string>
     <string name="schedule_type_weekly">أسبوعيًا</string>
@@ -182,7 +183,6 @@
     <string name="editor_hijri_year">السنة</string>
 
     <!-- نمط التنبيه -->
-    <string name="editor_section_alert_mode">نمط التنبيه</string>
     <string name="alert_mode_standard">تنبيه عادي</string>
     <string name="alert_mode_alarm">منبّه مهم</string>
     <string name="alert_mode_standard_hint">يظهر كإشعار ويمكن إكماله أو تأجيله.</string>
@@ -195,7 +195,6 @@
 
     <!-- الخيارات الإضافية -->
     <string name="editor_more_show">تخصيص التنبيه</string>
-    <string name="editor_more_hide">إخفاء تخصيص التنبيه</string>
 
     <!-- المحرر: أربعة أقسام، كل قسم سطر واضح يفتح ورقة مركّزة -->
     <string name="editor_row_what">التذكير</string>
@@ -219,7 +218,6 @@
     <string name="editor_follow_interval">كل كم دقيقة تسأل؟</string>
     <string name="editor_follow_repeats">كم مرة تسأل؟</string>
     <string name="editor_follow_window">تسأل رَنّة %1$s، وتتوقف بعد %2$s ثم تسجّل المرة كفائتة.</string>
-    <string name="editor_follow_stop_conflict">لأنك اخترت المتابعة، لن يُحسب إيقاف الصوت إنجازًا.</string>
     <string name="editor_completion_label">عبارة الإنجاز</string>
     <string name="editor_completion_label_hint">مثل: سجلت البصمة</string>
     <string name="editor_completion_label_body">هذه العبارة تظهر كزر في التنبيه، وتتحول إلى سؤال المتابعة.</string>
@@ -256,6 +254,7 @@
     <string name="editor_summary_standard">سيظهر تنبيه «%1$s» %2$s.</string>
     <string name="editor_summary_actions_alarm">يمكنك إيقافه أو تأجيله %s.</string>
     <string name="editor_summary_actions_standard">يمكنك إكماله أو تأجيله %s.</string>
+    <string name="editor_summary_follow">إيقاف الصوت لن يُحسب إنجازًا: ستسألك رَنّة «%1$s» حتى تؤكد، ثم تتوقف بعد %2$s وتسجّل المرة كفائتة.</string>
     <string name="editor_summary_hijri_basis">يعتمد الموعد على التقويم الهجري، وقد يختلف يومًا عن إعلان الرؤية.</string>
     <string name="editor_summary_gregorian_basis">يعتمد الموعد على التقويم الميلادي.</string>
 
@@ -328,9 +327,39 @@
     <string name="about_title">عن رَنّة</string>
     <string name="about_tagline">تذكيرات عربية تشتغل بدون إنترنت وبدون حسابات</string>
     <string name="about_version">الإصدار %s</string>
-    <string name="about_privacy">بياناتك تبقى على جهازك، ولا يجمع «رَنّة» أي معلومات.</string>
-    <string name="about_section_credits">شكر وتقدير</string>
-    <string name="about_credit_font">الخط: IBM Plex Sans Arabic (رخصة OFL)</string>
+
+    <!-- عن رَنّة: نص المنتج -->
+    <string name="about_description">تذكيرات عربية تساعدك على حفظ مواعيدك والتزاماتك، مع دعم أساسي للتقويمين الهجري والميلادي.</string>
+    <string name="about_developer_label">المطوّر</string>
+    <string name="about_developer_name">محمد</string>
+    <string name="about_developer_role">مهندس ذكاء اصطناعي ومطوّر برمجيات</string>
+    <string name="about_developer_note">طُوّرت رَنّة لتقديم تجربة تذكير عربية بسيطة وموثوقة، تعمل محليًا وتحترم خصوصية المستخدم.</string>
+    <string name="about_privacy_link">الخصوصية</string>
+    <string name="about_licenses_link">رخص المصادر المفتوحة</string>
+
+    <!-- الخصوصية: كل جملة هنا مطابقة لما في الكود فعلًا -->
+    <string name="privacy_title">الخصوصية</string>
+    <string name="privacy_summary">تعمل رَنّة على جهازك، بلا حساب وبلا إنترنت.</string>
+    <string name="privacy_no_network_title">لا اتصال بالإنترنت</string>
+    <string name="privacy_no_network_body">لا تطلب رَنّة إذن الإنترنت أصلًا، ولا ترسل تذكيراتك أو أي معلومة عنك إلى أي خادم.</string>
+    <string name="privacy_no_account_title">لا حساب ولا تتبّع</string>
+    <string name="privacy_no_account_body">لا تسجيل دخول، ولا إعلانات، ولا أدوات تحليلات. تذكيراتك وسجلّك محفوظة في قاعدة بيانات على جهازك وحده.</string>
+    <string name="privacy_backup_title">النسخ الاحتياطي من أندرويد</string>
+    <string name="privacy_backup_body">أندرويد نفسه قد ينسخ بيانات رَنّة ضمن النسخ الاحتياطي لجهازك إلى حسابك في Google، حتى تعود تذكيراتك عند الانتقال إلى جهاز جديد. هذه ميزة من النظام وليست من رَنّة، ويمكنك إيقافها من إعدادات جهازك.</string>
+    <string name="privacy_permissions_title">الأذونات</string>
+    <string name="privacy_permissions_body">لا تطلب رَنّة إلا ما تحتاجه للتنبيه في وقته: الإشعارات، المنبّهات الدقيقة، التنبيه فوق شاشة القفل، الاهتزاز، والعمل بعد إعادة التشغيل.</string>
+
+    <!-- الرخص -->
+    <string name="licenses_title">رخص المصادر المفتوحة</string>
+    <string name="licenses_intro">تستخدم رَنّة أعمالًا مفتوحة المصدر، وهذه إشعاراتها.</string>
+    <string name="licenses_font_name">IBM Plex Sans Arabic</string>
+    <string name="licenses_font_body">حقوق النشر محفوظة لشركة IBM Corp. مرخّص بموجب رخصة الخطوط المفتوحة SIL الإصدار 1.1.</string>
+    <string name="licenses_androidx_name">AndroidX و Jetpack Compose</string>
+    <string name="licenses_androidx_body">حقوق النشر محفوظة لمشروع Android مفتوح المصدر. مرخّصة بموجب رخصة Apache الإصدار 2.0.</string>
+    <string name="licenses_kotlin_name">Kotlin و Coroutines</string>
+    <string name="licenses_kotlin_body">حقوق النشر محفوظة لشركة JetBrains s.r.o. مرخّصة بموجب رخصة Apache الإصدار 2.0.</string>
+    <string name="licenses_hilt_name">Hilt و Dagger</string>
+    <string name="licenses_hilt_body">حقوق النشر محفوظة لشركة Google LLC. مرخّصة بموجب رخصة Apache الإصدار 2.0.</string>
 
     <!-- الأذونات -->
     <string name="permissions_title">الأذونات والتنبيهات</string>
@@ -370,6 +399,26 @@
     <!-- الودجت -->
     <string name="widget_label">التاريخ والرنّة القادمة</string>
     <string name="widget_description">تاريخ اليوم بالهجري والميلادي مع رنّتك القادمة، على شاشتك الرئيسية</string>
+
+    <!-- جاهزية التنبيه: بلغة الناس لا بلغة أندرويد -->
+    <string name="readiness_ready_title">رَنّة جاهزة للتنبيه</string>
+    <string name="readiness_ready_body">لا شيء يمنع وصول تذكيراتك في وقتها.</string>
+    <string name="readiness_section">جاهزية التنبيه</string>
+    <string name="readiness_fix">إصلاح</string>
+    <string name="readiness_notifications_title">لن تصلك أي تذكيرات</string>
+    <string name="readiness_notifications_body">إشعارات رَنّة موقوفة، ولا يمكنها عرض أي تذكير حتى تسمح لها.</string>
+    <string name="readiness_exact_title">قد تتأخر تذكيراتك</string>
+    <string name="readiness_exact_body">تحتاج رَنّة إلى إذن المنبّهات الدقيقة حتى تعمل المواعيد المهمة في وقتها.</string>
+    <string name="readiness_alarm_channel_title">المنبّهات المهمة صامتة</string>
+    <string name="readiness_alarm_channel_body">أوقفت تنبيهات «المنبّهات المهمة»، لذلك لن تسمع صوتًا للمواعيد التي اخترت لها منبّهًا.</string>
+    <string name="readiness_followup_channel_title">لن تصلك أسئلة المتابعة</string>
+    <string name="readiness_followup_channel_body">أوقفت تنبيهات «المتابعة حتى الإنجاز»، لذلك لن تسألك رَنّة بعد التنبيه.</string>
+    <string name="readiness_fullscreen_title">لن يظهر المنبّه فوق شاشة القفل</string>
+    <string name="readiness_fullscreen_body">سيصلك التنبيه إشعارًا فقط، دون شاشة المنبّه الكاملة.</string>
+    <string name="readiness_volume_title">صوت المنبّه مكتوم</string>
+    <string name="readiness_volume_body">مستوى صوت المنبّه في جهازك صفر، لذلك سيعمل المنبّه بلا صوت.</string>
+    <string name="readiness_battery_title">قد يؤخّر توفير البطارية التنبيه</string>
+    <string name="readiness_battery_body">قيود البطارية على جهازك قد تؤجل التذكيرات دقائق. استثناء رَنّة يجعلها أدق.</string>
 
     <!-- الإشعارات -->
     <string name="channel_full_name">تنبيهات بصوت واهتزاز</string>

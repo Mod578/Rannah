@@ -14,7 +14,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Send
@@ -60,6 +59,8 @@ import com.bal.reminders.ui.components.EmptyState
 import com.bal.reminders.ui.components.ReminderCard
 import com.bal.reminders.ui.components.SectionTitle
 import com.bal.reminders.ui.permissions.Permissions
+import com.bal.reminders.ui.permissions.ReadinessIssue
+import com.bal.reminders.ui.permissions.issues
 import com.bal.reminders.ui.templates.Templates
 import java.time.ZoneId
 import kotlinx.coroutines.delay
@@ -161,13 +162,18 @@ fun HomeScreen(
             }
         }
 
-        if (!permissions.essentialsGranted) {
-            item {
-                PermissionsBanner(onClick = onOpenPermissions)
-            }
+        // Only the worst live issue, and only when there is one: a readiness
+        // list that is always on screen is a list nobody reads. It goes above
+        // the pending card only when it is genuinely blocking, because
+        // "reminders cannot reach you at all" outranks everything, while
+        // "battery might delay things" does not outrank a task you are about
+        // to forget.
+        val worstIssue = permissions.issues().firstOrNull()
+        if (worstIssue != null && worstIssue.blocking) {
+            item { ReadinessBanner(issue = worstIssue, onClick = onOpenPermissions) }
         }
 
-        // Above everything: the tasks that already alerted and are still
+        // Above everything else: the tasks that already alerted and are still
         // unanswered. A plan can wait; a half-missed obligation cannot.
         if (state.pending.isNotEmpty()) {
             items(state.pending, key = { "pending-${it.reminder.id}-${it.occurrenceAt.toEpochMilli()}" }) { item ->
@@ -265,6 +271,11 @@ fun HomeScreen(
                     onComplete = { viewModel.complete(reminder) },
                 )
             }
+        }
+
+        // The advisory issues sit down here, out of the way of the day.
+        if (worstIssue != null && !worstIssue.blocking) {
+            item { ReadinessBanner(issue = worstIssue, onClick = onOpenPermissions) }
         }
 
         if (!state.hasAnyReminder) {
@@ -451,13 +462,27 @@ private fun PreviewCard(
     }
 }
 
+/**
+ * Names the one thing that is actually broken.
+ *
+ * This used to be a block of alarm-red saying "some permissions are missing",
+ * which is both frightening and useless: it does not say what will fail, and
+ * it looks identical whether رَنّة cannot alert at all or merely cannot dim
+ * the screen. Now it states the real consequence, and only the genuinely
+ * blocking issues get the error colour.
+ */
 @Composable
-private fun PermissionsBanner(onClick: () -> Unit) {
+private fun ReadinessBanner(issue: ReadinessIssue, onClick: () -> Unit) {
+    val blocking = issue.blocking
     Card(
         onClick = onClick,
         shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer,
+            containerColor = if (blocking) {
+                MaterialTheme.colorScheme.errorContainer
+            } else {
+                MaterialTheme.colorScheme.surfaceContainerHigh
+            },
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         modifier = Modifier.fillMaxWidth(),
@@ -467,23 +492,33 @@ private fun PermissionsBanner(onClick: () -> Unit) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp),
         ) {
+            val content = if (blocking) {
+                MaterialTheme.colorScheme.onErrorContainer
+            } else {
+                MaterialTheme.colorScheme.onSurface
+            }
             Icon(
                 Icons.Rounded.NotificationsOff,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onErrorContainer,
+                tint = content,
             )
-            Column {
+            Column(Modifier.weight(1f)) {
                 Text(
-                    stringResource(R.string.home_permissions_title),
+                    stringResource(issue.titleRes),
                     style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    color = content,
                 )
                 Text(
-                    stringResource(R.string.home_permissions_body),
+                    stringResource(issue.bodyRes),
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    color = content,
                 )
             }
+            Text(
+                stringResource(R.string.readiness_fix),
+                style = MaterialTheme.typography.labelLarge,
+                color = if (blocking) content else MaterialTheme.colorScheme.primary,
+            )
         }
     }
 }
