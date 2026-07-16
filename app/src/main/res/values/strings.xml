@@ -1,0 +1,333 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">رنّه</string>
+
+    <!-- عام: مفردات الإجراءات الموحدة في كل الشاشات والإشعارات -->
+    <string name="action_ok">تم</string>
+    <string name="action_cancel">إلغاء</string>
+    <string name="action_back">رجوع</string>
+    <string name="action_delete">حذف</string>
+    <string name="action_edit">تعديل</string>
+    <string name="action_duplicate">نسخ</string>
+    <string name="action_complete">تم</string>
+    <string name="action_complete_short">تم</string>
+    <string name="action_snooze">تأجيل</string>
+    <string name="action_skip_once">تخطي هذه المرة</string>
+    <string name="action_end_series">إنهاء التكرار</string>
+    <string name="action_undo">تراجع</string>
+    <string name="action_new_reminder">تذكير جديد</string>
+
+    <!-- التبويبات -->
+    <string name="tab_today">اليوم</string>
+    <string name="tab_reminders">التذكيرات</string>
+    <string name="tab_settings">الإعدادات</string>
+
+    <!-- فترات اليوم -->
+    <string name="period_fajr">فجرًا</string>
+    <string name="period_morning">صباحًا</string>
+    <string name="period_noon">ظهرًا</string>
+    <string name="period_afternoon">عصرًا</string>
+    <string name="period_evening">مساءً</string>
+
+    <!-- تواريخ -->
+    <string name="date_today">اليوم</string>
+    <string name="date_tomorrow">غدًا</string>
+    <string name="date_time_at">%1$s، %2$s</string>
+
+    <!-- وصف الجدولة -->
+    <string name="schedule_once">مرة واحدة، %1$s الساعة %2$s</string>
+    <string name="schedule_once_hijri">مرة واحدة، %1$s الساعة %2$s</string>
+    <string name="schedule_daily">يوميًا، الساعة %1$s</string>
+    <string name="schedule_weekly">كل %1$s، الساعة %2$s</string>
+    <string name="schedule_monthly">يوم %1$s من كل شهر، الساعة %2$s</string>
+    <string name="schedule_monthly_clamped">يوم %1$s من كل شهر (أو آخر يوم في الشهور الأقصر)، الساعة %2$s</string>
+    <string name="schedule_hijri_monthly">يوم %1$s من كل شهر هجري، الساعة %2$s</string>
+    <string name="schedule_hijri_monthly_clamped">يوم %1$s أو آخر يوم من كل شهر هجري، الساعة %2$s</string>
+    <string name="schedule_yearly">يوم %1$s من %2$s كل سنة ميلادية، الساعة %3$s</string>
+    <string name="schedule_hijri_yearly">يوم %1$s من %2$s كل سنة هجرية، الساعة %3$s</string>
+
+    <!-- الفهم اللغوي -->
+    <string name="parse_interpretation">سيتم تذكيرك بـ«%1$s»: %2$s</string>
+    <string name="parse_confirm">أكّد وذكّرني</string>
+    <string name="parse_edit">تعديل التفاصيل</string>
+
+    <!-- الوقت النسبي -->
+    <string name="relative_now">الآن</string>
+    <string name="relative_in">بعد %s</string>
+    <string name="relative_ago">قبل %s</string>
+    <plurals name="duration_minutes">
+        <item quantity="zero">%s دقيقة</item>
+        <item quantity="one">دقيقة</item>
+        <item quantity="two">دقيقتين</item>
+        <item quantity="few">%s دقائق</item>
+        <item quantity="many">%s دقيقة</item>
+        <item quantity="other">%s دقيقة</item>
+    </plurals>
+    <plurals name="duration_hours">
+        <item quantity="zero">%s ساعة</item>
+        <item quantity="one">ساعة</item>
+        <item quantity="two">ساعتين</item>
+        <item quantity="few">%s ساعات</item>
+        <item quantity="many">%s ساعة</item>
+        <item quantity="other">%s ساعة</item>
+    </plurals>
+    <plurals name="duration_days">
+        <item quantity="zero">%s يوم</item>
+        <item quantity="one">يوم</item>
+        <item quantity="two">يومين</item>
+        <item quantity="few">%s أيام</item>
+        <item quantity="many">%s يوم</item>
+        <item quantity="other">%s يوم</item>
+    </plurals>
+
+    <!-- التصنيفات -->
+    <string name="category_work">عمل</string>
+    <string name="category_health">صحة</string>
+    <string name="category_bills">فواتير</string>
+    <string name="category_study">دراسة</string>
+    <string name="category_family">عائلة</string>
+    <string name="category_personal">شخصي</string>
+
+    <!-- الشاشة الرئيسية -->
+    <string name="greeting_morning">صباح النور 🌞</string>
+    <string name="greeting_evening">مساء النور 🌙</string>
+    <string name="home_input_hint">اكتب تذكيرك… مثل: ذكّرني بكرة الساعة ٨ بالاجتماع</string>
+    <string name="home_input_submit">فهم التذكير</string>
+    <string name="home_parse_failed">ما قدرت أفهم الوقت. جرّب مثل: «ذكّرني كل يوم الساعة ٩ ببصمة الدوام»</string>
+    <string name="home_next_reminder">الرنّة القادمة</string>
+    <string name="home_today">بقية اليوم</string>
+    <string name="home_overdue">فائتة</string>
+    <string name="home_overdue_since">كان موعده: %s</string>
+    <string name="home_templates">تذكيرات جاهزة</string>
+    <string name="home_empty_title">ما فيه ولا رنّة قادمة</string>
+    <string name="home_empty_subtitle">اكتب أول تذكير لك في الخانة فوق، أو اختر من الجاهزة تحت</string>
+    <string name="home_permissions_title">التذكيرات قد لا تصلك</string>
+    <string name="home_permissions_body">فيه أذونات ناقصة تمنع وصول التنبيهات في وقتها. اضغط للإصلاح.</string>
+
+    <!-- رسائل التراجع -->
+    <string name="undo_completed_message">تم إنجاز «%s»</string>
+    <string name="undo_skipped_message">تم تخطي هذه المرة من «%s»</string>
+    <string name="undo_series_ended_message">تم إنهاء تكرار «%s»</string>
+
+    <!-- القوالب -->
+    <string name="template_work">بصمة الدوام</string>
+    <string name="template_medicine">الدواء</string>
+    <string name="template_bill">دفع الفاتورة</string>
+    <string name="template_water">شرب الماء</string>
+    <string name="template_meeting">اجتماع</string>
+    <string name="template_study">مذاكرة</string>
+    <string name="template_call">اتصال بالأهل</string>
+
+    <!-- قائمة التذكيرات -->
+    <string name="reminders_title">التذكيرات</string>
+    <string name="reminders_search_hint">ابحث في تذكيراتك…</string>
+    <string name="reminders_filter_all">الكل</string>
+    <string name="reminders_empty_title">لا توجد تذكيرات بعد</string>
+    <string name="reminders_empty_subtitle">أضف تذكيرك الأول من شاشة اليوم أو من زر الإضافة</string>
+    <string name="reminders_empty_filtered">لا نتائج تطابق بحثك</string>
+    <string name="reminders_series_ended">أُنهي تكراره</string>
+
+    <!-- المحرر -->
+    <string name="editor_title_new">تذكير جديد</string>
+    <string name="editor_title_edit">تعديل التذكير</string>
+    <string name="editor_field_title">وش أذكّرك فيه؟</string>
+    <string name="editor_error_title">اكتب عنوان التذكير أول</string>
+    <string name="editor_section_schedule">الموعد والتكرار</string>
+    <string name="schedule_type_once">مرة واحدة</string>
+    <string name="schedule_type_daily">يوميًا</string>
+    <string name="schedule_type_weekly">أسبوعيًا</string>
+    <string name="schedule_type_monthly">شهريًا</string>
+    <string name="schedule_type_yearly">سنويًا</string>
+    <string name="editor_error_past">هذا الوقت مضى، اختر وقتًا قادمًا</string>
+    <string name="editor_error_days">اختر يومًا واحدًا على الأقل</string>
+    <string name="editor_error_hijri_range">هذا التاريخ الهجري خارج النطاق المدعوم في تقويم أم القرى</string>
+    <string name="editor_day_of_month">يوم الشهر:</string>
+    <string name="editor_day_of_month_clamp_note">في الشهور الأقصر سيصلك التذكير في آخر يوم من الشهر</string>
+    <string name="editor_hijri_month_note">بحسب تقويم أم القرى المحسوب؛ في الشهر ذي ٢٩ يومًا يكون الموعد في آخر يوم، وقد يختلف عن إعلان رؤية الهلال</string>
+
+    <!-- التقويم -->
+    <string name="editor_section_calendar">التقويم</string>
+    <string name="editor_calendar_gregorian">ميلادي</string>
+    <string name="editor_calendar_hijri">هجري</string>
+    <string name="editor_primary_date">التاريخ الأساسي: %s</string>
+    <string name="editor_equivalent_approx">الموافق تقريبًا: %s</string>
+    <string name="editor_hijri_day">اليوم</string>
+    <string name="editor_hijri_month">الشهر</string>
+    <string name="editor_hijri_year">السنة</string>
+
+    <!-- نمط التنبيه -->
+    <string name="editor_section_alert_mode">نمط التنبيه</string>
+    <string name="alert_mode_standard">تنبيه عادي</string>
+    <string name="alert_mode_alarm">منبّه مهم</string>
+    <string name="alert_mode_standard_hint">يظهر كإشعار ويمكن إكماله أو تأجيله.</string>
+    <string name="alert_mode_alarm_hint">يصدر صوتًا مستمرًا حتى توقفه أو تؤجله.</string>
+    <string name="editor_alert_suggestion_alarm">مثل هذا التذكير يناسبه «منبّه مهم» حتى لا يفوتك</string>
+    <string name="editor_alert_suggestion_learned">عادةً تختار «%s» لهذا التصنيف</string>
+    <string name="editor_alert_suggestion_apply">تطبيق الاقتراح</string>
+    <string name="editor_alarm_volume_muted">صوت المنبّه في جهازك مكتوم حاليًا، ارفعه حتى تسمع المنبّه في وقته</string>
+    <string name="editor_exact_denied_note">إذن «التنبيه في الوقت المحدد» غير مفعّل، قد يتأخر التنبيه عدة دقائق</string>
+
+    <!-- الخيارات الإضافية -->
+    <string name="editor_more_show">عرض الخيارات الإضافية</string>
+    <string name="editor_more_hide">إخفاء الخيارات الإضافية</string>
+    <string name="editor_section_category">التصنيف</string>
+    <string name="editor_section_options">خيارات التنبيه</string>
+    <string name="editor_option_priority">تذكير مهم (تنبيه أعلى)</string>
+    <string name="editor_option_sound">صوت التنبيه</string>
+    <string name="editor_option_vibration">الاهتزاز</string>
+    <string name="editor_option_gradual_volume">تصعيد الصوت تدريجيًا</string>
+    <string name="editor_option_repeat_ignored">إعادة الرنّة مرة واحدة إذا تجاهلته</string>
+    <string name="editor_option_stop_completes">عند إيقاف المنبّه اعتبره منجزًا</string>
+    <string name="editor_section_snooze">مدة التأجيل</string>
+    <string name="editor_snooze_option">%s د</string>
+    <string name="editor_field_notes">ملاحظات (اختياري)</string>
+    <string name="editor_ringtone">نغمة المنبّه</string>
+    <string name="editor_ringtone_default">نغمة الجهاز الافتراضية</string>
+    <string name="editor_ringtone_preview">تجربة النغمة</string>
+    <string name="editor_ringtone_preview_stop">إيقاف التجربة</string>
+    <string name="editor_alarm_timeout">مدة رنّ المنبّه</string>
+
+    <!-- ملخص ما قبل الحفظ -->
+    <string name="editor_summary_title">ماذا سيحدث؟</string>
+    <string name="editor_summary_alarm">سيعمل منبّه «%1$s» %2$s.</string>
+    <string name="editor_summary_standard">سيظهر تنبيه «%1$s» %2$s.</string>
+    <string name="editor_summary_actions_alarm">يمكنك إيقافه أو تأجيله %s.</string>
+    <string name="editor_summary_actions_standard">يمكنك إكماله أو تأجيله %s.</string>
+    <string name="editor_summary_hijri_basis">يعتمد الموعد على التقويم الهجري، وقد يختلف يومًا عن إعلان الرؤية.</string>
+    <string name="editor_summary_gregorian_basis">يعتمد الموعد على التقويم الميلادي.</string>
+
+    <string name="editor_save">حفظ التذكير</string>
+    <string name="editor_save_changes">حفظ التعديلات</string>
+    <string name="editor_pick_time">اختر الوقت</string>
+    <string name="delete_confirm_title">حذف التذكير؟</string>
+    <string name="delete_confirm_body">سيتم إلغاء التنبيه وحذف التذكير نهائيًا.</string>
+    <string name="end_series_confirm_title">إنهاء تكرار هذا التذكير؟</string>
+    <string name="end_series_confirm_body">لن تصلك رنّات قادمة منه، وسيبقى في قائمتك. يمكنك التراجع مباشرة بعد الإنهاء.</string>
+
+    <!-- التفاصيل -->
+    <string name="details_title">تفاصيل التذكير</string>
+    <string name="details_not_found">هذا التذكير لم يعد موجودًا</string>
+    <string name="details_high_priority">مهم</string>
+    <string name="details_next_at">التنبيه القادم: %s</string>
+    <string name="details_snoozed_until">مؤجّل حتى %s</string>
+    <string name="details_series_ended">أُنهي تكرار هذا التذكير، فعّله أو عدّله ليعمل من جديد</string>
+    <string name="details_history">سجلّ الحدوث</string>
+    <string name="details_alert_mode">نمط التنبيه: %s</string>
+    <string name="details_calendar_basis_hijri">موعده بالتقويم الهجري</string>
+
+    <!-- حالات الحدوث -->
+    <string name="status_completed">مكتمل</string>
+    <string name="status_skipped">تم تخطيه</string>
+    <string name="status_missed">فائت</string>
+
+    <!-- السجل -->
+    <string name="log_title">سجلّ التذكيرات</string>
+    <string name="log_clear">مسح السجل</string>
+    <string name="log_empty_title">السجل فاضي</string>
+    <string name="log_empty_subtitle">كل تذكير تنجزه أو تتخطاه ينحفظ هنا</string>
+    <string name="log_clear_confirm_title">مسح السجل؟</string>
+    <string name="log_clear_confirm_body">سيتم حذف كل سجلات التذكيرات السابقة.</string>
+
+    <!-- الإعدادات -->
+    <string name="settings_theme">المظهر</string>
+    <string name="settings_theme_system">تلقائي</string>
+    <string name="settings_theme_light">نهاري</string>
+    <string name="settings_theme_dark">ليلي</string>
+    <string name="settings_date_display">عرض التاريخ</string>
+    <string name="settings_date_both">هجري وميلادي</string>
+    <string name="settings_date_hijri">هجري</string>
+    <string name="settings_date_gregorian">ميلادي</string>
+    <string name="settings_hijri_adjust">تصحيح التاريخ الهجري</string>
+    <string name="settings_hijri_adjust_hint">التاريخ الهجري بتقويم أم القرى، وقد يختلف عن رؤية الهلال عندك بيوم. عدّل الفرق هنا وسينعكس على العرض وعلى مواعيد التذكيرات الهجرية نفسها.</string>
+    <string name="settings_hijri_today">تاريخ اليوم: %s</string>
+    <string name="settings_default_snooze">مدة التأجيل الافتراضية</string>
+    <string name="settings_default_snooze_hint">تُطبَّق على التذكيرات الجديدة، ويمكن تغييرها لكل تذكير</string>
+    <string name="settings_permissions">الأذونات والتنبيهات</string>
+    <string name="settings_permissions_ok">كل شيء مضبوط، والتذكيرات ستصلك في وقتها</string>
+    <string name="settings_permissions_attention">فيه أذونات تحتاج انتباهك</string>
+    <string name="settings_log_subtitle">ما أُنجز وما تُخطي وما فات</string>
+    <string name="settings_about_title">عن رنّه</string>
+    <string name="settings_about_subtitle">المطور، الإصدار، والرخصة</string>
+
+    <!-- عن التطبيق -->
+    <string name="about_title">عن رنّه</string>
+    <string name="about_tagline">تذكيرات عربية تشتغل بدون إنترنت وبدون حسابات</string>
+    <string name="about_version">الإصدار %s</string>
+    <string name="about_privacy">بياناتك تبقى على جهازك، ولا يجمع «رنّه» أي معلومات.</string>
+    <string name="about_section_credits">شكر وتقدير</string>
+    <string name="about_credit_font">الخط: IBM Plex Sans Arabic (رخصة OFL)</string>
+
+    <!-- الأذونات -->
+    <string name="permissions_title">الأذونات والتنبيهات</string>
+    <string name="permissions_intro">حتى توصلك تذكيراتك في وقتها بالضبط، يحتاج «رنّه» هذه الأذونات. بياناتك تبقى على جهازك.</string>
+    <string name="permissions_notifications_title">التنبيهات</string>
+    <string name="permissions_notifications_body">بدون هذا الإذن ما يقدر «رنّه» يعرض أي تذكير.</string>
+    <string name="permissions_exact_title">التنبيه في الوقت المحدد</string>
+    <string name="permissions_exact_body">يسمح للتذكير والمنبّه أن يعمل في دقيقته بالضبط. بدونه قد يتأخر التنبيه عدة دقائق.</string>
+    <string name="permissions_fsi_title">شاشة المنبّه الكاملة</string>
+    <string name="permissions_fsi_body">تسمح بظهور «منبّه مهم» على كامل الشاشة حتى والجهاز مقفل. بدونها يظهر إشعارًا عاديًا مع استمرار الصوت.</string>
+    <string name="permissions_battery_title">استثناء توفير البطارية</string>
+    <string name="permissions_battery_body">بعض الأجهزة توقف التطبيقات في الخلفية. الاستثناء يضمن وصول التذكيرات حتى مع توفير الطاقة.</string>
+    <string name="permissions_alarm_volume_title">صوت المنبّه مكتوم</string>
+    <string name="permissions_alarm_volume_body">ارفع صوت المنبّه من أزرار الصوت أو إعدادات الجهاز حتى تسمع «منبّه مهم» في وقته.</string>
+    <string name="permissions_notes_title">ملاحظات تهمك</string>
+    <string name="permissions_dnd_note">المنبّه المهم يستخدم صوت منبّه الجهاز: الوضع الصامت لا يكتمه، ووضع عدم الإزعاج يكتمه فقط إذا كتمت «المنبّهات» في إعدادات الجهاز.</string>
+    <string name="permissions_oem_note">بعض الشركات (مثل أوضاع توفير الطاقة الصارمة) قد توقف التنبيهات المجدولة؛ إن تأخرت رناتك فعّل الاستثناء أعلاه.</string>
+    <string name="permissions_enable">تفعيل</string>
+    <string name="permissions_open_settings">فتح الإعدادات</string>
+    <string name="permissions_granted">مفعّل</string>
+    <string name="permissions_optional">اختياري، لكنه يحسّن موثوقية التذكيرات.</string>
+
+    <!-- الترحيب -->
+    <string name="onboarding_skip">تخطي</string>
+    <string name="onboarding_1_title">أهلًا بك في «رنّه»</string>
+    <string name="onboarding_1_body">كل موعد يهمّك… توصلك رنّته في وقتها.\nتذكيرات عربية، بدون إنترنت وبدون حسابات.</string>
+    <string name="onboarding_2_title">اكتبها مثل ما تقولها</string>
+    <string name="onboarding_2_body">«رنّه» يفهم كلامك العربي ويحوّله لتذكير مجدول</string>
+    <string name="onboarding_example_1">ذكّرني كل يوم الساعة ٩ ببصمة الدوام</string>
+    <string name="onboarding_example_2">ذكّرني بكرة الساعة ٨ بالاجتماع</string>
+    <string name="onboarding_example_3">ذكّرني يوم ٢٥ من كل شهر بدفع الفاتورة</string>
+    <string name="onboarding_3_title">حتى توصلك الرنّة بوقتها</string>
+    <string name="onboarding_3_body">نحتاج إذن التنبيهات، وبإمكانك ضبط بقية الأذونات لاحقًا من الإعدادات.</string>
+    <string name="onboarding_next">التالي</string>
+    <string name="onboarding_start">فعّل التنبيهات وابدأ</string>
+
+    <!-- الودجت -->
+    <string name="widget_label">التاريخ والرنّة القادمة</string>
+    <string name="widget_description">تاريخ اليوم بالهجري والميلادي مع رنّتك القادمة، على شاشتك الرئيسية</string>
+
+    <!-- الإشعارات -->
+    <string name="channel_full_name">تنبيهات بصوت واهتزاز</string>
+    <string name="channel_sound_name">تنبيهات بصوت فقط</string>
+    <string name="channel_vibrate_name">تنبيهات باهتزاز فقط</string>
+    <string name="channel_silent_name">تنبيهات صامتة</string>
+    <string name="channel_alarm_name">المنبّهات المهمة</string>
+    <string name="channel_alarm_description">منبّه بصوت مستمر حتى توقفه أو تؤجله</string>
+    <string name="channel_description">تنبيهات التذكيرات في موعدها</string>
+    <string name="notification_due_at">موعده: %s</string>
+    <string name="notification_was_due_at">كان موعده: %s (فاتك)</string>
+    <string name="notification_complete">تم</string>
+    <string name="notification_skip">تخطي هذه المرة</string>
+    <string name="notification_stop">إيقاف</string>
+    <string name="notification_undo">تراجع</string>
+    <string name="notification_alarm_ringing">منبّه الآن، موعده %s</string>
+    <string name="notification_alarm_missed">فاتك المنبّه، كان موعده %s</string>
+    <string name="notification_followup_title">توقّف المنبّه</string>
+    <string name="notification_followup_body">هل أنجزت «%s»؟</string>
+    <string name="notification_completed_title">أُنجز «%s»</string>
+    <string name="notification_completed_body">إن كان ذلك بالخطأ فيمكنك التراجع الآن</string>
+    <plurals name="notification_snooze_minutes">
+        <item quantity="zero">تأجيل %d دقيقة</item>
+        <item quantity="one">تأجيل دقيقة</item>
+        <item quantity="two">تأجيل دقيقتين</item>
+        <item quantity="few">تأجيل %d دقائق</item>
+        <item quantity="many">تأجيل %d دقيقة</item>
+        <item quantity="other">تأجيل %d دقيقة</item>
+    </plurals>
+
+    <!-- شاشة المنبّه -->
+    <string name="alarm_stop">إيقاف</string>
+    <string name="alarm_stopped_title">توقّف المنبّه</string>
+    <string name="alarm_done_question">هل أنجزت «%s»؟</string>
+    <string name="alarm_not_yet">ليس الآن</string>
+</resources>

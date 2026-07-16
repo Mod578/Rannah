@@ -1,0 +1,21 @@
+.gradle/
+build/
+local.properties
+.idea/
+*.iml
+.kotlin/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# Packaged outputs (attach to releases instead of tracking)
+*.apk
+*.aab
+
+# Signing credentials — never commit
+*.jks
+*.keystore
+keystore.properties
+
+# Generated reports
+reports/

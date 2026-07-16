@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<lint>
+    <!-- AAPT2 auto-versions <adaptive-icon> resources to v26; renaming the folder to
+         plain mipmap-anydpi breaks resource linking, so the -v26 qualifier must stay
+         even though minSdk is 26. -->
+    <issue id="ObsoleteSdkInt">
+        <ignore path="src/main/res/mipmap-anydpi-v26" />
+    </issue>
+</lint>

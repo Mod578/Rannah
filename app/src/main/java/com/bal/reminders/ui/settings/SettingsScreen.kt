@@ -1,0 +1,242 @@
+package com.bal.reminders.ui.settings
+
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.History
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.NotificationsActive
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.bal.reminders.R
+import com.bal.reminders.data.DateDisplay
+import com.bal.reminders.data.ThemeMode
+import com.bal.reminders.format.BalFormats
+import com.bal.reminders.ui.components.SectionTitle
+import java.time.LocalDate
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsScreen(
+    onOpenPermissions: () -> Unit,
+    onOpenLog: () -> Unit,
+    onOpenAbout: () -> Unit,
+    viewModel: SettingsViewModel = hiltViewModel(),
+) {
+    val state by viewModel.state.collectAsStateWithLifecycle()
+
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text(stringResource(R.string.tab_settings)) },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background,
+                ),
+            )
+        },
+    ) { padding ->
+        Column(
+            Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            SectionTitle(stringResource(R.string.settings_theme))
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                val options = listOf(
+                    ThemeMode.SYSTEM to R.string.settings_theme_system,
+                    ThemeMode.LIGHT to R.string.settings_theme_light,
+                    ThemeMode.DARK to R.string.settings_theme_dark,
+                )
+                options.forEachIndexed { index, (mode, labelRes) ->
+                    SegmentedButton(
+                        selected = state.themeMode == mode,
+                        onClick = { viewModel.setThemeMode(mode) },
+                        shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                        label = { Text(stringResource(labelRes)) },
+                    )
+                }
+            }
+
+            SectionTitle(stringResource(R.string.settings_date_display))
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                val options = listOf(
+                    DateDisplay.BOTH to R.string.settings_date_both,
+                    DateDisplay.HIJRI to R.string.settings_date_hijri,
+                    DateDisplay.GREGORIAN to R.string.settings_date_gregorian,
+                )
+                options.forEachIndexed { index, (display, labelRes) ->
+                    SegmentedButton(
+                        selected = state.dateDisplay == display,
+                        onClick = { viewModel.setDateDisplay(display) },
+                        shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                        label = { Text(stringResource(labelRes)) },
+                    )
+                }
+            }
+            if (state.dateDisplay != DateDisplay.GREGORIAN) {
+                SectionTitle(stringResource(R.string.settings_hijri_adjust))
+                SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                    val options = listOf(-2, -1, 0, 1, 2)
+                    options.forEachIndexed { index, days ->
+                        SegmentedButton(
+                            selected = state.hijriAdjustmentDays == days,
+                            onClick = { viewModel.setHijriAdjustment(days) },
+                            shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                            label = { Text(adjustmentLabel(days)) },
+                        )
+                    }
+                }
+                Text(
+                    stringResource(R.string.settings_hijri_adjust_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+                val today = LocalDate.now()
+                val todayHijri = BalFormats.hijriDate(today, state.hijriAdjustmentDays)
+                if (todayHijri != null) {
+                    Text(
+                        stringResource(
+                            R.string.settings_hijri_today,
+                            "${BalFormats.weekdayName(today)} $todayHijri",
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.secondary,
+                    )
+                }
+            }
+
+            SectionTitle(stringResource(R.string.settings_default_snooze))
+            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+                val options = listOf(5, 10, 15, 30)
+                options.forEachIndexed { index, minutes ->
+                    SegmentedButton(
+                        selected = state.defaultSnoozeMinutes == minutes,
+                        onClick = { viewModel.setDefaultSnooze(minutes) },
+                        shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
+                        label = {
+                            Text(
+                                stringResource(
+                                    R.string.editor_snooze_option,
+                                    BalFormats.arabicDigits(minutes.toString()),
+                                ),
+                            )
+                        },
+                    )
+                }
+            }
+            Text(
+                stringResource(R.string.settings_default_snooze_hint),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+
+            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+
+            SettingsLink(
+                icon = { Icon(Icons.Rounded.NotificationsActive, contentDescription = null) },
+                title = stringResource(R.string.settings_permissions),
+                subtitle = stringResource(
+                    if (state.permissionsOk) {
+                        R.string.settings_permissions_ok
+                    } else {
+                        R.string.settings_permissions_attention
+                    },
+                ),
+                warn = !state.permissionsOk,
+                onClick = onOpenPermissions,
+            )
+            SettingsLink(
+                icon = { Icon(Icons.Rounded.History, contentDescription = null) },
+                title = stringResource(R.string.log_title),
+                subtitle = stringResource(R.string.settings_log_subtitle),
+                onClick = onOpenLog,
+            )
+
+            HorizontalDivider(Modifier.padding(vertical = 8.dp))
+
+            SettingsLink(
+                icon = { Icon(Icons.Rounded.Info, contentDescription = null) },
+                title = stringResource(R.string.settings_about_title),
+                subtitle = stringResource(R.string.settings_about_subtitle),
+                onClick = onOpenAbout,
+            )
+
+            Spacer(Modifier.height(24.dp))
+        }
+    }
+}
+
+/** «-٢» / «٠» / «+١» for the Hijri sighting adjustment buttons. */
+private fun adjustmentLabel(days: Int): String = when {
+    days > 0 -> "+" + BalFormats.arabicDigits(days.toString())
+    days < 0 -> "-" + BalFormats.arabicDigits((-days).toString())
+    else -> BalFormats.arabicDigits("0")
+}
+
+@Composable
+private fun SettingsLink(
+    icon: @Composable () -> Unit,
+    title: String,
+    subtitle: String,
+    onClick: () -> Unit,
+    warn: Boolean = false,
+) {
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(vertical = 12.dp, horizontal = 4.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+    ) {
+        icon()
+        Column(Modifier.weight(1f)) {
+            Text(title, style = MaterialTheme.typography.titleSmall)
+            Text(
+                subtitle,
+                style = MaterialTheme.typography.bodySmall,
+                color = if (warn) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+            )
+        }
+        Icon(
+            Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
