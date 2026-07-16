@@ -1,35 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- 288dp is the splash-screen icon spec size (it is masked, not rasterized full-size). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    tools:ignore="VectorRaster"
-    android:width="288dp"
-    android:height="288dp"
-    android:viewportWidth="288"
-    android:viewportHeight="288">
-    <group
-        android:scaleX="4"
-        android:scaleY="4"
-        android:translateX="96"
-        android:translateY="93">
-        <path
-            android:pathData="M12,3.4 C8.8,3.4 6.9,5.8 6.9,9.1 L6.9,11.2 C6.9,13.1 6.1,14.5 4.9,15.7 C4.4,16.2 4.7,17 5.4,17 L18.6,17 C19.3,17 19.6,16.2 19.1,15.7 C17.9,14.5 17.1,13.1 17.1,11.2 L17.1,9.1 C17.1,5.8 15.2,3.4 12,3.4 Z"
-            android:strokeColor="#EFE9DD"
-            android:strokeWidth="1.9"
-            android:strokeLineCap="round"
-            android:strokeLineJoin="round" />
-        <path
-            android:pathData="M3.6,8.8 C3.6,6.8 4.4,5.1 5.8,3.8"
-            android:strokeColor="#EFE9DD"
-            android:strokeWidth="1.6"
-            android:strokeLineCap="round" />
-        <path
-            android:pathData="M20.4,8.8 C20.4,6.8 19.6,5.1 18.2,3.8"
-            android:strokeColor="#EFE9DD"
-            android:strokeWidth="1.6"
-            android:strokeLineCap="round" />
-        <path
-            android:fillColor="#E0A458"
-            android:pathData="M12,20.3 m-1.9,0 a1.9,1.9 0 1,0 3.8,0 a1.9,1.9 0 1,0 -3.8,0" />
+    xmlns:tools="http://schemas.android.com/tools" tools:ignore="VectorRaster"
+    android:width="288dp" android:height="288dp"
+    android:viewportWidth="288" android:viewportHeight="288">
+    <group android:scaleX="4" android:scaleY="4" android:translateX="96" android:translateY="92">
+        <!-- الشُرفات: إيقاع الجدار النجدي، والوسطى هي «الآن» -->
+        <path android:pathData="M3.3,15.5 L3.3,6.5 L7.5,6.5 L7.5,15.5 Z" android:fillColor="#EFE9DD" />
+        <path android:pathData="M9.9,15.5 L9.9,6.5 L14.1,6.5 L14.1,15.5 Z" android:fillColor="#E0A458" />
+        <path android:pathData="M16.5,15.5 L16.5,6.5 L20.7,6.5 L20.7,15.5 Z" android:fillColor="#EFE9DD" />
+        <!-- الجدار -->
+        <path android:pathData="M3,15.5 L21,15.5 L21,19.5 L3,19.5 Z" android:fillColor="#EFE9DD" />
     </group>
 </vector>

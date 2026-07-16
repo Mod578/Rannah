@@ -58,7 +58,6 @@ data class Reminder(
      * Alarm mode: the user explicitly opted that stopping the sound also
      * completes the occurrence. Off by default: إيقاف is never تم unless asked.
      */
-    val stopMarksCompleted: Boolean = false,
     /**
      * «المتابعة حتى الإنجاز»: opt-in, per reminder, never a default.
      *

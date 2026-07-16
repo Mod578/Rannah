@@ -118,7 +118,7 @@ private fun WhatSheet(state: EditorState, viewModel: EditorViewModel) {
         modifier = Modifier
             .fillMaxWidth()
             .focusRequester(focus),
-        label = { Text(stringResource(R.string.editor_field_title)) },
+        label = { Text(stringResource(R.string.editor_sheet_what)) },
         isError = state.titleError,
         supportingText = if (state.titleError) {
             { Text(stringResource(R.string.editor_error_title)) }

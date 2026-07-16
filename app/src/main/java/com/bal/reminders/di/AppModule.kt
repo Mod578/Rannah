@@ -45,7 +45,11 @@ abstract class AppModule {
         @Singleton
         fun database(@ApplicationContext context: Context): BalDatabase =
             Room.databaseBuilder(context, BalDatabase::class.java, "bal.db")
-                .addMigrations(BalDatabase.MIGRATION_1_2, BalDatabase.MIGRATION_2_3)
+                .addMigrations(
+                    BalDatabase.MIGRATION_1_2,
+                    BalDatabase.MIGRATION_2_3,
+                    BalDatabase.MIGRATION_3_4,
+                )
                 .build()
 
         @Provides

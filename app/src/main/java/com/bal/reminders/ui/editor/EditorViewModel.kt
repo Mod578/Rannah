@@ -72,7 +72,6 @@ data class EditorState(
     val alarmTimeoutMinutes: Int = Reminder.DEFAULT_ALARM_TIMEOUT_MINUTES,
     val alarmGradualVolume: Boolean = true,
     val alarmRepeatIfIgnored: Boolean = false,
-    val stopMarksCompleted: Boolean = false,
     val followUntilComplete: Boolean = false,
     val followUpIntervalMinutes: Int = Reminder.DEFAULT_FOLLOW_UP_INTERVAL_MINUTES,
     val followUpMaxRepeats: Int = Reminder.DEFAULT_FOLLOW_UP_MAX_REPEATS,
@@ -97,9 +96,6 @@ data class EditorState(
 
     /** Total minutes the follow-up may run, shown before the user commits to it. */
     val followUpWindowMinutes: Int get() = followUpIntervalMinutes * followUpMaxRepeats
-
-    /** «إيقاف الصوت» and «تم الإنجاز» cannot both be true; the user picks one. */
-    val stopCanMarkCompleted: Boolean get() = !followUntilComplete
 
     val showSuggestion: Boolean
         get() = suggestedAlertMode != null && suggestedAlertMode != alertMode && !suggestionDismissed
@@ -224,7 +220,6 @@ class EditorViewModel @Inject constructor(
                 alarmTimeoutMinutes = reminder.alarmTimeoutMinutes,
                 alarmGradualVolume = reminder.alarmGradualVolume,
                 alarmRepeatIfIgnored = reminder.alarmRepeatIfIgnored,
-                stopMarksCompleted = reminder.stopMarksCompleted,
                 followUntilComplete = reminder.followUntilComplete,
                 followUpIntervalMinutes = reminder.followUpIntervalMinutes,
                 followUpMaxRepeats = reminder.followUpMaxRepeats,
@@ -454,14 +449,13 @@ class EditorViewModel @Inject constructor(
     fun setGradualVolume(v: Boolean) = _state.update { it.copy(alarmGradualVolume = v) }
     fun setRepeatIfIgnored(v: Boolean) = _state.update { it.copy(alarmRepeatIfIgnored = v) }
 
-    fun setStopMarksCompleted(v: Boolean) = _state.update { it.copy(stopMarksCompleted = v) }
 
     /**
      * Turning the follow-up on retires «إيقاف الصوت يعني الإنجاز»: the whole
      * point of following up is that silencing an alert proves nothing.
      */
     fun setFollowUntilComplete(v: Boolean) = _state.update {
-        it.copy(followUntilComplete = v, stopMarksCompleted = if (v) false else it.stopMarksCompleted)
+        it.copy(followUntilComplete = v)
     }
 
     fun setFollowUpInterval(v: Int) = _state.update { it.copy(followUpIntervalMinutes = v.coerceIn(1, 60)) }
@@ -573,7 +567,6 @@ class EditorViewModel @Inject constructor(
                     alarmRepeatIfIgnored = s.alarmRepeatIfIgnored,
                     // Following until completed and "stop means done" are
                     // opposite answers to the same question; never save both.
-                    stopMarksCompleted = s.stopMarksCompleted && !s.followUntilComplete,
                     followUntilComplete = s.followUntilComplete,
                     followUpIntervalMinutes = s.followUpIntervalMinutes,
                     followUpMaxRepeats = s.followUpMaxRepeats,

@@ -548,13 +548,15 @@ class ReminderSchedulerTest {
     }
 
     @Test
-    fun `stopMarksCompleted makes stop complete explicitly`() = runTest {
-        val id = scheduler.save(alarmDaily(LocalTime.of(21, 0)).copy(stopMarksCompleted = true))
+    fun `stopping the sound never records a completion`() = runTest {
+        val id = scheduler.save(alarmDaily(LocalTime.of(21, 0)))
         val occurrence = repository.getById(id)!!.nextTriggerAt!!
         scheduler.onAlarmFired(id)
         scheduler.stopAlarm(id, occurrence, askFollowUp = true)
-        assertEquals(OccurrenceStatus.COMPLETED, repository.records.single().status)
-        assertEquals(0, notifications.followUps.size)
+        // «إيقاف الصوت» is an event about a sound, not a claim about the world.
+        // There is no configuration that makes silence mean «تم الإنجاز».
+        assertTrue(repository.records.none { it.status == OccurrenceStatus.COMPLETED })
+        assertEquals(1, notifications.followUps.size)
     }
 
     @Test
@@ -732,15 +734,14 @@ class ReminderSchedulerTest {
     }
 
     @Test
-    fun `stop marks completed still wins when the user explicitly asked for it`() = runTest {
-        val id = scheduler.save(
-            clockIn().copy(followUntilComplete = false, stopMarksCompleted = true),
-        )
+    fun `stopping a reminder without follow-up leaves the occurrence unresolved`() = runTest {
+        val id = scheduler.save(clockIn().copy(followUntilComplete = false))
         val occurrence = repository.getById(id)!!.nextTriggerAt!!
 
         scheduler.stopAlarm(id, occurrence, askFollowUp = true)
 
-        assertTrue(repository.hasRecord(id, occurrence, OccurrenceStatus.COMPLETED))
+        // بدون متابعة means رَنّة stops asking — not that the task was done.
+        assertFalse(repository.hasRecord(id, occurrence, OccurrenceStatus.COMPLETED))
         assertTrue(repository.pending.isEmpty())
     }
 

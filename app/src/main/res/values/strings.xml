@@ -3,19 +3,20 @@
     <string name="app_name">رَنّة</string>
 
     <!-- عام: مفردات الإجراءات الموحدة في كل الشاشات والإشعارات -->
-    <string name="action_ok">تم</string>
+    <string name="action_ok">تأكيد</string>
     <string name="action_cancel">إلغاء</string>
     <string name="action_back">رجوع</string>
     <string name="action_delete">حذف</string>
     <string name="action_edit">تعديل</string>
     <string name="action_duplicate">نسخ</string>
-    <string name="action_complete">تم</string>
-    <string name="action_complete_short">تم</string>
+    <string name="action_complete">تم الإنجاز</string>
     <string name="action_snooze">تأجيل</string>
     <string name="action_skip_once">تخطي هذه المرة</string>
     <string name="action_end_series">إنهاء التكرار</string>
     <string name="action_undo">تراجع</string>
     <string name="action_new_reminder">تذكير جديد</string>
+    <!-- رفض اقتراح لا يُسمّى «إلغاء»: «إلغاء» داخل المحرر تُقرأ إلغاءً للتذكير كله -->
+    <string name="action_not_now">ليس الآن</string>
 
     <!-- التبويبات -->
     <string name="tab_today">اليوم</string>
@@ -95,12 +96,12 @@
     <!-- بلا إيموجي: الرمز يأتي من طبقة الأيقونات نفسها -->
     <string name="greeting_morning">صباح النور</string>
     <string name="greeting_evening">مساء النور</string>
-    <string name="home_input_hint">اكتب تذكيرك… مثل: ذكّرني بكرة الساعة ٨ بالاجتماع</string>
+    <string name="home_input_hint">اكتب تذكيرك… مثل: ذكّرني غدًا الساعة ٨ بالاجتماع</string>
     <string name="home_input_submit">فهم التذكير</string>
-    <string name="home_parse_failed">ما قدرت أفهم الوقت. جرّب مثل: «ذكّرني كل يوم الساعة ٩ ببصمة الدوام»</string>
+    <string name="home_parse_failed">لم أفهم الموعد. جرّب مثل: «ذكّرني كل يوم الساعة ٩ ببصمة الدوام»</string>
     <string name="home_next_reminder">الرنّة القادمة</string>
     <string name="home_today">بقية اليوم</string>
-    <string name="home_overdue">فائتة</string>
+    <string name="home_overdue">فات الموعد</string>
     <string name="home_overdue_since">كان موعده: %s</string>
     <string name="home_templates">تذكيرات جاهزة</string>
     <string name="home_empty_title">لا توجد تذكيرات بعد</string>
@@ -158,7 +159,6 @@
     <!-- المحرر -->
     <string name="editor_title_new">تذكير جديد</string>
     <string name="editor_title_edit">تعديل التذكير</string>
-    <string name="editor_field_title">وش أذكّرك فيه؟</string>
     <string name="editor_error_title">اكتب عنوان التذكير أول</string>
     <string name="schedule_type_once">مرة واحدة</string>
     <string name="schedule_type_daily">يوميًا</string>
@@ -187,6 +187,7 @@
     <string name="alert_mode_alarm">منبّه مهم</string>
     <string name="alert_mode_standard_hint">يظهر كإشعار ويمكن إكماله أو تأجيله.</string>
     <string name="alert_mode_alarm_hint">يصدر صوتًا مستمرًا حتى توقفه أو تؤجله.</string>
+    <string name="editor_suggestion_title">اقتراح من رَنّة</string>
     <string name="editor_alert_suggestion_alarm">مثل هذا التذكير يناسبه «منبّه مهم» حتى لا يفوتك</string>
     <string name="editor_alert_suggestion_learned">عادةً تختار «%s» لهذا التصنيف</string>
     <string name="editor_alert_suggestion_apply">تطبيق الاقتراح</string>
@@ -208,13 +209,16 @@
     <string name="editor_sheet_alert">كيف تنبّهك رَنّة؟</string>
     <string name="editor_sheet_follow">ماذا يحدث بعد التنبيه؟</string>
     <string name="editor_sheet_advanced">تخصيص التنبيه</string>
-    <string name="editor_sheet_done">تم</string>
+    <string name="editor_sheet_done">تأكيد</string>
 
     <!-- المتابعة حتى الإنجاز -->
     <string name="editor_follow_title">المتابعة حتى الإنجاز</string>
     <string name="editor_follow_body">إيقاف الصوت لا يعني أنك أنجزت المهمة. مع المتابعة، تسألك رَنّة بعد التنبيه حتى تؤكد، وإن لم تجب تُسجَّل المرة كفائتة ولا تُحسب منجزة.</string>
-    <string name="editor_follow_off">تنتهي عند التنبيه</string>
-    <string name="editor_follow_on">حتى أؤكد الإنجاز</string>
+    <string name="editor_follow_off">بدون متابعة</string>
+    <string name="editor_follow_on">متابعة حتى الإنجاز</string>
+    <!-- الاختيار يُشرح بأثره على المستخدم، لا بحالاته الداخلية -->
+    <string name="editor_follow_off_body">بعد التنبيه لن تسألك رَنّة عن الإنجاز.</string>
+    <string name="editor_follow_on_body">تستمر رَنّة في تذكيرك حتى تؤكد تنفيذ المهمة.</string>
     <string name="editor_follow_interval">كل كم دقيقة تسأل؟</string>
     <string name="editor_follow_repeats">كم مرة تسأل؟</string>
     <string name="editor_follow_window">تسأل رَنّة %1$s، وتتوقف بعد %2$s ثم تسجّل المرة كفائتة.</string>
@@ -233,14 +237,12 @@
     </plurals>
     <string name="editor_section_category">التصنيف</string>
     <string name="editor_section_options">خيارات التنبيه</string>
-    <string name="editor_option_priority">تذكير مهم (تنبيه أعلى)</string>
     <string name="editor_option_sound">صوت التنبيه</string>
     <string name="editor_option_vibration">الاهتزاز</string>
     <string name="editor_option_gradual_volume">تصعيد الصوت تدريجيًا</string>
     <string name="editor_option_repeat_ignored">إعادة الرنّة مرة واحدة إذا تجاهلته</string>
-    <string name="editor_option_stop_completes">عند إيقاف المنبّه اعتبره منجزًا</string>
     <string name="editor_section_snooze">مدة التأجيل</string>
-    <string name="editor_snooze_option">%s د</string>
+    <string name="editor_snooze_option">%s دقيقة</string>
     <string name="editor_field_notes">ملاحظات (اختياري)</string>
     <string name="editor_ringtone">نغمة المنبّه</string>
     <string name="editor_ringtone_default">نغمة الجهاز الافتراضية</string>
@@ -271,7 +273,7 @@
     <string name="details_not_found">هذا التذكير لم يعد موجودًا</string>
     <string name="details_high_priority">مهم</string>
     <string name="details_next_at">التنبيه القادم: %s</string>
-    <string name="details_snoozed_until">مؤجّل حتى %s</string>
+    <string name="details_snoozed_until">مؤجل حتى %s</string>
     <string name="details_series_ended">أُنهي تكرار هذا التذكير، فعّله أو عدّله ليعمل من جديد</string>
     <string name="details_history">سجلّ الحدوث</string>
     <string name="details_alert_mode">نمط التنبيه: %s</string>
@@ -283,26 +285,31 @@
     <string name="reminder_state_paused">متوقف مؤقتًا</string>
     <string name="reminder_state_awaiting">بانتظار تأكيدك</string>
     <string name="reminder_state_snoozed_until">مؤجل حتى %s</string>
-    <string name="reminder_state_overdue">فات موعده</string>
-    <string name="reminder_state_done">اكتمل</string>
+    <string name="reminder_state_overdue">فات الموعد</string>
+    <string name="reminder_state_done">تم الإنجاز</string>
     <string name="reminder_state_series_ended">انتهى التكرار</string>
     <string name="reminder_state_follow">يتابعك حتى الإنجاز</string>
     <string name="reminder_toggle_description">تفعيل التذكير</string>
 
-    <string name="status_completed">اكتمل</string>
+    <string name="status_completed">تم الإنجاز</string>
     <string name="status_skipped">تخطيته</string>
     <string name="status_ignored">تجاهلته</string>
-    <string name="status_missed">فات موعده</string>
+    <string name="status_missed">فات الموعد</string>
 
     <!-- السجل -->
     <string name="log_title">سجلّ التذكيرات</string>
     <string name="log_clear">مسح السجل</string>
-    <string name="log_empty_title">السجل فاضي</string>
-    <string name="log_empty_subtitle">كل تذكير تنجزه أو تتخطاه ينحفظ هنا</string>
+    <string name="log_empty_title">السجل فارغ</string>
+    <string name="log_empty_subtitle">كل تذكير تنجزه أو تتخطاه يُحفظ هنا</string>
     <string name="log_clear_confirm_title">مسح السجل؟</string>
     <string name="log_clear_confirm_body">سيتم حذف كل سجلات التذكيرات السابقة.</string>
 
-    <!-- الإعدادات -->
+    <!-- الإعدادات: مجموعات مسمّاة، لا قائمة مسطّحة -->
+    <string name="settings_group_appearance">المظهر</string>
+    <string name="settings_group_calendar">التاريخ والتقويم</string>
+    <string name="settings_group_alerts">التنبيهات والأذونات</string>
+    <string name="settings_group_log">سجل التذكيرات</string>
+    <string name="settings_group_about">عن رَنّة</string>
     <string name="settings_theme">المظهر</string>
     <string name="settings_theme_system">تلقائي</string>
     <string name="settings_theme_light">نهاري</string>
@@ -317,15 +324,15 @@
     <string name="settings_default_snooze">مدة التأجيل الافتراضية</string>
     <string name="settings_default_snooze_hint">تُطبَّق على التذكيرات الجديدة، ويمكن تغييرها لكل تذكير</string>
     <string name="settings_permissions">الأذونات والتنبيهات</string>
-    <string name="settings_permissions_ok">كل شيء مضبوط، والتذكيرات ستصلك في وقتها</string>
-    <string name="settings_permissions_attention">فيه أذونات تحتاج انتباهك</string>
-    <string name="settings_log_subtitle">ما أُنجز وما تُخطي وما فات</string>
+    <string name="settings_permissions_ok">كل شيء جاهز، وتذكيراتك ستصلك في وقتها</string>
+    <string name="settings_permissions_attention">هناك أذونات تحتاج انتباهك</string>
+    <string name="settings_log_subtitle">ما أنجزته وما تخطيته وما فات موعده</string>
     <string name="settings_about_title">عن رَنّة</string>
     <string name="settings_about_subtitle">المطور، الإصدار، والرخصة</string>
 
     <!-- عن التطبيق -->
     <string name="about_title">عن رَنّة</string>
-    <string name="about_tagline">تذكيرات عربية تشتغل بدون إنترنت وبدون حسابات</string>
+    <string name="about_tagline">لكل موعد رَنّة</string>
     <string name="about_version">الإصدار %s</string>
 
     <!-- عن رَنّة: نص المنتج -->
@@ -363,9 +370,9 @@
 
     <!-- الأذونات -->
     <string name="permissions_title">الأذونات والتنبيهات</string>
-    <string name="permissions_intro">حتى توصلك تذكيراتك في وقتها بالضبط، يحتاج «رَنّة» هذه الأذونات. لا يطلب «رَنّة» إذن الإنترنت، ولا يرسل عنك شيئًا.</string>
+    <string name="permissions_intro">حتى تصلك تذكيراتك في وقتها بالضبط، تحتاج رَنّة إلى هذه الأذونات. لا تطلب رَنّة إذن الإنترنت، ولا ترسل عنك شيئًا.</string>
     <string name="permissions_notifications_title">التنبيهات</string>
-    <string name="permissions_notifications_body">بدون هذا الإذن ما يقدر «رَنّة» يعرض أي تذكير.</string>
+    <string name="permissions_notifications_body">بدون هذا الإذن لا تستطيع رَنّة عرض أي تذكير.</string>
     <string name="permissions_exact_title">التنبيه في الوقت المحدد</string>
     <string name="permissions_exact_body">يسمح للتذكير والمنبّه أن يعمل في دقيقته بالضبط. بدونه قد يتأخر التنبيه عدة دقائق.</string>
     <string name="permissions_fsi_title">شاشة المنبّه الكاملة</string>
@@ -387,9 +394,9 @@
     <string name="onboarding_1_title">أهلًا بك في «رَنّة»</string>
     <string name="onboarding_1_body">كل موعد يهمّك… توصلك رنّته في وقتها.\nتذكيرات عربية، بدون إنترنت وبدون حسابات.</string>
     <string name="onboarding_2_title">اكتبها مثل ما تقولها</string>
-    <string name="onboarding_2_body">«رَنّة» يفهم كلامك العربي ويحوّله لتذكير مجدول</string>
+    <string name="onboarding_2_body">تفهم رَنّة كلامك العربي وتحوّله إلى تذكير مجدول</string>
     <string name="onboarding_example_1">ذكّرني كل يوم الساعة ٩ ببصمة الدوام</string>
-    <string name="onboarding_example_2">ذكّرني بكرة الساعة ٨ بالاجتماع</string>
+    <string name="onboarding_example_2">ذكّرني غدًا الساعة ٨ بالاجتماع</string>
     <string name="onboarding_example_3">ذكّرني يوم ٢٥ من كل شهر بدفع الفاتورة</string>
     <string name="onboarding_3_title">حتى توصلك الرنّة بوقتها</string>
     <string name="onboarding_3_body">نحتاج إذن التنبيهات، وبإمكانك ضبط بقية الأذونات لاحقًا من الإعدادات.</string>
@@ -434,7 +441,7 @@
     <string name="notification_was_due_at">كان موعده: %s (فاتك)</string>
     <string name="notification_complete">تم الإنجاز</string>
     <string name="notification_skip">تخطي هذه المرة</string>
-    <string name="notification_stop">إيقاف</string>
+    <string name="notification_stop">إيقاف الصوت</string>
     <string name="notification_undo">تراجع</string>
     <string name="notification_alarm_ringing">منبّه الآن، موعده %s</string>
     <string name="notification_alarm_missed">فاتك المنبّه، كان موعده %s</string>
@@ -474,8 +481,15 @@
     </plurals>
 
     <!-- شاشة المنبّه -->
-    <string name="alarm_stop">إيقاف</string>
+    <string name="alarm_stop">إيقاف الصوت فقط</string>
     <string name="alarm_stopped_title">توقّف المنبّه</string>
     <string name="alarm_done_question">هل أنجزت «%s»؟</string>
     <string name="alarm_not_yet">ليس الآن</string>
+    <string name="alarm_ringing_now">المنبّه يرنّ الآن</string>
+    <!-- السحب للتأكيد: النص نفسه هو عبارة الإنجاز، فيقول المستخدم ما فعله لا «تم» مجردة -->
+    <string name="alarm_slide_to_confirm">اسحب للتأكيد: %s</string>
+    <string name="alarm_slide_hint">اسحب الدائرة إلى آخر الشريط لتأكيد الإنجاز</string>
+    <string name="alarm_snooze_change">تغيير مدة التأجيل</string>
+    <string name="alarm_stop_explains_follow">إيقاف الصوت لا يُسجَّل إنجازًا، وستسألك رَنّة بعده.</string>
+    <string name="alarm_stop_explains_none">إيقاف الصوت ينهي هذا التنبيه دون تسجيل إنجاز.</string>
 </resources>

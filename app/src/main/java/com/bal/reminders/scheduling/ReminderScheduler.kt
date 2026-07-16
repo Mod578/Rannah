@@ -21,12 +21,11 @@ import javax.inject.Singleton
  * source of truth; alarms are always derivable from it, which is what makes
  * reboots, process death and time changes safe.
  *
- * Action semantics (labels are canonical across app and notifications):
- * - تم [complete]: records this occurrence as done; never touches the series.
+ * Action semantics (labels are canonical across app, notifications and alarm):
+ * - تم الإنجاز [complete]: records this occurrence as done; never touches the series.
  * - تأجيل [snooze]: moves this occurrence forward; repeatable.
  * - تخطي هذه المرة [skipOccurrence]: records this occurrence as skipped.
- * - إيقاف [stopAlarm]: silences an alarm; NOT completion unless the reminder
- *   explicitly opted in via stopMarksCompleted.
+ * - إيقاف الصوت [stopAlarm]: silences an alarm. Never completion, ever.
  * - إنهاء التكرار [endSeries]: stops all future occurrences; series-wide.
  *
  * Every action is idempotent: occurrence records are unique per
@@ -226,12 +225,11 @@ class ReminderScheduler @Inject constructor(
     }
 
     /**
-     * Silences a ringing alarm («إيقاف»). Stopping the sound is not completing
-     * the obligation. Which of the three things happens next is decided by the
-     * reminder alone, never by the app guessing:
-     *  - stopMarksCompleted: the user asked for stop to mean done, so it does.
+     * Silences a ringing alarm («إيقاف الصوت»). Stopping a sound stops a sound —
+     * it never records that the obligation was met, whatever the reminder is
+     * configured to do. What follows is decided by the reminder alone:
      *  - followUntilComplete: the occurrence moves to «بانتظار تأكيدك».
-     *  - neither: a single quiet ask, and the occurrence stays unresolved.
+     *  - otherwise: a single quiet ask, and the occurrence stays unresolved.
      */
     suspend fun stopAlarm(
         reminderId: Long,
@@ -242,7 +240,6 @@ class ReminderScheduler @Inject constructor(
         alarmGateway.cancelReAlert(reminderId)
         notifications.dismiss(reminderId)
         when {
-            reminder.stopMarksCompleted -> complete(reminderId, occurrenceAt)
             reminder.followUntilComplete -> openFollowUp(reminder, occurrenceAt)
             askFollowUp && !isResolved(reminderId, occurrenceAt) ->
                 notifications.showStopFollowUp(reminder, occurrenceAt)

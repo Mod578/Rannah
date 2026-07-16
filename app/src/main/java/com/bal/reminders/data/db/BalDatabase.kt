@@ -11,7 +11,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         OccurrenceRecordEntity::class,
         PendingConfirmationEntity::class,
     ],
-    version = 3,
+    version = 4,
     exportSchema = true,
 )
 abstract class BalDatabase : RoomDatabase() {
@@ -90,6 +90,67 @@ abstract class BalDatabase : RoomDatabase() {
                         "`index_pending_confirmations_reminderId_occurrenceAtMillis` " +
                         "ON `pending_confirmations` (`reminderId`, `occurrenceAtMillis`)",
                 )
+            }
+        }
+
+        /**
+         * v4: drops `stopMarksCompleted`.
+         *
+         * The column let «إيقاف الصوت» record a completion. That made one verb
+         * mean two things — silence a ringer, and assert that an obligation in
+         * the world was met — and which one it meant depended on a switch buried
+         * in customization. رَنّة now has exactly one rule: stopping a sound
+         * stops a sound. Completion is always its own deliberate act.
+         *
+         * SQLite before 3.35 has no DROP COLUMN, and minSdk 26 ships older
+         * engines, so the table is recreated. Every surviving column is copied
+         * by name; no reminder loses a field it had.
+         */
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `reminders_new` (" +
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`title` TEXT NOT NULL, `notes` TEXT, `categoryId` TEXT NOT NULL, " +
+                        "`priority` INTEGER NOT NULL, `recurrenceType` TEXT NOT NULL, " +
+                        "`calendar` TEXT NOT NULL DEFAULT 'gregorian', " +
+                        "`timeMinutes` INTEGER NOT NULL, `date` TEXT, `year` INTEGER, " +
+                        "`month` INTEGER, `daysOfWeek` INTEGER NOT NULL, `dayOfMonth` INTEGER, " +
+                        "`enabled` INTEGER NOT NULL, " +
+                        "`alertMode` TEXT NOT NULL DEFAULT 'standard', " +
+                        "`soundEnabled` INTEGER NOT NULL, `vibrationEnabled` INTEGER NOT NULL, " +
+                        "`snoozeMinutes` INTEGER NOT NULL, `ringtoneUri` TEXT, " +
+                        "`alarmTimeoutMinutes` INTEGER NOT NULL DEFAULT 3, " +
+                        "`alarmGradualVolume` INTEGER NOT NULL DEFAULT 1, " +
+                        "`alarmRepeatIfIgnored` INTEGER NOT NULL DEFAULT 0, " +
+                        "`followUntilComplete` INTEGER NOT NULL DEFAULT 0, " +
+                        "`followUpIntervalMinutes` INTEGER NOT NULL DEFAULT 5, " +
+                        "`followUpMaxRepeats` INTEGER NOT NULL DEFAULT 3, " +
+                        "`completionLabel` TEXT DEFAULT NULL, " +
+                        "`snoozedUntilMillis` INTEGER, `nextTriggerAtMillis` INTEGER, " +
+                        "`createdAtMillis` INTEGER NOT NULL, `completedAtMillis` INTEGER)",
+                )
+                db.execSQL(
+                    "INSERT INTO `reminders_new` (" +
+                        "`id`, `title`, `notes`, `categoryId`, `priority`, `recurrenceType`, " +
+                        "`calendar`, `timeMinutes`, `date`, `year`, `month`, `daysOfWeek`, " +
+                        "`dayOfMonth`, `enabled`, `alertMode`, `soundEnabled`, " +
+                        "`vibrationEnabled`, `snoozeMinutes`, `ringtoneUri`, " +
+                        "`alarmTimeoutMinutes`, `alarmGradualVolume`, `alarmRepeatIfIgnored`, " +
+                        "`followUntilComplete`, `followUpIntervalMinutes`, `followUpMaxRepeats`, " +
+                        "`completionLabel`, `snoozedUntilMillis`, `nextTriggerAtMillis`, " +
+                        "`createdAtMillis`, `completedAtMillis`) " +
+                        "SELECT `id`, `title`, `notes`, `categoryId`, `priority`, " +
+                        "`recurrenceType`, `calendar`, `timeMinutes`, `date`, `year`, `month`, " +
+                        "`daysOfWeek`, `dayOfMonth`, `enabled`, `alertMode`, `soundEnabled`, " +
+                        "`vibrationEnabled`, `snoozeMinutes`, `ringtoneUri`, " +
+                        "`alarmTimeoutMinutes`, `alarmGradualVolume`, `alarmRepeatIfIgnored`, " +
+                        "`followUntilComplete`, `followUpIntervalMinutes`, `followUpMaxRepeats`, " +
+                        "`completionLabel`, `snoozedUntilMillis`, `nextTriggerAtMillis`, " +
+                        "`createdAtMillis`, `completedAtMillis` FROM `reminders`",
+                )
+                db.execSQL("DROP TABLE `reminders`")
+                db.execSQL("ALTER TABLE `reminders_new` RENAME TO `reminders`")
             }
         }
     }

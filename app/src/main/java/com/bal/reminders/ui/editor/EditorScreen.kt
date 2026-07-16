@@ -1,7 +1,6 @@
 package com.bal.reminders.ui.editor
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -20,12 +19,8 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.AccessTime
 import androidx.compose.material.icons.rounded.Alarm
-import androidx.compose.material.icons.rounded.CalendarMonth
 import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.ExpandLess
-import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.NotificationsNone
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Stop
@@ -80,15 +75,12 @@ import com.bal.reminders.domain.HijriDates
 import com.bal.reminders.domain.model.AlertMode
 import com.bal.reminders.domain.model.CalendarSystem
 import com.bal.reminders.domain.model.Category
-import com.bal.reminders.domain.model.Priority
-import com.bal.reminders.domain.model.Schedule
 import com.bal.reminders.format.BalFormats
 import com.bal.reminders.ui.components.SectionTitle
 import com.bal.reminders.ui.components.labelRes
 import com.bal.reminders.ui.permissions.Permissions
 import java.time.DayOfWeek
 import java.time.Instant
-import java.time.LocalDate
 import java.time.ZoneOffset
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -493,6 +485,7 @@ private fun AlertModeCard(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun SuggestionRow(state: EditorState, viewModel: EditorViewModel) {
     val label = when (state.suggestionSource) {
@@ -508,23 +501,34 @@ internal fun SuggestionRow(state: EditorState, viewModel: EditorViewModel) {
         )
         else -> stringResource(R.string.editor_alert_suggestion_alarm)
     }
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    // الاقتراح يُنسب إلى رَنّة صراحةً، ويُرفض بـ«ليس الآن»: «إلغاء» هنا تُقرأ
+    // إلغاءً للتذكير كله. والصف يلتفّ بدل أن يعصر أزراره عند الخطوط الكبيرة.
+    Column(
+        verticalArrangement = Arrangement.spacedBy(4.dp),
         modifier = Modifier.fillMaxWidth(),
     ) {
         Text(
+            stringResource(R.string.editor_suggestion_title),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.secondary,
+        )
+        Text(
             label,
-            style = MaterialTheme.typography.bodySmall,
+            style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.weight(1f),
         )
-        AssistChip(
-            onClick = viewModel::applySuggestion,
-            label = { Text(stringResource(R.string.editor_alert_suggestion_apply)) },
-        )
-        TextButton(onClick = viewModel::dismissSuggestion) {
-            Text(stringResource(R.string.action_cancel))
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            AssistChip(
+                onClick = viewModel::applySuggestion,
+                label = { Text(stringResource(R.string.editor_alert_suggestion_apply)) },
+                modifier = Modifier.heightIn(min = 48.dp),
+            )
+            TextButton(
+                onClick = viewModel::dismissSuggestion,
+                modifier = Modifier.heightIn(min = 48.dp),
+            ) {
+                Text(stringResource(R.string.action_not_now))
+            }
         }
     }
 }
@@ -537,11 +541,8 @@ internal fun MoreOptions(state: EditorState, viewModel: EditorViewModel) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         SectionTitle(stringResource(R.string.editor_section_options))
         if (state.alertMode == AlertMode.STANDARD) {
-            OptionSwitch(
-                label = stringResource(R.string.editor_option_priority),
-                checked = state.priority == Priority.HIGH,
-                onChecked = viewModel::setPriority,
-            )
+            // «تذكير مهم» كان هنا مفتاحًا ثانيًا لما تقرره بطاقة «التنبيه» أصلًا.
+            // مفهوم واحد لا يملك تحكمين: «منبّه مهم» هو المعتمد.
             OptionSwitch(
                 label = stringResource(R.string.editor_option_sound),
                 checked = state.soundEnabled,
@@ -569,11 +570,8 @@ internal fun MoreOptions(state: EditorState, viewModel: EditorViewModel) {
                 checked = state.alarmRepeatIfIgnored,
                 onChecked = viewModel::setRepeatIfIgnored,
             )
-            OptionSwitch(
-                label = stringResource(R.string.editor_option_stop_completes),
-                checked = state.stopMarksCompleted,
-                onChecked = viewModel::setStopMarksCompleted,
-            )
+            // «عند إيقاف المنبّه اعتبره منجزًا» حُذف: «إيقاف الصوت» يوقف الصوت،
+            // ولا يحكم على مهمة في العالم الحقيقي. الدلالة واحدة ولا تُشترى بخيار.
             SectionTitle(stringResource(R.string.editor_alarm_timeout))
             MinutesChoiceRow(
                 options = listOf(1, 3, 5, 10),
@@ -823,6 +821,15 @@ internal fun SummaryCard(state: EditorState) {
 
 // ----------------------------------------------------------------- pickers
 
+/**
+ * The week as chips that wrap.
+ *
+ * This was a horizontal scroll, which pushed the end of the week off the edge
+ * of the screen: at large font scales «الخميس» and «الجمعة» were simply not
+ * there unless you knew to drag sideways. A day you cannot see is a day you do
+ * not have. Wrapping cannot clip, and it survives 200% text.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun WeekdayPicker(
     selected: Set<DayOfWeek>,
@@ -835,17 +842,16 @@ internal fun WeekdayPicker(
         DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY,
     )
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        FlowRow(
+            Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             ordered.forEach { day ->
                 FilterChip(
                     selected = day in selected,
                     onClick = { onToggle(day) },
                     label = { Text(BalFormats.dayName(day)) },
+                    modifier = Modifier.heightIn(min = 48.dp),
                 )
             }
         }

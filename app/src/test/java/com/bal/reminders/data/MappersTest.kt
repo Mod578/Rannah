@@ -35,7 +35,6 @@ class MappersTest {
                 alarmTimeoutMinutes = 8,
                 alarmGradualVolume = false,
                 alarmRepeatIfIgnored = true,
-                stopMarksCompleted = true,
                 createdAt = createdAt,
             ).toEntity().toDomain()
 
@@ -45,7 +44,6 @@ class MappersTest {
             assertEquals(8, restored.alarmTimeoutMinutes)
             assertEquals(false, restored.alarmGradualVolume)
             assertEquals(true, restored.alarmRepeatIfIgnored)
-            assertEquals(true, restored.stopMarksCompleted)
         }
     }
 }

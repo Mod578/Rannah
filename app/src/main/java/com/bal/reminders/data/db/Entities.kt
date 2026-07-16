@@ -38,7 +38,6 @@ data class ReminderEntity(
     @ColumnInfo(defaultValue = "3") val alarmTimeoutMinutes: Int = 3,
     @ColumnInfo(defaultValue = "1") val alarmGradualVolume: Boolean = true,
     @ColumnInfo(defaultValue = "0") val alarmRepeatIfIgnored: Boolean = false,
-    @ColumnInfo(defaultValue = "0") val stopMarksCompleted: Boolean = false,
     @ColumnInfo(defaultValue = "0") val followUntilComplete: Boolean = false,
     @ColumnInfo(defaultValue = "5") val followUpIntervalMinutes: Int = 5,
     @ColumnInfo(defaultValue = "3") val followUpMaxRepeats: Int = 3,

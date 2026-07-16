@@ -19,12 +19,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Snooze
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -35,6 +37,10 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -50,11 +56,14 @@ import com.bal.reminders.format.BalFormats
 import com.bal.reminders.scheduling.AlarmRingerService
 import com.bal.reminders.ui.MainViewModel
 import com.bal.reminders.ui.components.AppMark
+import com.bal.reminders.ui.components.SlideToConfirm
+import com.bal.reminders.ui.editor.MinutesChoiceRow
 import com.bal.reminders.ui.theme.BalTheme
 import dagger.hilt.android.AndroidEntryPoint
 import java.time.Instant
-import java.time.ZoneId
+import java.time.LocalTime
 import java.util.Locale
+import kotlinx.coroutines.delay
 
 /**
  * The full-screen «منبّه مهم» surface, shown over the lock screen while the
@@ -152,11 +161,25 @@ class AlarmActivity : ComponentActivity() {
     }
 }
 
+/**
+ * The alarm hierarchy, in the order a half-awake person meets it:
+ *
+ * 1. **تأجيل** — large, obvious, and reversible. The safest thing to hand
+ *    someone who is not ready to decide is a way to postpone, not a way to
+ *    dismiss.
+ * 2. **اسحب للتأكيد: <عبارة الإنجاز>** — deliberate, and phrased as the claim
+ *    it actually records («سجلت البصمة»), not an abstract «تم».
+ * 3. **إيقاف الصوت فقط** — quiet, secondary, and honest about its own limits:
+ *    it ends a sound and says nothing about the task.
+ *
+ * Nothing destructive is reachable from here, and nothing is icon-only.
+ */
 @Composable
 private fun AlarmScreen(viewModel: AlarmViewModel) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val activity = context as? ComponentActivity
+    var changingSnooze by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         viewModel.closed.collect { activity?.finish() }
@@ -167,26 +190,49 @@ private fun AlarmScreen(viewModel: AlarmViewModel) {
         color = MaterialTheme.colorScheme.background,
     ) {
         val reminder = state.reminder ?: return@Surface
-        val occurrenceTime = BalFormats.time(
-            context,
-            state.occurrenceAt.atZone(ZoneId.systemDefault()).toLocalTime(),
+
+        // The wall clock, not the occurrence: the first question at 5am is
+        // "what time is it now?". It re-reads on each phase change and tick.
+        val now by produceState(LocalTime.now()) {
+            while (true) {
+                value = LocalTime.now()
+                delay(10_000)
+            }
+        }
+        val ringing = state.phase == AlarmPhase.RINGING
+        val completionLabel = reminder.completionLabel?.takeIf { it.isNotBlank() }
+            ?: stringResource(R.string.editor_completion_default)
+        val snoozeLabel = context.resources.getQuantityString(
+            R.plurals.notification_snooze_minutes,
+            reminder.snoozeMinutes,
+            reminder.snoozeMinutes,
         )
 
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 28.dp, vertical = 40.dp),
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 24.dp, vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
             AppMark(
-                stroke = MaterialTheme.colorScheme.primary,
+                stroke = MaterialTheme.colorScheme.onBackground,
                 dot = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(72.dp),
+                modifier = Modifier.size(56.dp),
             )
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(16.dp))
+            // Alarm state in words, never colour alone.
             Text(
-                text = occurrenceTime,
+                text = stringResource(
+                    if (ringing) R.string.alarm_ringing_now else R.string.alarm_stopped_title,
+                ),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = BalFormats.time(context, now),
                 style = MaterialTheme.typography.displaySmall,
                 color = MaterialTheme.colorScheme.onBackground,
             )
@@ -195,6 +241,13 @@ private fun AlarmScreen(viewModel: AlarmViewModel) {
                 text = reminder.title,
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center,
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = BalFormats.scheduleSummary(context, reminder.schedule),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
             )
             reminder.notes?.let {
@@ -206,91 +259,122 @@ private fun AlarmScreen(viewModel: AlarmViewModel) {
                     textAlign = TextAlign.Center,
                 )
             }
-            Spacer(Modifier.height(48.dp))
+            Spacer(Modifier.height(32.dp))
 
-            when (state.phase) {
-                AlarmPhase.RINGING -> {
-                    Button(
-                        onClick = viewModel::stop,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(88.dp),
-                        shape = MaterialTheme.shapes.large,
-                    ) {
-                        Icon(Icons.Rounded.Close, contentDescription = null)
-                        Spacer(Modifier.size(10.dp))
-                        Text(
-                            stringResource(R.string.alarm_stop),
-                            style = MaterialTheme.typography.headlineSmall,
-                        )
-                    }
-                    Spacer(Modifier.height(16.dp))
-                    OutlinedButton(
-                        onClick = viewModel::snooze,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(64.dp),
-                        shape = MaterialTheme.shapes.large,
-                    ) {
-                        Icon(Icons.Rounded.Snooze, contentDescription = null)
-                        Spacer(Modifier.size(10.dp))
-                        Text(
-                            LocalContext.current.resources.getQuantityString(
-                                R.plurals.notification_snooze_minutes,
-                                reminder.snoozeMinutes,
-                                reminder.snoozeMinutes,
-                            ),
-                            style = MaterialTheme.typography.titleLarge,
-                        )
-                    }
+            // 1. Reversible, and the biggest thing on the screen.
+            if (ringing) {
+                Button(
+                    onClick = { viewModel.snooze() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 88.dp),
+                    shape = MaterialTheme.shapes.large,
+                ) {
+                    Icon(Icons.Rounded.Snooze, contentDescription = null)
+                    Spacer(Modifier.size(10.dp))
+                    Text(snoozeLabel, style = MaterialTheme.typography.headlineSmall)
                 }
+                TextButton(
+                    onClick = { changingSnooze = true },
+                    modifier = Modifier.heightIn(min = 48.dp),
+                ) {
+                    Text(stringResource(R.string.alarm_snooze_change))
+                }
+                Spacer(Modifier.height(16.dp))
+            }
 
-                AlarmPhase.STOPPED_PROMPT -> {
+            // 2. Deliberate: says what is being claimed, and asks for a movement.
+            SlideToConfirm(
+                text = stringResource(R.string.alarm_slide_to_confirm, completionLabel),
+                hint = stringResource(R.string.alarm_slide_hint),
+                onConfirm = viewModel::markDone,
+            )
+
+            Spacer(Modifier.height(20.dp))
+
+            // 3. Honest about its own limits.
+            if (ringing) {
+                OutlinedButton(
+                    onClick = viewModel::stop,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 60.dp),
+                    shape = MaterialTheme.shapes.large,
+                ) {
                     Text(
-                        text = stringResource(R.string.alarm_stopped_title),
+                        stringResource(R.string.alarm_stop),
                         style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onBackground,
                     )
-                    Spacer(Modifier.height(8.dp))
-                    Text(
-                        text = stringResource(R.string.alarm_done_question, reminder.title),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center,
-                    )
-                    Spacer(Modifier.height(24.dp))
-                    Button(
-                        onClick = viewModel::markDone,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(72.dp),
-                        shape = MaterialTheme.shapes.large,
-                    ) {
-                        Icon(Icons.Rounded.Check, contentDescription = null)
-                        Spacer(Modifier.size(10.dp))
-                        Text(
-                            stringResource(R.string.action_complete_short),
-                            style = MaterialTheme.typography.titleLarge,
-                        )
-                    }
-                    if (reminder.schedule.isRecurring) {
-                        Spacer(Modifier.height(12.dp))
-                        OutlinedButton(
-                            onClick = viewModel::skipOnce,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(56.dp),
-                            shape = MaterialTheme.shapes.large,
-                        ) {
-                            Text(stringResource(R.string.action_skip_once))
-                        }
-                    }
-                    Spacer(Modifier.height(12.dp))
-                    TextButton(onClick = viewModel::notYet) {
-                        Text(stringResource(R.string.alarm_not_yet))
-                    }
+                }
+                Spacer(Modifier.height(6.dp))
+                Text(
+                    text = stringResource(
+                        if (reminder.followUntilComplete) {
+                            R.string.alarm_stop_explains_follow
+                        } else {
+                            R.string.alarm_stop_explains_none
+                        },
+                    ),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                )
+            } else {
+                OutlinedButton(
+                    onClick = { viewModel.snooze() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 60.dp),
+                    shape = MaterialTheme.shapes.large,
+                ) {
+                    Icon(Icons.Rounded.Snooze, contentDescription = null)
+                    Spacer(Modifier.size(10.dp))
+                    Text(snoozeLabel, style = MaterialTheme.typography.titleLarge)
+                }
+            }
+
+            if (reminder.schedule.isRecurring) {
+                Spacer(Modifier.height(8.dp))
+                TextButton(
+                    onClick = viewModel::skipOnce,
+                    modifier = Modifier.heightIn(min = 48.dp),
+                ) {
+                    Text(stringResource(R.string.action_skip_once))
+                }
+            }
+            if (!ringing) {
+                TextButton(
+                    onClick = viewModel::notYet,
+                    modifier = Modifier.heightIn(min = 48.dp),
+                ) {
+                    Text(stringResource(R.string.alarm_not_yet))
                 }
             }
         }
+    }
+
+    // One focused control for the duration, rather than a row of buttons
+    // competing with the action they modify.
+    if (changingSnooze) {
+        val reminder = state.reminder
+        AlertDialog(
+            onDismissRequest = { changingSnooze = false },
+            title = { Text(stringResource(R.string.editor_section_snooze)) },
+            text = {
+                MinutesChoiceRow(
+                    options = listOf(5, 10, 15, 30),
+                    selected = reminder?.snoozeMinutes ?: 10,
+                    onSelect = {
+                        changingSnooze = false
+                        viewModel.snooze(it)
+                    },
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { changingSnooze = false }) {
+                    Text(stringResource(R.string.action_cancel))
+                }
+            },
+        )
     }
 }

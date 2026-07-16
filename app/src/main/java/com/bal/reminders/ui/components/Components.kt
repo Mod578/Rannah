@@ -39,6 +39,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -269,7 +270,66 @@ fun EmptyState(
     }
 }
 
-/** The «رَنّة» mark: a ringing bell whose clapper is the accent dot. */
+/**
+ * A section rule carrying the Najdi stepped rhythm.
+ *
+ * A plain hairline says "these are different"; this says the same thing in the
+ * product's own accent. It is drawn once per group heading and nowhere else —
+ * the identity is a rhythm you notice at the edges, not a pattern tiled over
+ * every surface. Purely decorative, so it is hidden from screen readers.
+ */
+@Composable
+fun NajdiRule(modifier: Modifier = Modifier) {
+    val color = MaterialTheme.colorScheme.outlineVariant
+    Canvas(
+        modifier
+            .fillMaxWidth()
+            .height(6.dp)
+            .clearAndSetSemantics {},
+    ) {
+        val step = 10.dp.toPx()
+        val rise = 4.dp.toPx()
+        val baseline = size.height
+        val path = Path().apply {
+            moveTo(0f, baseline)
+            var x = 0f
+            var up = true
+            while (x < size.width) {
+                val next = (x + step).coerceAtMost(size.width)
+                lineTo(x, if (up) baseline - rise else baseline)
+                lineTo(next, if (up) baseline - rise else baseline)
+                x = next
+                up = !up
+            }
+        }
+        drawPath(path, color = color, style = Stroke(width = 1.5.dp.toPx()))
+    }
+}
+
+/**
+ * The «رَنّة» mark.
+ *
+ * Three elements and nothing else:
+ *
+ * - **A stepped Najdi parapet (شُرفة).** The mark's rhythm comes from the
+ *   crenellated skyline of Najdi mud-brick walls, not from a bell. Read
+ *   upwards, the ascending steps also read as a signal rising — sound, without
+ *   drawing a speaker.
+ * - **The saffron point, held in the wall's opening.** Najdi walls are punched
+ *   with small openings; this one holds the single coloured element in the mark.
+ *   It is the completion رَنّة is always asking about — the app's whole question
+ *   («هل تم؟») in one dot.
+ *
+ * A third element — the «ر» sweeping beneath as a letterform — was drawn,
+ * rendered, and cut. On a device the curve plus the dot read unmistakably as a
+ * smiling face, which is not a thing an alarm should do at 5am. Legibility beat
+ * the cleverness; the Arabic identity is carried by the language everywhere
+ * else, and does not need to be smuggled into a 24dp glyph.
+ *
+ * What it deliberately is not: a bell (a ringtone app), a clock face (a clock
+ * clone), or a flag, sword, palm or map. The Saudi-ness is in the geometry's
+ * rhythm, which is felt rather than decoded.
+ */
 @Composable
 fun AppMark(
     stroke: Color,
@@ -282,39 +342,43 @@ fun AppMark(
         fun x(v: Float) = v / 24f * w
         fun y(v: Float) = v / 24f * h
 
-        val bell = Path().apply {
-            moveTo(x(12f), y(3.4f))
-            cubicTo(x(8.8f), y(3.4f), x(6.9f), y(5.8f), x(6.9f), y(9.1f))
-            lineTo(x(6.9f), y(11.2f))
-            cubicTo(x(6.9f), y(13.1f), x(6.1f), y(14.5f), x(4.9f), y(15.7f))
-            cubicTo(x(4.4f), y(16.2f), x(4.7f), y(17f), x(5.4f), y(17f))
-            lineTo(x(18.6f), y(17f))
-            cubicTo(x(19.3f), y(17f), x(19.6f), y(16.2f), x(19.1f), y(15.7f))
-            cubicTo(x(17.9f), y(14.5f), x(17.1f), y(13.1f), x(17.1f), y(11.2f))
-            lineTo(x(17.1f), y(9.1f))
-            cubicTo(x(17.1f), y(5.8f), x(15.2f), y(3.4f), x(12f), y(3.4f))
-            close()
+        // Merlons: the crenellation of a Najdi parapet, seen head-on. Solid
+        // shapes, not an outline — an outline at 24dp turns to mush, and a
+        // closed outline turns into a camera.
+        val merlonW = 4.2f
+        val gap = 2.4f
+        val top = 6.5f
+        val baseTop = 15.5f
+        val baseBottom = 19.5f
+        val startX = 12f - (merlonW * 3 + gap * 2) / 2f
+
+        repeat(3) { i ->
+            val left = startX + i * (merlonW + gap)
+            // The middle merlon is the point: the one occurrence that is due now,
+            // standing in the same rhythm as all the others. The mark carries the
+            // product's whole question without drawing a bell to ask it.
+            val fill = if (i == 1) dot else stroke
+            drawPath(
+                Path().apply {
+                    moveTo(x(left), y(baseTop))
+                    lineTo(x(left), y(top))
+                    lineTo(x(left + merlonW), y(top))
+                    lineTo(x(left + merlonW), y(baseTop))
+                    close()
+                },
+                color = fill,
+            )
         }
-        val waves = Path().apply {
-            moveTo(x(3.6f), y(8.8f))
-            cubicTo(x(3.6f), y(6.8f), x(4.4f), y(5.1f), x(5.8f), y(3.8f))
-            moveTo(x(20.4f), y(8.8f))
-            cubicTo(x(20.4f), y(6.8f), x(19.6f), y(5.1f), x(18.2f), y(3.8f))
-        }
+        // The wall the rhythm stands on.
         drawPath(
-            bell,
+            Path().apply {
+                moveTo(x(3f), y(baseTop))
+                lineTo(x(21f), y(baseTop))
+                lineTo(x(21f), y(baseBottom))
+                lineTo(x(3f), y(baseBottom))
+                close()
+            },
             color = stroke,
-            style = Stroke(width = x(1.9f), cap = StrokeCap.Round, join = StrokeJoin.Round),
-        )
-        drawPath(
-            waves,
-            color = stroke,
-            style = Stroke(width = x(1.6f), cap = StrokeCap.Round),
-        )
-        drawCircle(
-            color = dot,
-            radius = x(1.9f),
-            center = Offset(x(12f), y(20.3f)),
         )
     }
 }
