@@ -39,6 +39,10 @@ data class ReminderEntity(
     @ColumnInfo(defaultValue = "1") val alarmGradualVolume: Boolean = true,
     @ColumnInfo(defaultValue = "0") val alarmRepeatIfIgnored: Boolean = false,
     @ColumnInfo(defaultValue = "0") val stopMarksCompleted: Boolean = false,
+    @ColumnInfo(defaultValue = "0") val followUntilComplete: Boolean = false,
+    @ColumnInfo(defaultValue = "5") val followUpIntervalMinutes: Int = 5,
+    @ColumnInfo(defaultValue = "3") val followUpMaxRepeats: Int = 3,
+    @ColumnInfo(defaultValue = "NULL") val completionLabel: String? = null,
     val snoozedUntilMillis: Long?,
     val nextTriggerAtMillis: Long?,
     val createdAtMillis: Long,
@@ -67,4 +71,25 @@ data class OccurrenceRecordEntity(
     /** When the record was made (v1 name kept for a lossless migration). */
     val completedAtMillis: Long,
     @ColumnInfo(defaultValue = "completed") val status: String = "completed",
+)
+
+/**
+ * Live «بانتظار تأكيدك» state, one row per unresolved occurrence. Unique on
+ * (reminderId, occurrenceAtMillis) so a replayed intent cannot open two
+ * follow-ups for the same occurrence.
+ */
+@Entity(
+    tableName = "pending_confirmations",
+    indices = [
+        Index("reminderId"),
+        Index(value = ["reminderId", "occurrenceAtMillis"], unique = true),
+    ],
+)
+data class PendingConfirmationEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0L,
+    val reminderId: Long,
+    val occurrenceAtMillis: Long,
+    val sinceMillis: Long,
+    val nudgesSent: Int,
+    val deadlineAtMillis: Long,
 )

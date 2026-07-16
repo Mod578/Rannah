@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- خلفية الودجت: بطاقة ليل «رنّه» بزوايا مستديرة. -->
+<!-- خلفية الودجت: بطاقة ليل «رَنّة» بزوايا مستديرة. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
     <solid android:color="@color/widget_night" />

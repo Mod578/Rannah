@@ -4,6 +4,7 @@ import com.bal.reminders.data.db.ReminderDao
 import com.bal.reminders.domain.ReminderRepository
 import com.bal.reminders.domain.model.OccurrenceRecord
 import com.bal.reminders.domain.model.OccurrenceStatus
+import com.bal.reminders.domain.model.PendingConfirmation
 import com.bal.reminders.domain.model.Reminder
 import java.time.Instant
 import javax.inject.Inject
@@ -73,4 +74,24 @@ class ReminderRepositoryImpl @Inject constructor(
     ): Boolean = dao.countRecords(reminderId, occurrenceAt.toEpochMilli(), status.id) > 0
 
     override suspend fun clearRecords() = dao.clearRecords()
+
+    override fun observePending(): Flow<List<PendingConfirmation>> =
+        dao.observePending().map { list -> list.map { it.toDomain() } }
+
+    override suspend fun getPending(): List<PendingConfirmation> =
+        dao.getPending().map { it.toDomain() }
+
+    override suspend fun getPending(reminderId: Long, occurrenceAt: Instant): PendingConfirmation? =
+        dao.getPending(reminderId, occurrenceAt.toEpochMilli())?.toDomain()
+
+    override suspend fun addPending(pending: PendingConfirmation): Boolean =
+        dao.insertPending(pending.toEntity()) != -1L
+
+    override suspend fun setPendingNudges(reminderId: Long, occurrenceAt: Instant, nudgesSent: Int) =
+        dao.setPendingNudges(reminderId, occurrenceAt.toEpochMilli(), nudgesSent)
+
+    override suspend fun removePending(reminderId: Long, occurrenceAt: Instant) =
+        dao.deletePending(reminderId, occurrenceAt.toEpochMilli())
+
+    override suspend fun removePendingFor(reminderId: Long) = dao.deletePendingFor(reminderId)
 }

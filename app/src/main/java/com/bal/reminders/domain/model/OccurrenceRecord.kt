@@ -7,14 +7,24 @@ import java.time.Instant
  * lets one occurrence be completed or skipped without touching the series.
  */
 enum class OccurrenceStatus(val id: String) {
-    /** «تم»: the user completed the task of this occurrence. */
+    /** «تم الإنجاز»: the user confirmed the real task was done. */
     COMPLETED("completed"),
 
     /** «تخطي هذه المرة»: the user skipped this occurrence on purpose. */
     SKIPPED("skipped"),
 
-    /** The occurrence passed without any user response. */
+    /**
+     * «تجاهلته»: the user saw the alert and pushed it away without acting.
+     * Distinct from [MISSED] because the alert demonstrably reached them; only
+     * the task is unresolved.
+     */
+    IGNORED("ignored"),
+
+    /** «فات موعده»: the occurrence ran out of time with no answer at all. */
     MISSED("missed");
+
+    /** Terminal states that stop رَنّة from asking about the occurrence again. */
+    val resolvesOccurrence: Boolean get() = this == COMPLETED || this == SKIPPED
 
     companion object {
         fun fromId(id: String?): OccurrenceStatus =

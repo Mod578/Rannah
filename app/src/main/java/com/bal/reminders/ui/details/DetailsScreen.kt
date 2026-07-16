@@ -60,6 +60,8 @@ import com.bal.reminders.domain.model.Priority
 import com.bal.reminders.format.BalFormats
 import com.bal.reminders.ui.components.CategoryBadge
 import com.bal.reminders.ui.components.SectionTitle
+import com.bal.reminders.ui.components.color
+import com.bal.reminders.ui.components.icon
 import com.bal.reminders.ui.components.labelRes
 import java.time.Instant
 
@@ -435,14 +437,9 @@ fun DetailsScreen(
 
 @Composable
 fun RecordRow(status: OccurrenceStatus, text: String) {
-    val (icon, labelRes, tint) = when (status) {
-        OccurrenceStatus.COMPLETED ->
-            Triple(Icons.Rounded.Check, R.string.status_completed, MaterialTheme.colorScheme.secondary)
-        OccurrenceStatus.SKIPPED ->
-            Triple(Icons.AutoMirrored.Rounded.Redo, R.string.status_skipped, MaterialTheme.colorScheme.tertiary)
-        OccurrenceStatus.MISSED ->
-            Triple(Icons.Rounded.EventBusy, R.string.status_missed, MaterialTheme.colorScheme.error)
-    }
+    val icon = status.icon
+    val labelRes = status.labelRes
+    val tint = status.color
     Row(
         Modifier
             .fillMaxWidth()

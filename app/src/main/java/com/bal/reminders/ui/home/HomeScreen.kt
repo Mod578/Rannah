@@ -3,11 +3,14 @@ package com.bal.reminders.ui.home
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
@@ -61,6 +64,7 @@ import com.bal.reminders.ui.templates.Templates
 import java.time.ZoneId
 import kotlinx.coroutines.delay
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun HomeScreen(
     onOpenDetails: (Long) -> Unit,
@@ -83,6 +87,17 @@ fun HomeScreen(
                 is HomeEvent.UndoableComplete -> {
                     val result = snackbarHostState.showSnackbar(
                         message = context.getString(R.string.undo_completed_message, event.title),
+                        actionLabel = undoLabel,
+                        withDismissAction = true,
+                    )
+                    if (result == SnackbarResult.ActionPerformed) {
+                        viewModel.undo(event.undo)
+                    }
+                }
+
+                is HomeEvent.UndoableSkip -> {
+                    val result = snackbarHostState.showSnackbar(
+                        message = context.getString(R.string.undo_skipped_message, event.title),
                         actionLabel = undoLabel,
                         withDismissAction = true,
                     )
@@ -149,6 +164,38 @@ fun HomeScreen(
         if (!permissions.essentialsGranted) {
             item {
                 PermissionsBanner(onClick = onOpenPermissions)
+            }
+        }
+
+        // Above everything: the tasks that already alerted and are still
+        // unanswered. A plan can wait; a half-missed obligation cannot.
+        if (state.pending.isNotEmpty()) {
+            items(state.pending, key = { "pending-${it.reminder.id}-${it.occurrenceAt.toEpochMilli()}" }) { item ->
+                PendingCard(
+                    item = item,
+                    onConfirm = { viewModel.confirmPending(item) },
+                    onSnooze = { viewModel.snoozePending(item) },
+                    onSkip = { viewModel.skipPending(item) },
+                )
+            }
+        }
+
+        if (state.missedToday.isNotEmpty()) {
+            item { SectionTitle(stringResource(R.string.home_missed_today)) }
+            items(state.missedToday, key = { "missed-${it.reminder.id}-${it.occurrenceAt.toEpochMilli()}" }) { item ->
+                ReminderCard(
+                    reminder = item.reminder,
+                    subtitle = stringResource(
+                        R.string.home_missed_at,
+                        BalFormats.time(
+                            context,
+                            item.occurrenceAt.atZone(ZoneId.systemDefault()).toLocalTime(),
+                        ),
+                    ),
+                    subtitleEmphasis = true,
+                    onClick = { onOpenDetails(item.reminder.id) },
+                    onComplete = { viewModel.complete(item.reminder) },
+                )
             }
         }
 
@@ -231,14 +278,20 @@ fun HomeScreen(
 
         item {
             SectionTitle(stringResource(R.string.home_templates))
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(Templates, key = { it.id }) { template ->
+            // Wrapping, not a horizontal scroll: the last template used to sit
+            // half under the floating button where nobody would find it.
+            FlowRow(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Templates.forEach { template ->
                     AssistChip(
                         onClick = { onOpenTemplate(template.id) },
                         label = { Text(stringResource(template.titleRes)) },
                         colors = AssistChipDefaults.assistChipColors(
                             containerColor = MaterialTheme.colorScheme.surfaceContainer,
                         ),
+                        modifier = Modifier.heightIn(min = 48.dp),
                     )
                 }
             }

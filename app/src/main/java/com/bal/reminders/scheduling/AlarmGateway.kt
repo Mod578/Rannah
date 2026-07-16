@@ -30,10 +30,19 @@ interface AlarmGateway {
     /** Schedules the single re-alert of an ignored alarm-mode occurrence. */
     fun scheduleReAlert(reminderId: Long, occurrenceAt: Instant, at: Instant)
 
-    /** Cancels the reminder's alarm and any pending re-alert. */
+    /**
+     * Schedules the next «بانتظار تأكيدك» nudge. Deliberately an alarm rather
+     * than a service: the follow-up must cost nothing while it waits, and must
+     * not need رَنّة to keep running to survive.
+     */
+    fun scheduleFollowUp(reminderId: Long, occurrenceAt: Instant, at: Instant)
+
+    /** Cancels the reminder's alarm, any pending re-alert, and any follow-up. */
     fun cancel(reminderId: Long)
 
     fun cancelReAlert(reminderId: Long)
+
+    fun cancelFollowUp(reminderId: Long)
 
     fun canScheduleExact(): Boolean
 }
@@ -89,14 +98,33 @@ class AndroidAlarmGateway @Inject constructor(
         }
     }
 
+    override fun scheduleFollowUp(reminderId: Long, occurrenceAt: Instant, at: Instant) {
+        val pi = followUpIntent(reminderId, occurrenceAt.toEpochMilli())
+        val triggerAt = at.toEpochMilli()
+        try {
+            if (canScheduleExact()) {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAt, pi)
+            } else {
+                alarmManager.setWindow(AlarmManager.RTC_WAKEUP, triggerAt, INEXACT_WINDOW_MS, pi)
+            }
+        } catch (_: SecurityException) {
+            alarmManager.setWindow(AlarmManager.RTC_WAKEUP, triggerAt, INEXACT_WINDOW_MS, pi)
+        }
+    }
+
     override fun cancel(reminderId: Long) {
         alarmManager.cancel(alarmIntent(reminderId, 0L))
         alarmManager.cancel(reAlertIntent(reminderId, 0L))
+        alarmManager.cancel(followUpIntent(reminderId, 0L))
         RannaWidgetProvider.refresh(context)
     }
 
     override fun cancelReAlert(reminderId: Long) {
         alarmManager.cancel(reAlertIntent(reminderId, 0L))
+    }
+
+    override fun cancelFollowUp(reminderId: Long) {
+        alarmManager.cancel(followUpIntent(reminderId, 0L))
     }
 
     private fun alarmIntent(reminderId: Long, occurrenceMillis: Long): PendingIntent {
@@ -126,6 +154,20 @@ class AndroidAlarmGateway @Inject constructor(
         )
     }
 
+    private fun followUpIntent(reminderId: Long, occurrenceMillis: Long): PendingIntent {
+        val intent = Intent(context, AlarmReceiver::class.java)
+            .setAction(AlarmReceiver.ACTION_FOLLOW_UP)
+            .putExtra(AlarmReceiver.EXTRA_REMINDER_ID, reminderId)
+            .putExtra(AlarmReceiver.EXTRA_OCCURRENCE_MILLIS, occurrenceMillis)
+        // A third request-code space, disjoint from the alarm and the re-alert.
+        return PendingIntent.getBroadcast(
+            context,
+            FOLLOW_UP_REQUEST_BASE + reminderId.toInt(),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+    }
+
     /** Tapping the system's alarm-clock indicator opens the reminder. */
     private fun showIntent(reminderId: Long): PendingIntent {
         val intent = Intent(context, MainActivity::class.java)
@@ -142,5 +184,6 @@ class AndroidAlarmGateway @Inject constructor(
 
     private companion object {
         const val INEXACT_WINDOW_MS = 10L * 60L * 1000L
+        const val FOLLOW_UP_REQUEST_BASE = 5_000_000
     }
 }

@@ -1,12 +1,14 @@
 package com.bal.reminders.data
 
 import com.bal.reminders.data.db.OccurrenceRecordEntity
+import com.bal.reminders.data.db.PendingConfirmationEntity
 import com.bal.reminders.data.db.ReminderEntity
 import com.bal.reminders.domain.model.AlertMode
 import com.bal.reminders.domain.model.CalendarSystem
 import com.bal.reminders.domain.model.Category
 import com.bal.reminders.domain.model.OccurrenceRecord
 import com.bal.reminders.domain.model.OccurrenceStatus
+import com.bal.reminders.domain.model.PendingConfirmation
 import com.bal.reminders.domain.model.Priority
 import com.bal.reminders.domain.model.Reminder
 import com.bal.reminders.domain.model.Schedule
@@ -72,6 +74,10 @@ fun ReminderEntity.toDomain(): Reminder {
         alarmGradualVolume = alarmGradualVolume,
         alarmRepeatIfIgnored = alarmRepeatIfIgnored,
         stopMarksCompleted = stopMarksCompleted,
+        followUntilComplete = followUntilComplete,
+        followUpIntervalMinutes = followUpIntervalMinutes,
+        followUpMaxRepeats = followUpMaxRepeats,
+        completionLabel = completionLabel?.takeIf { it.isNotBlank() },
         snoozedUntil = snoozedUntilMillis?.let(Instant::ofEpochMilli),
         nextTriggerAt = nextTriggerAtMillis?.let(Instant::ofEpochMilli),
         createdAt = Instant.ofEpochMilli(createdAtMillis),
@@ -123,6 +129,10 @@ fun Reminder.toEntity(): ReminderEntity {
         alarmGradualVolume = alarmGradualVolume,
         alarmRepeatIfIgnored = alarmRepeatIfIgnored,
         stopMarksCompleted = stopMarksCompleted,
+        followUntilComplete = followUntilComplete,
+        followUpIntervalMinutes = followUpIntervalMinutes,
+        followUpMaxRepeats = followUpMaxRepeats,
+        completionLabel = completionLabel?.takeIf { it.isNotBlank() },
         snoozedUntilMillis = snoozedUntil?.toEpochMilli(),
         nextTriggerAtMillis = nextTriggerAt?.toEpochMilli(),
         createdAtMillis = createdAt.toEpochMilli(),
@@ -148,6 +158,22 @@ fun OccurrenceRecord.toEntity() = OccurrenceRecordEntity(
     occurrenceAtMillis = occurrenceAt.toEpochMilli(),
     completedAtMillis = recordedAt.toEpochMilli(),
     status = status.id,
+)
+
+fun PendingConfirmationEntity.toDomain() = PendingConfirmation(
+    reminderId = reminderId,
+    occurrenceAt = Instant.ofEpochMilli(occurrenceAtMillis),
+    since = Instant.ofEpochMilli(sinceMillis),
+    nudgesSent = nudgesSent,
+    deadlineAt = Instant.ofEpochMilli(deadlineAtMillis),
+)
+
+fun PendingConfirmation.toEntity() = PendingConfirmationEntity(
+    reminderId = reminderId,
+    occurrenceAtMillis = occurrenceAt.toEpochMilli(),
+    sinceMillis = since.toEpochMilli(),
+    nudgesSent = nudgesSent,
+    deadlineAtMillis = deadlineAt.toEpochMilli(),
 )
 
 fun Set<DayOfWeek>.toMask(): Int = fold(0) { acc, day -> acc or (1 shl (day.value - 1)) }

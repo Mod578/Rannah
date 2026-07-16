@@ -54,12 +54,19 @@ class AlarmReceiver : BroadcastReceiver() {
                     .takeIf { it > 0 }?.let(Instant::ofEpochMilli) ?: return
                 runAsync { scheduler.onReAlertFired(id, occurrence) }
             }
+
+            ACTION_FOLLOW_UP -> {
+                val occurrence = intent.getLongExtra(EXTRA_OCCURRENCE_MILLIS, 0L)
+                    .takeIf { it > 0 }?.let(Instant::ofEpochMilli) ?: return
+                runAsync { scheduler.onFollowUpDue(id, occurrence) }
+            }
         }
     }
 
     companion object {
         const val ACTION_FIRE = "com.bal.reminders.action.FIRE"
         const val ACTION_RE_ALERT = "com.bal.reminders.action.RE_ALERT"
+        const val ACTION_FOLLOW_UP = "com.bal.reminders.action.FOLLOW_UP"
         const val EXTRA_REMINDER_ID = "reminder_id"
         const val EXTRA_OCCURRENCE_MILLIS = "occurrence_millis"
     }
@@ -93,6 +100,13 @@ class NotificationActionReceiver : BroadcastReceiver() {
 
             ACTION_SNOOZE -> runAsync { scheduler.snooze(id, occurrenceAt = occurrence) }
 
+            // «ذكّرني بعد ٥ دقائق» from the follow-up moves the ask, not the
+            // schedule: the task is still due at its own time.
+            ACTION_SNOOZE_FOLLOW_UP -> {
+                val at = occurrence ?: return
+                runAsync { scheduler.snoozeFollowUp(id, at) }
+            }
+
             ACTION_SKIP -> runAsync { scheduler.skipOccurrence(id, occurrence) }
 
             ACTION_STOP_ALARM -> {
@@ -115,6 +129,7 @@ class NotificationActionReceiver : BroadcastReceiver() {
     companion object {
         const val ACTION_COMPLETE = "com.bal.reminders.action.COMPLETE"
         const val ACTION_SNOOZE = "com.bal.reminders.action.SNOOZE"
+        const val ACTION_SNOOZE_FOLLOW_UP = "com.bal.reminders.action.SNOOZE_FOLLOW_UP"
         const val ACTION_SKIP = "com.bal.reminders.action.SKIP"
         const val ACTION_STOP_ALARM = "com.bal.reminders.action.STOP_ALARM"
         const val ACTION_UNDO_COMPLETE = "com.bal.reminders.action.UNDO_COMPLETE"

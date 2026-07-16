@@ -59,6 +59,17 @@ class NotificationPresenter @Inject constructor(
                 setSound(null, null)
                 enableVibration(false)
             },
+            // Its own channel so «المتابعة حتى الإنجاز» can be turned down or
+            // off from the system settings without silencing real reminders.
+            NotificationChannel(
+                CHANNEL_FOLLOW_UP,
+                context.getString(R.string.channel_followup_name),
+                NotificationManager.IMPORTANCE_DEFAULT,
+            ).apply {
+                description = context.getString(R.string.channel_followup_description)
+                setSound(null, null)
+                enableVibration(false)
+            },
         )
         channels.forEach(nm::createNotificationChannel)
     }
@@ -109,7 +120,7 @@ class NotificationPresenter @Inject constructor(
             // تم first: completing the obligation is the primary action.
             .addAction(
                 0,
-                context.getString(R.string.notification_complete),
+                completionLabel(reminder),
                 actionIntent(NotificationActionReceiver.ACTION_COMPLETE, reminder, occurrenceAt, notifId, 1),
             )
             .addAction(
@@ -199,7 +210,7 @@ class NotificationPresenter @Inject constructor(
             .setContentIntent(openIntent(reminder.id, notifId))
             .addAction(
                 0,
-                context.getString(R.string.notification_complete),
+                completionLabel(reminder),
                 actionIntent(NotificationActionReceiver.ACTION_COMPLETE, reminder, occurrenceAt, notifId, 1),
             )
             .addAction(
@@ -208,6 +219,75 @@ class NotificationPresenter @Inject constructor(
                 actionIntent(NotificationActionReceiver.ACTION_SNOOZE, reminder, occurrenceAt, notifId, 2),
             )
         notifySafely(notifId, builder.build())
+    }
+
+    /**
+     * The «المتابعة حتى الإنجاز» ask.
+     *
+     * Ongoing, so a glance does not wipe out the only trace of an unfinished
+     * obligation, and silent, because the alert has already been heard: this
+     * asks, it does not shout. It is still removable in every way Android
+     * offers (the completion action, the app, the channel, the system's own
+     * controls) and it stops itself once the reminder's repeat budget is spent,
+     * which is why it needs no foreground service to stay alive.
+     */
+    override fun showFollowUp(reminder: Reminder, occurrenceAt: Instant, nudge: Int, remaining: Int) {
+        if (!manager.areNotificationsEnabled()) return
+        ensureChannels()
+        val notifId = followUpNotificationId(reminder.id)
+        val builder = NotificationCompat.Builder(context, CHANNEL_FOLLOW_UP)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(followUpQuestion(reminder))
+            .setContentText(
+                context.getString(R.string.notification_followup_since, occurrenceTime(occurrenceAt)),
+            )
+            .setStyle(
+                NotificationCompat.BigTextStyle().bigText(
+                    context.getString(R.string.notification_followup_since, occurrenceTime(occurrenceAt)) +
+                        "\n" + followUpLimitLine(remaining),
+                ),
+            )
+            .setCategory(NotificationCompat.CATEGORY_REMINDER)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setOnlyAlertOnce(true)
+            .setOngoing(true)
+            .setAutoCancel(false)
+            .setWhen(occurrenceAt.toEpochMilli())
+            .setShowWhen(true)
+            .setContentIntent(openIntent(reminder.id, notifId))
+            // The real answer first; «ذكّرني» stays available but secondary.
+            .addAction(
+                0,
+                completionLabel(reminder),
+                actionIntent(NotificationActionReceiver.ACTION_COMPLETE, reminder, occurrenceAt, notifId, 1),
+            )
+            .addAction(
+                0,
+                context.resources.getQuantityString(
+                    R.plurals.notification_followup_snooze,
+                    reminder.followUpIntervalMinutes,
+                    reminder.followUpIntervalMinutes,
+                ),
+                actionIntent(
+                    NotificationActionReceiver.ACTION_SNOOZE_FOLLOW_UP,
+                    reminder,
+                    occurrenceAt,
+                    notifId,
+                    8,
+                ),
+            )
+        if (reminder.schedule.isRecurring) {
+            builder.addAction(
+                0,
+                context.getString(R.string.notification_skip),
+                actionIntent(NotificationActionReceiver.ACTION_SKIP, reminder, occurrenceAt, notifId, 3),
+            )
+        }
+        notifySafely(notifId, builder.build())
+    }
+
+    override fun dismissFollowUp(reminderId: Long) {
+        manager.cancel(followUpNotificationId(reminderId))
     }
 
     override fun showStopFollowUp(reminder: Reminder, occurrenceAt: Instant) {
@@ -225,7 +305,7 @@ class NotificationPresenter @Inject constructor(
             .setContentIntent(openIntent(reminder.id, notifId))
             .addAction(
                 0,
-                context.getString(R.string.notification_complete),
+                completionLabel(reminder),
                 actionIntent(NotificationActionReceiver.ACTION_COMPLETE, reminder, occurrenceAt, notifId, 1),
             )
         if (reminder.schedule.isRecurring) {
@@ -269,6 +349,42 @@ class NotificationPresenter @Inject constructor(
 
     private fun occurrenceTime(occurrenceAt: Instant): String =
         BalFormats.time(context, occurrenceAt.atZone(ZoneId.systemDefault()).toLocalTime())
+
+    /**
+     * «سجلت البصمة» when the reminder carries its own phrase, «تم الإنجاز»
+     * otherwise. The phrase only ever comes from a template or from the user's
+     * own typing, so there is nothing here that could invent a claim the user
+     * never made.
+     */
+    private fun completionLabel(reminder: Reminder): String =
+        reminder.completionLabel?.takeIf { it.isNotBlank() }
+            ?: context.getString(R.string.notification_complete)
+
+    /**
+     * «هل سجلت البصمة؟» Completion phrases are first-person past-tense
+     * statements, so prefixing «هل» and adding «؟» yields a real question for
+     * every trusted template. Without a phrase, رَنّة quotes the title instead
+     * of guessing at a verb for it.
+     */
+    private fun followUpQuestion(reminder: Reminder): String {
+        val label = reminder.completionLabel?.takeIf { it.isNotBlank() }
+        return if (label != null) {
+            context.getString(R.string.notification_followup_question, label)
+        } else {
+            context.getString(R.string.notification_followup_question_generic, reminder.title)
+        }
+    }
+
+    private fun followUpLimitLine(remaining: Int): String =
+        if (remaining > 0) {
+            context.resources.getQuantityString(
+                R.plurals.notification_followup_remaining,
+                remaining,
+                remaining,
+            )
+        } else {
+            context.getString(R.string.notification_followup_last)
+        }
 
     private fun snoozeLabel(reminder: Reminder): String =
         context.resources.getQuantityString(
@@ -350,6 +466,7 @@ class NotificationPresenter @Inject constructor(
         const val CHANNEL_VIBRATE = "reminders_vibrate"
         const val CHANNEL_SILENT = "reminders_silent"
         const val CHANNEL_ALARM = "reminders_alarm"
+        const val CHANNEL_FOLLOW_UP = "reminders_followup"
 
         private const val UNDO_TIMEOUT_MS = 15_000L
         private const val FOLLOW_UP_TIMEOUT_MS = 10L * 60L * 1000L

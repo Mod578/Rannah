@@ -4,11 +4,14 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -26,6 +29,7 @@ import androidx.compose.material.icons.rounded.ExpandMore
 import androidx.compose.material.icons.rounded.NotificationsNone
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Stop
+import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
@@ -104,6 +108,7 @@ fun EditorScreen(
     var showDatePicker by remember { mutableStateOf(false) }
     var showHijriPicker by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
+    var sheet by remember { mutableStateOf<EditorSheet?>(null) }
     val permissions = remember { Permissions.status(context) }
 
     Scaffold(
@@ -150,136 +155,43 @@ fun EditorScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp)
                 .padding(bottom = 32.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            // ١: وش أذكّرك فيه؟
-            OutlinedTextField(
-                value = state.title,
-                onValueChange = viewModel::setTitle,
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(R.string.editor_field_title)) },
-                isError = state.titleError,
-                supportingText = if (state.titleError) {
-                    { Text(stringResource(R.string.editor_error_title)) }
-                } else {
-                    null
-                },
-                singleLine = true,
-                shape = MaterialTheme.shapes.small,
+            // أربعة أسئلة، كل واحد سطر مقروء يفتح ورقة مركّزة. الشاشة تُقرأ
+            // كاملة قبل أي لمسة، بدل أن تُملأ من أعلى إلى أسفل.
+            SummaryRow(
+                icon = sheetIcon(EditorSheet.WHAT),
+                label = stringResource(R.string.editor_row_what),
+                value = whatSummary(state),
+                placeholder = state.title.isBlank(),
+                onClick = { sheet = EditorSheet.WHAT },
             )
-
-            // ٢: متى وكيف يتكرر
-            SectionTitle(stringResource(R.string.editor_section_schedule))
-            SingleChoiceSegmentedButtonRow(Modifier.horizontalScroll(rememberScrollState())) {
-                val options = listOf(
-                    ScheduleType.ONCE to R.string.schedule_type_once,
-                    ScheduleType.DAILY to R.string.schedule_type_daily,
-                    ScheduleType.WEEKLY to R.string.schedule_type_weekly,
-                    ScheduleType.MONTHLY to R.string.schedule_type_monthly,
-                    ScheduleType.YEARLY to R.string.schedule_type_yearly,
-                )
-                options.forEachIndexed { index, (type, labelRes) ->
-                    SegmentedButton(
-                        selected = state.type == type,
-                        onClick = { viewModel.setType(type) },
-                        shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
-                        label = {
-                            Text(
-                                stringResource(labelRes),
-                                style = MaterialTheme.typography.labelMedium,
-                                maxLines = 1,
-                            )
-                        },
-                    )
-                }
+            if (state.titleError) {
+                ErrorText(stringResource(R.string.editor_error_title))
             }
 
-            // ٣: أي تقويم؟ يحدد دلالة الجدولة نفسها، لا مجرد العرض.
-            if (state.calendarApplies) {
-                CalendarSelector(
-                    selected = state.calendar,
-                    onSelect = viewModel::setCalendar,
-                )
-            }
-
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                OutlinedButton(
-                    onClick = { showTimePicker = true },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(52.dp),
-                    shape = MaterialTheme.shapes.small,
-                ) {
-                    Icon(Icons.Rounded.AccessTime, contentDescription = null)
-                    Spacer(Modifier.width(8.dp))
-                    Text(BalFormats.time(context, state.time))
-                }
-                if (state.type == ScheduleType.ONCE) {
-                    OutlinedButton(
-                        onClick = {
-                            if (state.calendar == CalendarSystem.HIJRI) {
-                                showHijriPicker = true
-                            } else {
-                                showDatePicker = true
-                            }
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(52.dp),
-                        shape = MaterialTheme.shapes.small,
-                    ) {
-                        Icon(Icons.Rounded.CalendarMonth, contentDescription = null)
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            if (state.calendar == CalendarSystem.HIJRI) {
-                                BalFormats.hijriDateText(state.hijriYear, state.hijriMonth, state.hijriDay)
-                            } else {
-                                BalFormats.date(context, state.date)
-                            },
-                            maxLines = 1,
-                        )
-                    }
-                }
-            }
-
-            // «التاريخ الأساسي» و«الموافق» في التقويم الآخر
-            if (state.type == ScheduleType.ONCE) {
-                EquivalentDateLines(state)
-            }
-
+            SummaryRow(
+                icon = sheetIcon(EditorSheet.WHEN),
+                label = stringResource(R.string.editor_row_when),
+                value = whenSummary(state),
+                placeholder = state.buildSchedule() == null,
+                onClick = { sheet = EditorSheet.WHEN },
+            )
             if (state.pastError) {
                 ErrorText(stringResource(R.string.editor_error_past))
             }
             if (state.hijriRangeError) {
                 ErrorText(stringResource(R.string.editor_error_hijri_range))
             }
-
-            if (state.type == ScheduleType.WEEKLY) {
-                WeekdayPicker(
-                    selected = state.days,
-                    onToggle = viewModel::toggleDay,
-                    error = state.daysError,
-                )
+            if (state.daysError) {
+                ErrorText(stringResource(R.string.editor_error_days))
             }
 
-            if (state.type == ScheduleType.MONTHLY) {
-                DayOfMonthPicker(
-                    day = state.dayOfMonth,
-                    maxDay = if (state.calendar == CalendarSystem.HIJRI) 30 else 31,
-                    hijri = state.calendar == CalendarSystem.HIJRI,
-                    onChange = viewModel::setDayOfMonth,
-                )
-            }
-
-            if (state.type == ScheduleType.YEARLY) {
-                YearlyPicker(state = state, viewModel = viewModel)
-            }
-
-            // ٤: تنبيه عادي أم منبّه مهم؟
-            SectionTitle(stringResource(R.string.editor_section_alert_mode))
-            AlertModeChooser(
-                selected = state.alertMode,
-                onSelect = viewModel::setAlertMode,
+            SummaryRow(
+                icon = sheetIcon(EditorSheet.ALERT),
+                label = stringResource(R.string.editor_row_alert),
+                value = alertSummary(state),
+                onClick = { sheet = EditorSheet.ALERT },
             )
             if (state.showSuggestion) {
                 SuggestionRow(state = state, viewModel = viewModel)
@@ -291,25 +203,20 @@ fun EditorScreen(
                 NoteText(stringResource(R.string.editor_exact_denied_note))
             }
 
-            // ٥: كل ما عدا ذلك خلف إفصاح تدريجي
+            SummaryRow(
+                icon = sheetIcon(EditorSheet.FOLLOW),
+                label = stringResource(R.string.editor_row_follow),
+                value = followSummary(state),
+                onClick = { sheet = EditorSheet.FOLLOW },
+            )
+
             TextButton(
-                onClick = { viewModel.setMoreExpanded(!state.moreExpanded) },
+                onClick = { sheet = EditorSheet.ADVANCED },
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Icon(
-                    if (state.moreExpanded) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore,
-                    contentDescription = null,
-                )
+                Icon(Icons.Rounded.Tune, contentDescription = null)
                 Spacer(Modifier.width(6.dp))
-                Text(
-                    stringResource(
-                        if (state.moreExpanded) R.string.editor_more_hide else R.string.editor_more_show,
-                    ),
-                )
-            }
-
-            if (state.moreExpanded) {
-                MoreOptions(state = state, viewModel = viewModel)
+                Text(stringResource(R.string.editor_more_show))
             }
 
             // ملخص صريح قبل الحفظ: لا حفظ لجدولة غامضة.
@@ -321,7 +228,7 @@ fun EditorScreen(
                 enabled = !state.saving,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
+                    .heightIn(min = 56.dp),
                 shape = MaterialTheme.shapes.small,
             ) {
                 Text(
@@ -331,6 +238,16 @@ fun EditorScreen(
             }
         }
     }
+
+    EditorSheetHost(
+        sheet = sheet,
+        state = state,
+        viewModel = viewModel,
+        onDismiss = { sheet = null },
+        onPickTime = { showTimePicker = true },
+        onPickDate = { showDatePicker = true },
+        onPickHijri = { showHijriPicker = true },
+    )
 
     if (showTimePicker) {
         val timeState = rememberTimePickerState(
@@ -437,7 +354,7 @@ fun EditorScreen(
 // ---------------------------------------------------------------- calendar
 
 @Composable
-private fun CalendarSelector(
+internal fun CalendarSelector(
     selected: CalendarSystem,
     onSelect: (CalendarSystem) -> Unit,
 ) {
@@ -466,7 +383,7 @@ private fun CalendarSelector(
 
 /** Primary date in the chosen calendar plus its equivalent in the other one. */
 @Composable
-private fun EquivalentDateLines(state: EditorState) {
+internal fun EquivalentDateLines(state: EditorState) {
     val hijri = state.calendar == CalendarSystem.HIJRI
     val primary: String
     val equivalent: String?
@@ -498,7 +415,7 @@ private fun EquivalentDateLines(state: EditorState) {
 // -------------------------------------------------------------- alert mode
 
 @Composable
-private fun AlertModeChooser(
+internal fun AlertModeChooser(
     selected: AlertMode,
     onSelect: (AlertMode) -> Unit,
 ) {
@@ -577,7 +494,7 @@ private fun AlertModeCard(
 }
 
 @Composable
-private fun SuggestionRow(state: EditorState, viewModel: EditorViewModel) {
+internal fun SuggestionRow(state: EditorState, viewModel: EditorViewModel) {
     val label = when (state.suggestionSource) {
         SuggestionSource.LEARNED -> stringResource(
             R.string.editor_alert_suggestion_learned,
@@ -616,24 +533,8 @@ private fun SuggestionRow(state: EditorState, viewModel: EditorViewModel) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun MoreOptions(state: EditorState, viewModel: EditorViewModel) {
+internal fun MoreOptions(state: EditorState, viewModel: EditorViewModel) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        SectionTitle(stringResource(R.string.editor_section_category))
-        Row(
-            Modifier
-                .fillMaxWidth()
-                .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Category.entries.forEach { category ->
-                FilterChip(
-                    selected = state.category == category,
-                    onClick = { viewModel.setCategory(category) },
-                    label = { Text(stringResource(category.labelRes)) },
-                )
-            }
-        }
-
         SectionTitle(stringResource(R.string.editor_section_options))
         if (state.alertMode == AlertMode.STANDARD) {
             OptionSwitch(
@@ -674,56 +575,98 @@ private fun MoreOptions(state: EditorState, viewModel: EditorViewModel) {
                 onChecked = viewModel::setStopMarksCompleted,
             )
             SectionTitle(stringResource(R.string.editor_alarm_timeout))
-            SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-                val options = listOf(1, 3, 5, 10)
-                options.forEachIndexed { index, minutes ->
-                    SegmentedButton(
-                        selected = state.alarmTimeoutMinutes == minutes,
-                        onClick = { viewModel.setAlarmTimeout(minutes) },
-                        shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
-                        label = {
-                            Text(
-                                stringResource(
-                                    R.string.editor_snooze_option,
-                                    BalFormats.arabicDigits(minutes.toString()),
-                                ),
-                                style = MaterialTheme.typography.labelMedium,
-                            )
-                        },
-                    )
-                }
-            }
+            MinutesChoiceRow(
+                options = listOf(1, 3, 5, 10),
+                selected = state.alarmTimeoutMinutes,
+                onSelect = viewModel::setAlarmTimeout,
+            )
         }
 
         SectionTitle(stringResource(R.string.editor_section_snooze))
-        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
-            val options = listOf(5, 10, 15, 30)
-            options.forEachIndexed { index, minutes ->
-                SegmentedButton(
-                    selected = state.snoozeMinutes == minutes,
-                    onClick = { viewModel.setSnooze(minutes) },
-                    shape = SegmentedButtonDefaults.itemShape(index = index, count = options.size),
-                    label = {
-                        Text(
-                            stringResource(
-                                R.string.editor_snooze_option,
-                                BalFormats.arabicDigits(minutes.toString()),
-                            ),
-                            style = MaterialTheme.typography.labelMedium,
-                        )
-                    },
-                )
-            }
-        }
-
-        OutlinedTextField(
-            value = state.notes,
-            onValueChange = viewModel::setNotes,
-            modifier = Modifier.fillMaxWidth(),
-            label = { Text(stringResource(R.string.editor_field_notes)) },
-            minLines = 2,
-            shape = MaterialTheme.shapes.small,
+        MinutesChoiceRow(
+            options = listOf(5, 10, 15, 30),
+            selected = state.snoozeMinutes,
+            onSelect = viewModel::setSnooze,
         )
+
+    }
+}
+
+/**
+ * Recurrence and category as wrapping chips.
+ *
+ * These were segmented rows in a horizontal scroll, which silently cut «شهريًا»
+ * off the edge of the screen: an option the user could not see was an option
+ * they did not have. Chips that wrap cannot clip, and they survive the largest
+ * font scales, which is exactly where the old row failed worst.
+ */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun RecurrenceChooser(state: EditorState, viewModel: EditorViewModel) {
+    val options = listOf(
+        ScheduleType.ONCE to R.string.schedule_type_once,
+        ScheduleType.DAILY to R.string.schedule_type_daily,
+        ScheduleType.WEEKLY to R.string.schedule_type_weekly,
+        ScheduleType.MONTHLY to R.string.schedule_type_monthly,
+        ScheduleType.YEARLY to R.string.schedule_type_yearly,
+    )
+    FlowRow(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        options.forEach { (type, labelRes) ->
+            FilterChip(
+                selected = state.type == type,
+                onClick = { viewModel.setType(type) },
+                label = { Text(stringResource(labelRes)) },
+                modifier = Modifier.heightIn(min = 48.dp),
+            )
+        }
+    }
+}
+
+/** A minutes choice that wraps instead of squeezing its labels to nothing. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun MinutesChoiceRow(options: List<Int>, selected: Int, onSelect: (Int) -> Unit) {
+    FlowRow(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        options.forEach { minutes ->
+            FilterChip(
+                selected = selected == minutes,
+                onClick = { onSelect(minutes) },
+                label = {
+                    Text(
+                        stringResource(
+                            R.string.editor_snooze_option,
+                            BalFormats.arabicDigits(minutes.toString()),
+                        ),
+                    )
+                },
+                modifier = Modifier.heightIn(min = 48.dp),
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+internal fun CategoryChooser(state: EditorState, viewModel: EditorViewModel) {
+    SectionTitle(stringResource(R.string.editor_section_category))
+    FlowRow(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        Category.entries.forEach { category ->
+            FilterChip(
+                selected = state.category == category,
+                onClick = { viewModel.setCategory(category) },
+                label = { Text(stringResource(category.labelRes)) },
+                modifier = Modifier.heightIn(min = 48.dp),
+            )
+        }
     }
 }
 
@@ -798,7 +741,7 @@ private fun RingtoneRow(state: EditorState, viewModel: EditorViewModel) {
 
 /** The concise pre-save answer to "ماذا سيحدث؟": schedule, actions, calendar basis. */
 @Composable
-private fun SummaryCard(state: EditorState) {
+internal fun SummaryCard(state: EditorState) {
     val context = LocalContext.current
     val schedule = state.buildSchedule() ?: return
     if (state.title.isBlank()) return
@@ -858,7 +801,7 @@ private fun SummaryCard(state: EditorState) {
 // ----------------------------------------------------------------- pickers
 
 @Composable
-private fun WeekdayPicker(
+internal fun WeekdayPicker(
     selected: Set<DayOfWeek>,
     onToggle: (DayOfWeek) -> Unit,
     error: Boolean,
@@ -890,7 +833,7 @@ private fun WeekdayPicker(
 }
 
 @Composable
-private fun DayOfMonthPicker(day: Int, maxDay: Int, hijri: Boolean, onChange: (Int) -> Unit) {
+internal fun DayOfMonthPicker(day: Int, maxDay: Int, hijri: Boolean, onChange: (Int) -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -918,7 +861,7 @@ private fun DayOfMonthPicker(day: Int, maxDay: Int, hijri: Boolean, onChange: (I
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun YearlyPicker(state: EditorState, viewModel: EditorViewModel) {
+internal fun YearlyPicker(state: EditorState, viewModel: EditorViewModel) {
     val hijri = state.calendar == CalendarSystem.HIJRI
     var expanded by remember { mutableStateOf(false) }
     val monthNames = if (hijri) {
@@ -1095,7 +1038,7 @@ private fun OptionSwitch(label: String, checked: Boolean, onChecked: (Boolean) -
 }
 
 @Composable
-private fun ErrorText(text: String) {
+internal fun ErrorText(text: String) {
     Text(
         text,
         style = MaterialTheme.typography.bodySmall,
@@ -1104,7 +1047,7 @@ private fun ErrorText(text: String) {
 }
 
 @Composable
-private fun NoteText(text: String) {
+internal fun NoteText(text: String) {
     Text(
         text,
         style = MaterialTheme.typography.bodySmall,

@@ -18,6 +18,8 @@ data class RemindersState(
     val items: List<Reminder> = emptyList(),
     val query: String = "",
     val filter: Category? = null,
+    /** Reminders with an occurrence in «بانتظار تأكيدك», so the list can say so. */
+    val awaitingIds: Set<Long> = emptySet(),
 )
 
 @HiltViewModel
@@ -29,8 +31,14 @@ class RemindersViewModel @Inject constructor(
     private val query = MutableStateFlow("")
     private val filter = MutableStateFlow<Category?>(null)
 
-    val state = combine(repository.observeAll(), query, filter) { reminders, q, f ->
+    val state = combine(
+        repository.observeAll(),
+        repository.observePending(),
+        query,
+        filter,
+    ) { reminders, pending, q, f ->
         RemindersState(
+            awaitingIds = pending.map { it.reminderId }.toSet(),
             items = reminders
                 // Ended recurring series stay listed (labeled), finished
                 // one-time reminders live in the log instead.

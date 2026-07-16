@@ -141,6 +141,7 @@ fun RemindersScreen(
                             },
                             onClick = { onOpenDetails(reminder.id) },
                             onToggle = if (ended) null else { it -> viewModel.setEnabled(reminder.id, it) },
+                            awaiting = reminder.id in state.awaitingIds,
                         )
                     }
                 }

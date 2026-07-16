@@ -73,6 +73,10 @@ data class EditorState(
     val alarmGradualVolume: Boolean = true,
     val alarmRepeatIfIgnored: Boolean = false,
     val stopMarksCompleted: Boolean = false,
+    val followUntilComplete: Boolean = false,
+    val followUpIntervalMinutes: Int = Reminder.DEFAULT_FOLLOW_UP_INTERVAL_MINUTES,
+    val followUpMaxRepeats: Int = Reminder.DEFAULT_FOLLOW_UP_MAX_REPEATS,
+    val completionLabel: String? = null,
     val moreExpanded: Boolean = false,
     val hijriAdjustmentDays: Int = 0,
     val suggestedAlertMode: AlertMode? = null,
@@ -90,6 +94,12 @@ data class EditorState(
     /** Calendar choice only matters for date-bearing schedule types. */
     val calendarApplies: Boolean
         get() = type == ScheduleType.ONCE || type == ScheduleType.MONTHLY || type == ScheduleType.YEARLY
+
+    /** Total minutes the follow-up may run, shown before the user commits to it. */
+    val followUpWindowMinutes: Int get() = followUpIntervalMinutes * followUpMaxRepeats
+
+    /** «إيقاف الصوت» and «تم الإنجاز» cannot both be true; the user picks one. */
+    val stopCanMarkCompleted: Boolean get() = !followUntilComplete
 
     val showSuggestion: Boolean
         get() = suggestedAlertMode != null && suggestedAlertMode != alertMode && !suggestionDismissed
@@ -215,10 +225,19 @@ class EditorViewModel @Inject constructor(
                 alarmGradualVolume = reminder.alarmGradualVolume,
                 alarmRepeatIfIgnored = reminder.alarmRepeatIfIgnored,
                 stopMarksCompleted = reminder.stopMarksCompleted,
+                followUntilComplete = reminder.followUntilComplete,
+                followUpIntervalMinutes = reminder.followUpIntervalMinutes,
+                followUpMaxRepeats = reminder.followUpMaxRepeats,
+                completionLabel = reminder.completionLabel,
             )
         }
     }
 
+    /**
+     * Fills the editor from a template. The template decides the whole shape,
+     * including whether this is the kind of obligation worth following up on,
+     * and the user is then free to change any of it before saving.
+     */
     private fun loadTemplate(templateId: String, defaultSnooze: Int) {
         val template = Templates.firstOrNull { it.id == templateId }
         val today = LocalDate.now(clock)
@@ -237,8 +256,29 @@ class EditorViewModel @Inject constructor(
                 time = schedule.time,
                 date = (schedule as? Schedule.Once)?.date ?: today,
                 days = (schedule as? Schedule.Weekly)?.days ?: emptySet(),
-                dayOfMonth = (schedule as? Schedule.Monthly)?.dayOfMonth ?: today.dayOfMonth,
-                snoozeMinutes = defaultSnooze,
+                dayOfMonth = when (schedule) {
+                    is Schedule.Monthly -> schedule.dayOfMonth
+                    is Schedule.HijriMonthly -> schedule.dayOfMonth
+                    is Schedule.HijriYearly -> schedule.day
+                    is Schedule.Yearly -> schedule.day
+                    else -> today.dayOfMonth
+                },
+                month = when (schedule) {
+                    is Schedule.HijriYearly -> schedule.month
+                    is Schedule.Yearly -> schedule.month
+                    else -> it.month
+                },
+                alertMode = template.alertMode,
+                followUntilComplete = template.followUntilComplete,
+                followUpIntervalMinutes = template.followUpIntervalMinutes,
+                followUpMaxRepeats = template.followUpMaxRepeats,
+                alarmRepeatIfIgnored = template.alarmRepeatIfIgnored,
+                completionLabel = template.completionLabelRes?.let(appContext::getString),
+                // The template's own snooze is deliberate (a clock-in nudge is
+                // short); fall back to the user's default when it has no view.
+                snoozeMinutes = template.snoozeMinutes.takeIf {
+                    it != Reminder.DEFAULT_SNOOZE_MINUTES
+                } ?: defaultSnooze,
             )
         }
     }
@@ -413,7 +453,25 @@ class EditorViewModel @Inject constructor(
     fun setAlarmTimeout(v: Int) = _state.update { it.copy(alarmTimeoutMinutes = v.coerceIn(1, 30)) }
     fun setGradualVolume(v: Boolean) = _state.update { it.copy(alarmGradualVolume = v) }
     fun setRepeatIfIgnored(v: Boolean) = _state.update { it.copy(alarmRepeatIfIgnored = v) }
+
     fun setStopMarksCompleted(v: Boolean) = _state.update { it.copy(stopMarksCompleted = v) }
+
+    /**
+     * Turning the follow-up on retires «إيقاف الصوت يعني الإنجاز»: the whole
+     * point of following up is that silencing an alert proves nothing.
+     */
+    fun setFollowUntilComplete(v: Boolean) = _state.update {
+        it.copy(followUntilComplete = v, stopMarksCompleted = if (v) false else it.stopMarksCompleted)
+    }
+
+    fun setFollowUpInterval(v: Int) = _state.update { it.copy(followUpIntervalMinutes = v.coerceIn(1, 60)) }
+
+    fun setFollowUpMaxRepeats(v: Int) = _state.update { it.copy(followUpMaxRepeats = v.coerceIn(1, 10)) }
+
+    /** The completion phrase is the user's own words or a template's; never inferred. */
+    fun setCompletionLabel(v: String?) = _state.update {
+        it.copy(completionLabel = v?.take(40)?.trim()?.ifEmpty { null })
+    }
 
     // -------------------------------------------------------------- preview
 
@@ -513,7 +571,13 @@ class EditorViewModel @Inject constructor(
                     alarmTimeoutMinutes = s.alarmTimeoutMinutes,
                     alarmGradualVolume = s.alarmGradualVolume,
                     alarmRepeatIfIgnored = s.alarmRepeatIfIgnored,
-                    stopMarksCompleted = s.stopMarksCompleted,
+                    // Following until completed and "stop means done" are
+                    // opposite answers to the same question; never save both.
+                    stopMarksCompleted = s.stopMarksCompleted && !s.followUntilComplete,
+                    followUntilComplete = s.followUntilComplete,
+                    followUpIntervalMinutes = s.followUpIntervalMinutes,
+                    followUpMaxRepeats = s.followUpMaxRepeats,
+                    completionLabel = s.completionLabel?.trim()?.ifEmpty { null },
                     createdAt = base?.createdAt ?: clock.instant(),
                     completedAt = null, // editing re-activates a completed/ended one
                 )

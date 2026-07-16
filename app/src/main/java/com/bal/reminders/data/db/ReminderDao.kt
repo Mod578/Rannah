@@ -64,4 +64,28 @@ interface ReminderDao {
 
     @Query("DELETE FROM completions")
     suspend fun clearRecords()
+
+    // ------------------------------------------------- بانتظار تأكيدك
+
+    @Query("SELECT * FROM pending_confirmations ORDER BY occurrenceAtMillis ASC")
+    fun observePending(): Flow<List<PendingConfirmationEntity>>
+
+    @Query("SELECT * FROM pending_confirmations")
+    suspend fun getPending(): List<PendingConfirmationEntity>
+
+    @Query("SELECT * FROM pending_confirmations WHERE reminderId = :reminderId AND occurrenceAtMillis = :occurrenceAtMillis")
+    suspend fun getPending(reminderId: Long, occurrenceAtMillis: Long): PendingConfirmationEntity?
+
+    /** Returns -1 when this occurrence is already awaiting confirmation. */
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertPending(entity: PendingConfirmationEntity): Long
+
+    @Query("UPDATE pending_confirmations SET nudgesSent = :nudgesSent WHERE reminderId = :reminderId AND occurrenceAtMillis = :occurrenceAtMillis")
+    suspend fun setPendingNudges(reminderId: Long, occurrenceAtMillis: Long, nudgesSent: Int)
+
+    @Query("DELETE FROM pending_confirmations WHERE reminderId = :reminderId AND occurrenceAtMillis = :occurrenceAtMillis")
+    suspend fun deletePending(reminderId: Long, occurrenceAtMillis: Long)
+
+    @Query("DELETE FROM pending_confirmations WHERE reminderId = :reminderId")
+    suspend fun deletePendingFor(reminderId: Long)
 }

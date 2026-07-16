@@ -6,8 +6,12 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
-    entities = [ReminderEntity::class, OccurrenceRecordEntity::class],
-    version = 2,
+    entities = [
+        ReminderEntity::class,
+        OccurrenceRecordEntity::class,
+        PendingConfirmationEntity::class,
+    ],
+    version = 3,
     exportSchema = true,
 )
 abstract class BalDatabase : RoomDatabase() {
@@ -46,6 +50,45 @@ abstract class BalDatabase : RoomDatabase() {
                     "CREATE UNIQUE INDEX IF NOT EXISTS " +
                         "`index_completions_reminderId_occurrenceAtMillis_status` " +
                         "ON `completions` (`reminderId`, `occurrenceAtMillis`, `status`)",
+                )
+            }
+        }
+
+        /**
+         * v3: «المتابعة حتى الإنجاز». Adds the opt-in and its bounded policy to
+         * every reminder (off, so no existing reminder changes behaviour), the
+         * contextual completion phrase, and the live pending-confirmation table.
+         */
+        val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "ALTER TABLE reminders ADD COLUMN followUntilComplete INTEGER NOT NULL DEFAULT 0",
+                )
+                db.execSQL(
+                    "ALTER TABLE reminders ADD COLUMN followUpIntervalMinutes INTEGER NOT NULL DEFAULT 5",
+                )
+                db.execSQL(
+                    "ALTER TABLE reminders ADD COLUMN followUpMaxRepeats INTEGER NOT NULL DEFAULT 3",
+                )
+                db.execSQL("ALTER TABLE reminders ADD COLUMN completionLabel TEXT DEFAULT NULL")
+
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `pending_confirmations` (" +
+                        "`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, " +
+                        "`reminderId` INTEGER NOT NULL, " +
+                        "`occurrenceAtMillis` INTEGER NOT NULL, " +
+                        "`sinceMillis` INTEGER NOT NULL, " +
+                        "`nudgesSent` INTEGER NOT NULL, " +
+                        "`deadlineAtMillis` INTEGER NOT NULL)",
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_pending_confirmations_reminderId` " +
+                        "ON `pending_confirmations` (`reminderId`)",
+                )
+                db.execSQL(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS " +
+                        "`index_pending_confirmations_reminderId_occurrenceAtMillis` " +
+                        "ON `pending_confirmations` (`reminderId`, `occurrenceAtMillis`)",
                 )
             }
         }

@@ -26,7 +26,7 @@ class MainActivity : ComponentActivity() {
     private val requestedReminderId = MutableStateFlow<Long?>(null)
 
     override fun attachBaseContext(newBase: Context) {
-        // «رنّه» is Arabic regardless of the system language: locale-wrap the
+        // «رَنّة» is Arabic regardless of the system language: locale-wrap the
         // context so resources, plurals and date names resolve in Arabic.
         val config = Configuration(newBase.resources.configuration)
         val locale = Locale("ar")

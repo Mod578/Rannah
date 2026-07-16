@@ -6,6 +6,7 @@ import com.bal.reminders.domain.ReminderRepository
 import com.bal.reminders.domain.model.AlertMode
 import com.bal.reminders.domain.model.OccurrenceRecord
 import com.bal.reminders.domain.model.OccurrenceStatus
+import com.bal.reminders.domain.model.PendingConfirmation
 import com.bal.reminders.domain.model.Reminder
 import java.time.Clock
 import java.time.Duration
@@ -153,6 +154,7 @@ class ReminderScheduler @Inject constructor(
         val inserted = repository.addRecord(record(reminder, occurrence, OccurrenceStatus.COMPLETED))
         if (!inserted) return null
         alarmGateway.cancelReAlert(reminderId)
+        closeFollowUp(reminderId, occurrence)
         if (!reminder.schedule.isRecurring) {
             repository.markCompleted(reminderId, now)
             alarmGateway.cancel(reminderId)
@@ -190,6 +192,7 @@ class ReminderScheduler @Inject constructor(
         val inserted = repository.addRecord(record(reminder, occurrence, OccurrenceStatus.SKIPPED))
         if (!inserted) return null
         alarmGateway.cancelReAlert(reminderId)
+        closeFollowUp(reminderId, occurrence)
         repository.setSnoozedUntil(reminderId, null)
         scheduleNext(reminder.copy(snoozedUntil = null), after = occurrence)
         notifications.dismiss(reminderId)
@@ -213,6 +216,7 @@ class ReminderScheduler @Inject constructor(
         repository.markCompleted(reminderId, clock.instant())
         alarmGateway.cancel(reminderId)
         notifications.dismiss(reminderId)
+        clearFollowUps(reminderId)
     }
 
     /** Reverses [endSeries] (undo) and also revives a completed one-time reminder. */
@@ -223,9 +227,11 @@ class ReminderScheduler @Inject constructor(
 
     /**
      * Silences a ringing alarm («إيقاف»). Stopping the sound is not completing
-     * the obligation: unless the reminder opted into stopMarksCompleted, the
-     * occurrence stays unresolved and, when requested, a quiet follow-up asks
-     * whether it is actually done.
+     * the obligation. Which of the three things happens next is decided by the
+     * reminder alone, never by the app guessing:
+     *  - stopMarksCompleted: the user asked for stop to mean done, so it does.
+     *  - followUntilComplete: the occurrence moves to «بانتظار تأكيدك».
+     *  - neither: a single quiet ask, and the occurrence stays unresolved.
      */
     suspend fun stopAlarm(
         reminderId: Long,
@@ -235,18 +241,152 @@ class ReminderScheduler @Inject constructor(
         val reminder = repository.getById(reminderId) ?: return
         alarmGateway.cancelReAlert(reminderId)
         notifications.dismiss(reminderId)
-        if (reminder.stopMarksCompleted) {
-            complete(reminderId, occurrenceAt)
-        } else if (askFollowUp && !isResolved(reminderId, occurrenceAt)) {
-            notifications.showStopFollowUp(reminder, occurrenceAt)
+        when {
+            reminder.stopMarksCompleted -> complete(reminderId, occurrenceAt)
+            reminder.followUntilComplete -> openFollowUp(reminder, occurrenceAt)
+            askFollowUp && !isResolved(reminderId, occurrenceAt) ->
+                notifications.showStopFollowUp(reminder, occurrenceAt)
         }
     }
 
-    /** The user swiped a standard notification away: log it, change nothing else. */
+    /**
+     * The user swiped a standard notification away. Pushing the alert away is
+     * not doing the task either: a reminder that follows until completed starts
+     * its follow-up here, and everything else records that the alert was seen
+     * and ignored rather than pretending it never arrived.
+     */
     suspend fun onNotificationDismissed(reminderId: Long, occurrenceAt: Instant) {
         val reminder = repository.getById(reminderId) ?: return
         if (isResolved(reminderId, occurrenceAt)) return
-        repository.addRecord(record(reminder, occurrenceAt, OccurrenceStatus.MISSED))
+        if (reminder.followUntilComplete) {
+            openFollowUp(reminder, occurrenceAt)
+        } else {
+            repository.addRecord(record(reminder, occurrenceAt, OccurrenceStatus.IGNORED))
+        }
+    }
+
+    // -------------------------------------------------- المتابعة حتى الإنجاز
+
+    /**
+     * Moves an occurrence into «بانتظار تأكيدك» and asks the first time.
+     * Idempotent: the unique (reminder, occurrence) row means a replayed stop
+     * intent joins the existing follow-up instead of starting a second one.
+     *
+     * The deadline is computed once, from the reminder as it is now, so a later
+     * settings change cannot stretch a follow-up that is already running.
+     */
+    private suspend fun openFollowUp(reminder: Reminder, occurrenceAt: Instant) {
+        if (!reminder.followUntilComplete) return
+        if (isResolved(reminder.id, occurrenceAt)) return
+        val now = clock.instant()
+        val opened = repository.addPending(
+            PendingConfirmation(
+                reminderId = reminder.id,
+                occurrenceAt = occurrenceAt,
+                since = now,
+                nudgesSent = 0,
+                deadlineAt = now.plus(Duration.ofMinutes(reminder.followUpWindowMinutes.toLong())),
+            ),
+        )
+        if (!opened) return
+        askFollowUp(reminder, occurrenceAt, nudgesSent = 0, now = now)
+    }
+
+    /**
+     * A follow-up nudge came due. Asks again while the reminder's own budget
+     * allows it, and otherwise stops for good: an unanswered follow-up is
+     * recorded as missed, never as complete.
+     */
+    suspend fun onFollowUpDue(reminderId: Long, occurrenceAt: Instant) {
+        val reminder = repository.getById(reminderId) ?: return
+        val pending = repository.getPending(reminderId, occurrenceAt) ?: return
+        if (isResolved(reminderId, occurrenceAt) || !reminder.followUntilComplete) {
+            closeFollowUp(reminderId, occurrenceAt)
+            return
+        }
+        val now = clock.instant()
+        val budgetSpent = pending.nudgesSent >= reminder.followUpMaxRepeats
+        if (budgetSpent || !now.isBefore(pending.deadlineAt)) {
+            giveUpFollowUp(reminder, occurrenceAt)
+            return
+        }
+        askFollowUp(reminder, occurrenceAt, nudgesSent = pending.nudgesSent, now = now)
+    }
+
+    private suspend fun askFollowUp(
+        reminder: Reminder,
+        occurrenceAt: Instant,
+        nudgesSent: Int,
+        now: Instant,
+    ) {
+        val sent = nudgesSent + 1
+        repository.setPendingNudges(reminder.id, occurrenceAt, sent)
+        notifications.showFollowUp(
+            reminder,
+            occurrenceAt,
+            nudge = nudgesSent,
+            remaining = (reminder.followUpMaxRepeats - sent).coerceAtLeast(0),
+        )
+        alarmGateway.scheduleFollowUp(
+            reminder.id,
+            occurrenceAt,
+            now.plus(Duration.ofMinutes(reminder.followUpIntervalMinutes.toLong())),
+        )
+    }
+
+    /** The follow-up ran out of asks: record the truth and stop bothering the user. */
+    private suspend fun giveUpFollowUp(reminder: Reminder, occurrenceAt: Instant) {
+        closeFollowUp(reminder.id, occurrenceAt)
+        if (repository.addRecord(record(reminder, occurrenceAt, OccurrenceStatus.MISSED))) {
+            notifications.showMissed(reminder, occurrenceAt)
+        }
+    }
+
+    /**
+     * «ذكّرني بعد ٥ دقائق» from the follow-up. This is an answer, not silence,
+     * so it does not burn the ask budget: the follow-up restarts, bounded as
+     * before, from the moment the user asked to be reminded. The occurrence
+     * stays unresolved throughout, and the schedule is untouched, because the
+     * task itself has not moved.
+     */
+    suspend fun snoozeFollowUp(reminderId: Long, occurrenceAt: Instant, minutes: Int? = null) {
+        val reminder = repository.getById(reminderId) ?: return
+        repository.getPending(reminderId, occurrenceAt) ?: return
+        if (isResolved(reminderId, occurrenceAt)) {
+            closeFollowUp(reminderId, occurrenceAt)
+            return
+        }
+        val now = clock.instant()
+        val delay = (minutes ?: reminder.followUpIntervalMinutes).coerceAtLeast(1)
+        val resumeAt = now.plus(Duration.ofMinutes(delay.toLong()))
+        repository.removePending(reminderId, occurrenceAt)
+        repository.addPending(
+            PendingConfirmation(
+                reminderId = reminderId,
+                occurrenceAt = occurrenceAt,
+                since = resumeAt,
+                nudgesSent = 0,
+                deadlineAt = resumeAt.plus(
+                    Duration.ofMinutes(reminder.followUpWindowMinutes.toLong()),
+                ),
+            ),
+        )
+        notifications.dismissFollowUp(reminderId)
+        alarmGateway.scheduleFollowUp(reminderId, occurrenceAt, resumeAt)
+    }
+
+    /** Clears the pending state and everything that was driving it. */
+    private suspend fun closeFollowUp(reminderId: Long, occurrenceAt: Instant) {
+        repository.removePending(reminderId, occurrenceAt)
+        alarmGateway.cancelFollowUp(reminderId)
+        notifications.dismissFollowUp(reminderId)
+    }
+
+    /** Drops every follow-up of a reminder (edit, delete, disable, end series). */
+    private suspend fun clearFollowUps(reminderId: Long) {
+        repository.removePendingFor(reminderId)
+        alarmGateway.cancelFollowUp(reminderId)
+        notifications.dismissFollowUp(reminderId)
     }
 
     /**
@@ -273,8 +413,10 @@ class ReminderScheduler @Inject constructor(
     /** Saves a reminder and (re)schedules it. Returns the id. */
     suspend fun save(reminder: Reminder): Long {
         val id = repository.upsert(reminder.copy(snoozedUntil = null))
-        // An edit invalidates any pending re-alert of the old occurrence.
+        // An edit invalidates any pending re-alert of the old occurrence, and
+        // any follow-up asking about a schedule the user has just rewritten.
         alarmGateway.cancelReAlert(id)
+        clearFollowUps(id)
         scheduleNext(id)
         return id
     }
@@ -282,6 +424,7 @@ class ReminderScheduler @Inject constructor(
     suspend fun delete(reminderId: Long) {
         alarmGateway.cancel(reminderId)
         notifications.dismiss(reminderId)
+        clearFollowUps(reminderId)
         repository.delete(reminderId)
     }
 
@@ -291,6 +434,7 @@ class ReminderScheduler @Inject constructor(
             repository.setSnoozedUntil(reminderId, null)
             alarmGateway.cancelReAlert(reminderId)
             notifications.dismiss(reminderId)
+            clearFollowUps(reminderId)
         }
         scheduleNext(reminderId)
     }
@@ -305,6 +449,7 @@ class ReminderScheduler @Inject constructor(
      */
     suspend fun rescheduleAll(fireMissed: Boolean = true) {
         val now = clock.instant()
+        restoreFollowUps(now)
         repository.getActive().forEach { reminder ->
             val missed = reminder.nextTriggerAt
             if (fireMissed && missed != null && !missed.isAfter(now)) {
@@ -321,6 +466,46 @@ class ReminderScheduler @Inject constructor(
                 repository.setSnoozedUntil(reminder.id, null)
             }
             scheduleNext(if (staleSnooze) reminder.copy(snoozedUntil = null) else reminder)
+        }
+    }
+
+    /**
+     * Rebuilds the follow-up side of the world after boot or process death.
+     * Pending confirmations live in the database precisely so that a reboot,
+     * a swiped-away notification or an OEM cleanup cannot quietly lose a task:
+     * whatever the shade did, the occurrence is still awaiting its answer here.
+     * Anything already past its deadline is settled honestly as missed.
+     */
+    private suspend fun restoreFollowUps(now: Instant) {
+        repository.getPending().forEach { pending ->
+            val reminder = repository.getById(pending.reminderId)
+            if (reminder == null || !reminder.followUntilComplete ||
+                isResolved(pending.reminderId, pending.occurrenceAt)
+            ) {
+                closeFollowUp(pending.reminderId, pending.occurrenceAt)
+                return@forEach
+            }
+            if (!now.isBefore(pending.deadlineAt) ||
+                pending.nudgesSent >= reminder.followUpMaxRepeats
+            ) {
+                giveUpFollowUp(reminder, pending.occurrenceAt)
+            } else {
+                // Re-post the ask and re-arm the nudge the reboot threw away.
+                notifications.showFollowUp(
+                    reminder,
+                    pending.occurrenceAt,
+                    nudge = pending.nudgesSent,
+                    remaining = (reminder.followUpMaxRepeats - pending.nudgesSent).coerceAtLeast(0),
+                )
+                alarmGateway.scheduleFollowUp(
+                    pending.reminderId,
+                    pending.occurrenceAt,
+                    minOf(
+                        now.plus(Duration.ofMinutes(reminder.followUpIntervalMinutes.toLong())),
+                        pending.deadlineAt,
+                    ),
+                )
+            }
         }
     }
 

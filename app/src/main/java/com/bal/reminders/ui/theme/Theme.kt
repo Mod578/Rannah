@@ -138,7 +138,7 @@ val BalShapes = Shapes(
 )
 
 /**
- * App theme. Layout direction is forced RTL: «رنّه» is an Arabic app whatever
+ * App theme. Layout direction is forced RTL: «رَنّة» is an Arabic app whatever
  * the system language is.
  */
 @Composable

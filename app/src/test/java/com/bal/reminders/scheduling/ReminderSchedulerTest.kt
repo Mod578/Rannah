@@ -5,9 +5,11 @@ import com.bal.reminders.domain.ReminderRepository
 import com.bal.reminders.domain.model.AlertMode
 import com.bal.reminders.domain.model.OccurrenceRecord
 import com.bal.reminders.domain.model.OccurrenceStatus
+import com.bal.reminders.domain.model.PendingConfirmation
 import com.bal.reminders.domain.model.Reminder
 import com.bal.reminders.domain.model.Schedule
 import java.time.Clock
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -23,6 +25,22 @@ import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+
+/** A clock the test can move, so escalation over time is actually observable. */
+private class TestClock(private val zone: ZoneId, var now: Instant) : Clock() {
+    override fun getZone(): ZoneId = zone
+    override fun withZone(zone: ZoneId): Clock = TestClock(zone, now)
+    override fun instant(): Instant = now
+}
+
+/** One «هل سجلت البصمة؟», captured as the user would have seen it. */
+private data class FollowUpAsk(
+    val reminderId: Long,
+    val occurrenceAt: Instant,
+    val nudge: Int,
+    val remaining: Int,
+    val completionLabel: String?,
+)
 
 private class FakeRepository : ReminderRepository {
     private val store = MutableStateFlow<Map<Long, Reminder>>(emptyMap())
@@ -84,6 +102,39 @@ private class FakeRepository : ReminderRepository {
 
     override suspend fun clearRecords() = records.clear()
 
+    // ------------------------------------------------- بانتظار تأكيدك
+
+    val pending = mutableListOf<PendingConfirmation>()
+
+    override fun observePending(): Flow<List<PendingConfirmation>> = MutableStateFlow(pending.toList())
+
+    override suspend fun getPending(): List<PendingConfirmation> = pending.toList()
+
+    override suspend fun getPending(reminderId: Long, occurrenceAt: Instant): PendingConfirmation? =
+        pending.firstOrNull { it.reminderId == reminderId && it.occurrenceAt == occurrenceAt }
+
+    override suspend fun addPending(pending: PendingConfirmation): Boolean {
+        // Mirrors the DB's unique (reminderId, occurrenceAt) index.
+        if (getPending(pending.reminderId, pending.occurrenceAt) != null) return false
+        this.pending += pending
+        return true
+    }
+
+    override suspend fun setPendingNudges(reminderId: Long, occurrenceAt: Instant, nudgesSent: Int) {
+        val index = pending.indexOfFirst {
+            it.reminderId == reminderId && it.occurrenceAt == occurrenceAt
+        }
+        if (index >= 0) pending[index] = pending[index].copy(nudgesSent = nudgesSent)
+    }
+
+    override suspend fun removePending(reminderId: Long, occurrenceAt: Instant) {
+        pending.removeAll { it.reminderId == reminderId && it.occurrenceAt == occurrenceAt }
+    }
+
+    override suspend fun removePendingFor(reminderId: Long) {
+        pending.removeAll { it.reminderId == reminderId }
+    }
+
     private fun mutate(id: Long, transform: (Reminder) -> Reminder) {
         store.value[id]?.let { store.value = store.value + (id to transform(it)) }
     }
@@ -93,6 +144,7 @@ private class FakeAlarmGateway : AlarmGateway {
     val scheduled = mutableMapOf<Long, Instant>()
     val alarmClockFlags = mutableMapOf<Long, Boolean>()
     val reAlerts = mutableMapOf<Long, Pair<Instant, Instant>>() // id → (occurrence, at)
+    val followUps = mutableMapOf<Long, Pair<Instant, Instant>>() // id → (occurrence, at)
     var exactAllowed = true
 
     override fun schedule(reminderId: Long, at: Instant, alarmClock: Boolean) {
@@ -104,13 +156,22 @@ private class FakeAlarmGateway : AlarmGateway {
         reAlerts[reminderId] = occurrenceAt to at
     }
 
+    override fun scheduleFollowUp(reminderId: Long, occurrenceAt: Instant, at: Instant) {
+        followUps[reminderId] = occurrenceAt to at
+    }
+
     override fun cancel(reminderId: Long) {
         scheduled.remove(reminderId)
         reAlerts.remove(reminderId)
+        followUps.remove(reminderId)
     }
 
     override fun cancelReAlert(reminderId: Long) {
         reAlerts.remove(reminderId)
+    }
+
+    override fun cancelFollowUp(reminderId: Long) {
+        followUps.remove(reminderId)
     }
 
     override fun canScheduleExact(): Boolean = exactAllowed
@@ -140,6 +201,19 @@ private class FakeNotifications : ReminderNotifications {
         followUps += reminder.id to occurrenceAt
     }
 
+    /** Each ask, with the budget رَنّة told the user about at the time. */
+    val followUpAsks = mutableListOf<FollowUpAsk>()
+
+    override fun showFollowUp(reminder: Reminder, occurrenceAt: Instant, nudge: Int, remaining: Int) {
+        followUpAsks += FollowUpAsk(reminder.id, occurrenceAt, nudge, remaining, reminder.completionLabel)
+    }
+
+    override fun dismissFollowUp(reminderId: Long) {
+        dismissedFollowUps += reminderId
+    }
+
+    val dismissedFollowUps = mutableListOf<Long>()
+
     override fun showCompletedUndo(reminder: Reminder, occurrenceAt: Instant) {
         undos += reminder.id to occurrenceAt
     }
@@ -157,10 +231,15 @@ class ReminderSchedulerTest {
     private val repository = FakeRepository()
     private val gateway = FakeAlarmGateway()
     private val notifications = FakeNotifications()
-    private val clock: Clock = Clock.fixed(now.toInstant(), zone)
+    private val clock = TestClock(zone, now.toInstant())
     private val scheduler = ReminderScheduler(
         repository, gateway, notifications, clock, HijriAdjustmentProvider { 0 },
     )
+
+    /** Advances the world, for the flows that only exist over time. */
+    private fun elapse(minutes: Long) {
+        clock.now = clock.now.plus(Duration.ofMinutes(minutes))
+    }
 
     private fun daily(time: LocalTime = LocalTime.of(21, 0)) = Reminder(
         title = "بصمة الدوام",
@@ -544,13 +623,224 @@ class ReminderSchedulerTest {
     // ------------------------------------------------------------- lifecycle
 
     @Test
-    fun `swiping a notification away logs a missed occurrence once`() = runTest {
+    fun `swiping a notification away logs an ignored occurrence once`() = runTest {
         val id = scheduler.save(daily(LocalTime.of(21, 0)))
         val occurrence = repository.getById(id)!!.nextTriggerAt!!
         scheduler.onNotificationDismissed(id, occurrence)
         scheduler.onNotificationDismissed(id, occurrence)
         assertEquals(1, repository.records.size)
-        assertEquals(OccurrenceStatus.MISSED, repository.records.single().status)
+        // Ignored, not missed: the alert did reach the user, and the history is
+        // more useful when it can tell "never saw it" from "pushed it away".
+        assertEquals(OccurrenceStatus.IGNORED, repository.records.single().status)
+    }
+
+    // ------------------------------------------------- المتابعة حتى الإنجاز
+
+    private fun clockIn() = Reminder(
+        title = "بصمة الدوام",
+        schedule = Schedule.Daily(LocalTime.of(21, 0)),
+        alertMode = AlertMode.ALARM,
+        followUntilComplete = true,
+        completionLabel = "سجلت البصمة",
+        followUpIntervalMinutes = 5,
+        followUpMaxRepeats = 3,
+        createdAt = clock.instant(),
+    )
+
+    @Test
+    fun `stopping the alarm does not complete a follow-until-complete reminder`() = runTest {
+        val id = scheduler.save(clockIn())
+        val occurrence = repository.getById(id)!!.nextTriggerAt!!
+
+        scheduler.stopAlarm(id, occurrence, askFollowUp = true)
+
+        // The whole point: silence is not completion.
+        assertFalse(repository.hasRecord(id, occurrence, OccurrenceStatus.COMPLETED))
+        assertNotNull(repository.getPending(id, occurrence))
+        assertEquals(1, notifications.followUpAsks.size)
+        assertEquals("سجلت البصمة", notifications.followUpAsks.single().completionLabel)
+    }
+
+    @Test
+    fun `follow-up asks up to its budget then records missed, never completed`() = runTest {
+        val id = scheduler.save(clockIn())
+        val occurrence = repository.getById(id)!!.nextTriggerAt!!
+        scheduler.stopAlarm(id, occurrence, askFollowUp = true)
+
+        // Three asks, five minutes apart, and not one more.
+        repeat(2) {
+            elapse(5)
+            scheduler.onFollowUpDue(id, occurrence)
+        }
+        assertEquals(3, notifications.followUpAsks.size)
+        assertEquals(listOf(2, 1, 0), notifications.followUpAsks.map { it.remaining })
+
+        elapse(5)
+        scheduler.onFollowUpDue(id, occurrence)
+
+        assertEquals(3, notifications.followUpAsks.size)
+        assertNull(repository.getPending(id, occurrence))
+        assertTrue(repository.hasRecord(id, occurrence, OccurrenceStatus.MISSED))
+        assertFalse(repository.hasRecord(id, occurrence, OccurrenceStatus.COMPLETED))
+        assertNull(gateway.followUps[id])
+    }
+
+    @Test
+    fun `confirming the follow-up completes the occurrence and clears the ask`() = runTest {
+        val id = scheduler.save(clockIn())
+        val occurrence = repository.getById(id)!!.nextTriggerAt!!
+        scheduler.stopAlarm(id, occurrence, askFollowUp = true)
+
+        scheduler.complete(id, occurrence)
+
+        assertTrue(repository.hasRecord(id, occurrence, OccurrenceStatus.COMPLETED))
+        assertNull(repository.getPending(id, occurrence))
+        assertNull(gateway.followUps[id])
+        assertTrue(id in notifications.dismissedFollowUps)
+    }
+
+    @Test
+    fun `a replayed stop intent does not open a second follow-up`() = runTest {
+        val id = scheduler.save(clockIn())
+        val occurrence = repository.getById(id)!!.nextTriggerAt!!
+
+        scheduler.stopAlarm(id, occurrence, askFollowUp = true)
+        scheduler.stopAlarm(id, occurrence, askFollowUp = true)
+
+        assertEquals(1, repository.pending.size)
+        assertEquals(1, notifications.followUpAsks.size)
+    }
+
+    @Test
+    fun `snoozing the follow-up keeps it pending and restarts the bounded ask`() = runTest {
+        val id = scheduler.save(clockIn())
+        val occurrence = repository.getById(id)!!.nextTriggerAt!!
+        scheduler.stopAlarm(id, occurrence, askFollowUp = true)
+        val scheduleBefore = repository.getById(id)!!.nextTriggerAt
+
+        elapse(1)
+        scheduler.snoozeFollowUp(id, occurrence, minutes = 5)
+
+        // Still owed, budget refreshed because the user answered, and the
+        // reminder's own schedule untouched: the task did not move.
+        val pending = repository.getPending(id, occurrence)
+        assertNotNull(pending)
+        assertEquals(0, pending!!.nudgesSent)
+        assertEquals(clock.now.plus(Duration.ofMinutes(5)), gateway.followUps[id]!!.second)
+        assertFalse(repository.hasRecord(id, occurrence, OccurrenceStatus.COMPLETED))
+        assertEquals(scheduleBefore, repository.getById(id)!!.nextTriggerAt)
+    }
+
+    @Test
+    fun `stop marks completed still wins when the user explicitly asked for it`() = runTest {
+        val id = scheduler.save(
+            clockIn().copy(followUntilComplete = false, stopMarksCompleted = true),
+        )
+        val occurrence = repository.getById(id)!!.nextTriggerAt!!
+
+        scheduler.stopAlarm(id, occurrence, askFollowUp = true)
+
+        assertTrue(repository.hasRecord(id, occurrence, OccurrenceStatus.COMPLETED))
+        assertTrue(repository.pending.isEmpty())
+    }
+
+    @Test
+    fun `an ordinary alarm never opens a tracked follow-up`() = runTest {
+        val id = scheduler.save(alarmDaily())
+        val occurrence = repository.getById(id)!!.nextTriggerAt!!
+
+        scheduler.stopAlarm(id, occurrence, askFollowUp = true)
+
+        // Opt-in only: the quiet one-shot ask, and no pending state at all.
+        assertTrue(repository.pending.isEmpty())
+        assertTrue(notifications.followUpAsks.isEmpty())
+        assertEquals(1, notifications.followUps.size)
+    }
+
+    @Test
+    fun `dismissing the notification of a following reminder opens the follow-up`() = runTest {
+        val id = scheduler.save(clockIn().copy(alertMode = AlertMode.STANDARD))
+        val occurrence = repository.getById(id)!!.nextTriggerAt!!
+
+        scheduler.onNotificationDismissed(id, occurrence)
+
+        assertNotNull(repository.getPending(id, occurrence))
+        // Pushing the alert away is not an outcome; nothing is recorded yet.
+        assertTrue(repository.records.isEmpty())
+    }
+
+    @Test
+    fun `reboot restores a live follow-up and re-arms its nudge`() = runTest {
+        val id = scheduler.save(clockIn())
+        val occurrence = repository.getById(id)!!.nextTriggerAt!!
+        scheduler.stopAlarm(id, occurrence, askFollowUp = true)
+        // Everything the system owns is gone; only the database survived.
+        gateway.followUps.clear()
+        notifications.followUpAsks.clear()
+
+        elapse(2)
+        scheduler.rescheduleAll()
+
+        assertNotNull(repository.getPending(id, occurrence))
+        assertEquals(1, notifications.followUpAsks.size)
+        assertNotNull(gateway.followUps[id])
+    }
+
+    @Test
+    fun `a follow-up past its deadline settles as missed on reboot`() = runTest {
+        val id = scheduler.save(clockIn())
+        val occurrence = repository.getById(id)!!.nextTriggerAt!!
+        scheduler.stopAlarm(id, occurrence, askFollowUp = true)
+
+        // The phone was off for longer than the follow-up was ever allowed.
+        elapse(60)
+        scheduler.rescheduleAll(fireMissed = false)
+
+        assertNull(repository.getPending(id, occurrence))
+        assertTrue(repository.hasRecord(id, occurrence, OccurrenceStatus.MISSED))
+        assertFalse(repository.hasRecord(id, occurrence, OccurrenceStatus.COMPLETED))
+    }
+
+    @Test
+    fun `editing a reminder drops a follow-up asking about the old schedule`() = runTest {
+        val id = scheduler.save(clockIn())
+        val occurrence = repository.getById(id)!!.nextTriggerAt!!
+        scheduler.stopAlarm(id, occurrence, askFollowUp = true)
+
+        scheduler.save(repository.getById(id)!!.copy(schedule = Schedule.Daily(LocalTime.of(6, 0))))
+
+        assertTrue(repository.pending.isEmpty())
+        assertNull(gateway.followUps[id])
+    }
+
+    @Test
+    fun `deleting a reminder clears its pending confirmation`() = runTest {
+        val id = scheduler.save(clockIn())
+        val occurrence = repository.getById(id)!!.nextTriggerAt!!
+        scheduler.stopAlarm(id, occurrence, askFollowUp = true)
+
+        scheduler.delete(id)
+
+        assertTrue(repository.pending.isEmpty())
+    }
+
+    @Test
+    fun `skipping this occurrence closes its follow-up without completing it`() = runTest {
+        val id = scheduler.save(clockIn())
+        val occurrence = repository.getById(id)!!.nextTriggerAt!!
+        scheduler.stopAlarm(id, occurrence, askFollowUp = true)
+
+        scheduler.skipOccurrence(id, occurrence)
+
+        assertTrue(repository.hasRecord(id, occurrence, OccurrenceStatus.SKIPPED))
+        assertFalse(repository.hasRecord(id, occurrence, OccurrenceStatus.COMPLETED))
+        assertNull(repository.getPending(id, occurrence))
+    }
+
+    @Test
+    fun `follow-up window is the interval times the repeat budget`() {
+        val reminder = clockIn()
+        assertEquals(15, reminder.followUpWindowMinutes)
     }
 
     @Test

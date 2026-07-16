@@ -2,6 +2,7 @@ package com.bal.reminders.domain
 
 import com.bal.reminders.domain.model.OccurrenceRecord
 import com.bal.reminders.domain.model.OccurrenceStatus
+import com.bal.reminders.domain.model.PendingConfirmation
 import com.bal.reminders.domain.model.Reminder
 import java.time.Instant
 import kotlinx.coroutines.flow.Flow
@@ -44,4 +45,25 @@ interface ReminderRepository {
     suspend fun hasRecord(reminderId: Long, occurrenceAt: Instant, status: OccurrenceStatus): Boolean
 
     suspend fun clearRecords()
+
+    // ------------------------------------------------- بانتظار تأكيدك
+
+    fun observePending(): Flow<List<PendingConfirmation>>
+
+    suspend fun getPending(): List<PendingConfirmation>
+
+    suspend fun getPending(reminderId: Long, occurrenceAt: Instant): PendingConfirmation?
+
+    /**
+     * Opens «بانتظار تأكيدك» for an occurrence. Returns false when it was
+     * already pending, so a replayed intent cannot start a second follow-up.
+     */
+    suspend fun addPending(pending: PendingConfirmation): Boolean
+
+    suspend fun setPendingNudges(reminderId: Long, occurrenceAt: Instant, nudgesSent: Int)
+
+    suspend fun removePending(reminderId: Long, occurrenceAt: Instant)
+
+    /** Drops every pending confirmation of a reminder (edit, delete, disable). */
+    suspend fun removePendingFor(reminderId: Long)
 }

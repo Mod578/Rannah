@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -25,6 +26,7 @@ import androidx.compose.material.icons.rounded.School
 import androidx.compose.material.icons.rounded.Work
 import androidx.compose.material.icons.rounded.Diversity1
 import androidx.compose.material.icons.rounded.Check
+import androidx.compose.material.icons.rounded.TaskAlt
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.FilledTonalButton
@@ -47,6 +49,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
+import java.time.Instant
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.bal.reminders.R
@@ -92,8 +96,13 @@ fun ReminderCard(
     onComplete: (() -> Unit)? = null,
     onToggle: ((Boolean) -> Unit)? = null,
     subtitleEmphasis: Boolean = false,
+    awaiting: Boolean = false,
+    now: Instant = Instant.now(),
 ) {
     val disabled = !reminder.enabled
+    val state = reminderStateOf(reminder, now, awaiting)
+    val stateWords = reminderStateLabel(reminder, state)
+    val toggleLabel = stringResource(R.string.reminder_toggle_description)
     Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
@@ -129,14 +138,14 @@ fun ReminderCard(
                             modifier = Modifier.size(16.dp),
                         )
                     }
-                    if (reminder.priority == Priority.HIGH) {
-                        Box(
-                            Modifier
-                                .size(8.dp)
-                                .background(MaterialTheme.colorScheme.primary, CircleShape)
-                                .semantics {
-                                    contentDescription = ""
-                                },
+                    // A reminder that follows until completed behaves
+                    // differently, so it says so instead of hiding behind a dot.
+                    if (reminder.followUntilComplete) {
+                        Icon(
+                            Icons.Rounded.TaskAlt,
+                            contentDescription = stringResource(R.string.reminder_state_follow),
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(16.dp),
                         )
                     }
                 }
@@ -149,6 +158,15 @@ fun ReminderCard(
                         else -> MaterialTheme.colorScheme.onSurfaceVariant
                     },
                 )
+                // The state in words. Silent for a plain active reminder,
+                // where "مفعّل" would just be noise on every row.
+                if (state != ReminderState.ACTIVE) {
+                    Spacer(Modifier.height(4.dp))
+                    StatusPill(
+                        text = reminderStateLabel(reminder, state),
+                        color = reminderStateColor(state),
+                    )
+                }
             }
             if (onComplete != null) {
                 // «تم» بكلمة واضحة وهدف لمس كبير، لا أيقونة فقط.
@@ -168,7 +186,17 @@ fun ReminderCard(
                 }
             }
             if (onToggle != null) {
-                Switch(checked = reminder.enabled, onCheckedChange = onToggle)
+                // The visible status pill is this switch's label; the semantics
+                // carry the same words so a screen reader is not left with a
+                // nameless toggle.
+                Switch(
+                    checked = reminder.enabled,
+                    onCheckedChange = onToggle,
+                    modifier = Modifier.semantics {
+                        contentDescription = toggleLabel
+                        stateDescription = stateWords
+                    },
+                )
             }
         }
     }
@@ -203,7 +231,7 @@ fun CategoryBadge(category: Category, muted: Boolean = false, size: Int = 40) {
 // ------------------------------------------------------------ empty state
 
 /**
- * Signature empty state: the «رنّه» bell mark drawn calm and large,
+ * Signature empty state: the «رَنّة» bell mark drawn calm and large,
  * with a message underneath. No stock illustrations.
  */
 @Composable
@@ -241,7 +269,7 @@ fun EmptyState(
     }
 }
 
-/** The «رنّه» mark: a ringing bell whose clapper is the accent dot. */
+/** The «رَنّة» mark: a ringing bell whose clapper is the accent dot. */
 @Composable
 fun AppMark(
     stroke: Color,

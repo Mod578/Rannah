@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- هوية «رنّه»: ليل ونهار -->
+    <!-- هوية «رَنّة»: ليل ونهار -->
     <!-- بقية اللوحة تعيش في ui/theme/Theme.kt؛ هنا فقط ما تحتاجه موارد XML. -->
     <color name="bal_sand">#FAF6EF</color>
     <color name="bal_night">#151A26</color>

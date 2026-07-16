@@ -39,6 +39,8 @@ import com.bal.reminders.format.BalFormats
 import com.bal.reminders.ui.components.CategoryBadge
 import com.bal.reminders.ui.components.EmptyState
 import com.bal.reminders.ui.components.SectionTitle
+import com.bal.reminders.ui.components.color
+import com.bal.reminders.ui.components.labelRes
 import java.time.ZoneId
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -107,18 +109,8 @@ fun LogScreen(
                         SectionTitle(BalFormats.date(context, group.date))
                     }
                     items(group.items, key = { it.id }) { record ->
-                        val statusLabel = stringResource(
-                            when (record.status) {
-                                OccurrenceStatus.COMPLETED -> R.string.status_completed
-                                OccurrenceStatus.SKIPPED -> R.string.status_skipped
-                                OccurrenceStatus.MISSED -> R.string.status_missed
-                            },
-                        )
-                        val statusColor = when (record.status) {
-                            OccurrenceStatus.COMPLETED -> MaterialTheme.colorScheme.secondary
-                            OccurrenceStatus.SKIPPED -> MaterialTheme.colorScheme.tertiary
-                            OccurrenceStatus.MISSED -> MaterialTheme.colorScheme.error
-                        }
+                        val statusLabel = stringResource(record.status.labelRes)
+                        val statusColor = record.status.color
                         Row(
                             Modifier
                                 .fillMaxWidth()

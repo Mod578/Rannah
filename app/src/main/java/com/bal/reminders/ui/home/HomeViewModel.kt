@@ -6,6 +6,7 @@ import com.bal.reminders.data.DateDisplay
 import com.bal.reminders.data.SettingsRepository
 import com.bal.reminders.domain.ReminderRepository
 import com.bal.reminders.domain.model.Category
+import com.bal.reminders.domain.model.OccurrenceStatus
 import com.bal.reminders.domain.model.Reminder
 import com.bal.reminders.domain.model.Schedule
 import com.bal.reminders.parser.ParseResult
@@ -33,15 +34,41 @@ data class ParsePreview(
     val schedule: Schedule,
 )
 
+/**
+ * A reminder that alerted and is still waiting to hear whether the real task
+ * happened. This is the most important thing رَنّة can show: a future reminder
+ * is a plan, but this is an obligation the user has already half-missed.
+ */
+data class PendingItem(
+    val reminder: Reminder,
+    val occurrenceAt: Instant,
+)
+
 data class HomeState(
+    val pending: List<PendingItem> = emptyList(),
     val next: Reminder? = null,
     val today: List<Reminder> = emptyList(),
     val overdue: List<Reminder> = emptyList(),
+    val missedToday: List<MissedItem> = emptyList(),
     val hasAnyReminder: Boolean = false,
     val input: String = "",
     val preview: ParsePreview? = null,
     val parseFailed: Boolean = false,
     val saving: Boolean = false,
+)
+
+/** An occurrence that ran out of time today, kept visible rather than buried. */
+data class MissedItem(
+    val reminder: Reminder,
+    val occurrenceAt: Instant,
+)
+
+/** The free-text creation box, folded into one value so [HomeState] can combine. */
+private data class InputSnapshot(
+    val input: String,
+    val preview: ParsePreview?,
+    val parseFailed: Boolean,
+    val saving: Boolean,
 )
 
 sealed interface HomeEvent {
@@ -50,6 +77,9 @@ sealed interface HomeEvent {
 
     /** A completion happened; [undo] reverses it while the snackbar shows. */
     data class UndoableComplete(val title: String, val undo: suspend () -> Unit) : HomeEvent
+
+    /** This occurrence was skipped on purpose; [undo] puts it back. */
+    data class UndoableSkip(val title: String, val undo: suspend () -> Unit) : HomeEvent
 }
 
 /** Calendar preference for the greeting's date lines. */
@@ -74,16 +104,25 @@ class HomeViewModel @Inject constructor(
 
     val events = MutableSharedFlow<HomeEvent>(extraBufferCapacity = 4)
 
-    val state = combine(
-        repository.observeAll(),
+    private val inputSnapshot = combine(
         inputState,
         previewState,
         parseFailedState,
         savingState,
-    ) { reminders, input, preview, parseFailed, saving ->
+    ) { input, preview, parseFailed, saving ->
+        InputSnapshot(input, preview, parseFailed, saving)
+    }
+
+    val state = combine(
+        repository.observeAll(),
+        repository.observePending(),
+        repository.observeRecords(),
+        inputSnapshot,
+    ) { reminders, pending, records, typed ->
         val now = clock.instant()
         val zone = clock.zone
         val today = LocalDate.now(clock)
+        val byId = reminders.associateBy { it.id }
         val active = reminders.filter { it.enabled && !it.isDone }
         val upcoming = active
             .filter { it.nextTriggerAt != null && it.nextTriggerAt!!.isAfter(now) }
@@ -96,15 +135,30 @@ class HomeViewModel @Inject constructor(
             s is Schedule.Once && !reminder.isDone && reminder.enabled &&
                 s.date.atTime(s.time).atZone(zone).toInstant() <= now
         }.sortedByDescending { (it.schedule as Schedule.Once).date }
+        // Oldest first: the one that has been waiting longest is the one most
+        // likely to be genuinely forgotten.
+        val awaiting = pending
+            .sortedBy { it.occurrenceAt }
+            .mapNotNull { p -> byId[p.reminderId]?.let { PendingItem(it, p.occurrenceAt) } }
+        val missedToday = records
+            .filter {
+                it.status == OccurrenceStatus.MISSED &&
+                    it.occurrenceAt.atZone(zone).toLocalDate() == today
+            }
+            .mapNotNull { r -> byId[r.reminderId]?.let { MissedItem(it, r.occurrenceAt) } }
+            .filter { item -> awaiting.none { it.reminder.id == item.reminder.id } }
+            .sortedByDescending { it.occurrenceAt }
         HomeState(
+            pending = awaiting,
             next = upcoming.firstOrNull(),
             today = todayList,
             overdue = overdue,
+            missedToday = missedToday,
             hasAnyReminder = reminders.isNotEmpty(),
-            input = input,
-            preview = preview,
-            parseFailed = parseFailed,
-            saving = saving,
+            input = typed.input,
+            preview = typed.preview,
+            parseFailed = typed.parseFailed,
+            saving = typed.saving,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeState())
 
@@ -196,6 +250,37 @@ class HomeViewModel @Inject constructor(
 
     fun snooze(reminder: Reminder) {
         viewModelScope.launch { scheduler.snooze(reminder.id) }
+    }
+
+    /** «نعم، سجلت البصمة» from the home screen's pending card. */
+    fun confirmPending(item: PendingItem) {
+        viewModelScope.launch {
+            val occurrence = scheduler.complete(item.reminder.id, item.occurrenceAt) ?: return@launch
+            events.emit(
+                HomeEvent.UndoableComplete(item.reminder.title) {
+                    scheduler.undoComplete(item.reminder.id, occurrence)
+                },
+            )
+        }
+    }
+
+    /** «ذكّرني بعد ٥ دقائق» from the home screen's pending card. */
+    fun snoozePending(item: PendingItem) {
+        viewModelScope.launch {
+            scheduler.snoozeFollowUp(item.reminder.id, item.occurrenceAt)
+        }
+    }
+
+    fun skipPending(item: PendingItem) {
+        viewModelScope.launch {
+            val occurrence = scheduler.skipOccurrence(item.reminder.id, item.occurrenceAt)
+                ?: return@launch
+            events.emit(
+                HomeEvent.UndoableSkip(item.reminder.title) {
+                    scheduler.undoSkip(item.reminder.id, occurrence)
+                },
+            )
+        }
     }
 
     /** Light keyword → category mapping for quick NL creation. */
