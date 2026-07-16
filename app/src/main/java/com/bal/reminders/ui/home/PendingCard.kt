@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -20,6 +19,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.bal.reminders.R
 import com.bal.reminders.format.BalFormats
+import com.bal.reminders.ui.components.HoldToConfirm
 import java.time.ZoneId
 
 /**
@@ -85,13 +85,10 @@ fun PendingCard(
             // Wraps rather than clipping: these labels are sentences, and they
             // get longer at bigger font scales.
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Button(
-                    onClick = onConfirm,
-                    modifier = Modifier.heightIn(min = 48.dp),
-                    shape = MaterialTheme.shapes.small,
-                ) {
-                    Text(confirmText)
-                }
+                // Press and hold. This card can appear under a thumb that was
+                // reaching for something else, and a stray tap here would put
+                // a claim in the user's mouth about the real world.
+                HoldToConfirm(text = confirmText, onConfirm = onConfirm)
                 TextButton(onClick = onSnooze, modifier = Modifier.heightIn(min = 48.dp)) {
                     Text(
                         context.resources.getQuantityString(
