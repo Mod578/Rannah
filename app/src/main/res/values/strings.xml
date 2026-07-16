@@ -363,7 +363,7 @@
 
     <!-- الأذونات -->
     <string name="permissions_title">الأذونات والتنبيهات</string>
-    <string name="permissions_intro">حتى توصلك تذكيراتك في وقتها بالضبط، يحتاج «رَنّة» هذه الأذونات. بياناتك تبقى على جهازك.</string>
+    <string name="permissions_intro">حتى توصلك تذكيراتك في وقتها بالضبط، يحتاج «رَنّة» هذه الأذونات. لا يطلب «رَنّة» إذن الإنترنت، ولا يرسل عنك شيئًا.</string>
     <string name="permissions_notifications_title">التنبيهات</string>
     <string name="permissions_notifications_body">بدون هذا الإذن ما يقدر «رَنّة» يعرض أي تذكير.</string>
     <string name="permissions_exact_title">التنبيه في الوقت المحدد</string>
