@@ -4,7 +4,7 @@
     <!-- بقية اللوحة تعيش في ui/theme/Theme.kt؛ هنا فقط ما تحتاجه موارد XML. -->
     <color name="bal_stone">#F4F1EA</color>       <!-- أرضية نهار -->
     <color name="bal_coal">#1A1915</color>        <!-- أرضية ليل -->
-    <color name="bal_teal">#0B6B5F</color>        <!-- الأساسي: خلفية الأيقونة والبداية -->
+    <color name="bal_ink">#151436</color>         <!-- حِبري: خلفية الشعار والبداية -->
 
     <!-- الودجت: بطاقة ليل ثابتة تطابق هوية التطبيق -->
     <color name="widget_night">#232219</color>

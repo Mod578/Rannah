@@ -71,6 +71,7 @@ import com.bal.reminders.ui.components.TodayMenu
 import com.bal.reminders.ui.permissions.Permissions
 import com.bal.reminders.ui.permissions.ReadinessIssue
 import com.bal.reminders.ui.permissions.issues
+import com.bal.reminders.ui.theme.BrandRing
 import com.bal.reminders.ui.theme.Space
 import java.time.Instant
 import java.time.ZoneId
@@ -384,7 +385,7 @@ private fun ClearDayNote() {
     ) {
         AppMark(
             body = MaterialTheme.colorScheme.outlineVariant,
-            ring = MaterialTheme.colorScheme.secondary,
+            ring = BrandRing,
             modifier = Modifier.size(28.dp),
         )
         Text(
@@ -433,7 +434,7 @@ private fun Header(now: Instant, onOpenSettings: () -> Unit) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             AppMark(
                 body = MaterialTheme.colorScheme.primary,
-                ring = MaterialTheme.colorScheme.secondary,
+                ring = BrandRing,
                 modifier = Modifier.size(24.dp),
             )
             Spacer(Modifier.size(Space.sm))

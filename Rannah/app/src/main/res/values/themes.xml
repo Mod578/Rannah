@@ -8,7 +8,7 @@
 
     <!-- شاشة البداية: جرس نحاسي على أخضر بحري، توأم للأيقونة على الشاشة الرئيسية -->
     <style name="Theme.Bal.Starting" parent="Theme.SplashScreen">
-        <item name="windowSplashScreenBackground">@color/bal_teal</item>
+        <item name="windowSplashScreenBackground">@color/bal_ink</item>
         <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
         <item name="postSplashScreenTheme">@style/Theme.Bal</item>
     </style>

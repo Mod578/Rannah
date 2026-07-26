@@ -113,6 +113,19 @@ val DarkColors = darkColorScheme(
     inverseOnSurface = Ink,
 )
 
+// ---------------------------------------------------------------- الشعار
+// ألوان الشعار وحدها: مربّع حِبري، جرس كريمي، ورنين أحمر. لا تدخل في واجهة
+// التطبيق (البحري للفعل والنحاس للمسات)، فالشعار علامة قائمة بذاتها.
+
+/** The logo tile: deep ink. */
+val BrandInk = Color(0xFF151436)
+
+/** The bell on the tile. */
+val BrandBell = Color(0xFFFEF9EE)
+
+/** The sound: the one colour that stays the same on every surface. */
+val BrandRing = Color(0xFFFE5A5F)
+
 // ---------------------------------------------------------------- المسافات
 
 /**

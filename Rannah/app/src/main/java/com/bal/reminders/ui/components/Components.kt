@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Redo
 import androidx.compose.material.icons.rounded.Check
@@ -48,6 +49,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.layout
@@ -62,25 +65,29 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.bal.reminders.R
+import com.bal.reminders.ui.theme.BrandBell
+import com.bal.reminders.ui.theme.BrandInk
+import com.bal.reminders.ui.theme.BrandRing
 import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
 // ------------------------------------------------------------- the bell mark
 
 /**
- * The «رَنّة» mark: a solid bell caught mid-ring.
+ * The «رَنّة» mark: a bell caught mid-swing, its clapper hanging free, two arcs
+ * of sound coming off its right shoulder.
  *
- * Three parts and nothing else — a stout crown bar, a body that narrows at the
- * shoulders and flares to a flat rim, and the ring itself: a clapper hanging
- * clear below the mouth with one short arc of sound on each side. The silhouette
- * is the whole idea, so it survives being shrunk to a 24 dp status-bar glyph and
- * still reads as a bell and nothing else.
+ * The geometry is the product's logo, kept as one canonical pair of paths on a
+ * 0..24 grid — [PATH_BELL] (body and clapper) and [PATH_RING] (the two arcs) —
+ * and worn unchanged by every surface: the launcher tile, the splash, the
+ * status-bar glyph and every place the mark appears inside the app. The three
+ * XML vectors carry the same two strings verbatim, because XML cannot import
+ * Kotlin; nothing else redraws the bell.
  *
- * Two colours, split by meaning rather than decoration: the bell is one solid
- * [body] colour, and everything that *is* the ring — clapper and arcs — is the
- * warm [ring] accent. One geometry source, on a 0..24 grid; the three XML
- * vectors (launcher, splash, notification) mirror these same numbers by hand,
- * because XML cannot import Kotlin.
+ * Two colours, split by meaning: the bell is one solid [body], and the sound —
+ * the arcs — is the brand [ring] red. The notch under the arcs is carved out of
+ * the bell itself, so the gap stays true whatever colour sits behind it, right
+ * down to a one-colour notification mask.
  */
 @Composable
 fun AppMark(
@@ -88,48 +95,65 @@ fun AppMark(
     ring: Color,
     modifier: Modifier = Modifier.size(96.dp),
 ) {
+    val bellPath = remember { PathParser().parsePathString(PATH_BELL).toPath() }
+    val ringPath = remember { PathParser().parsePathString(PATH_RING).toPath() }
     Canvas(modifier) {
-        val u = size.minDimension / 24f
-        fun p(v: Float) = v * u
-
-        // The crown: a stubby bar the bell hangs from. A bar, not a ring — a
-        // circle up here turns the whole mark into a lollipop.
-        drawRoundRect(
-            color = body,
-            topLeft = Offset(p(10.4f), p(2.3f)),
-            size = Size(p(3.2f), p(2.4f)),
-            cornerRadius = CornerRadius(p(1.2f)),
-        )
-        drawPath(buildBellPath(::p), color = body)
-        // The ring: the clapper hanging clear of the mouth, and one arc of sound
-        // either side. Short arcs, wide gap — motion, not a target symbol.
-        val r = p(9.5f)
-        val arcTopLeft = Offset(p(12f) - r, p(11.3f) - r)
-        val arcSize = Size(r * 2, r * 2)
-        val arcStroke = Stroke(width = p(1.25f), cap = StrokeCap.Round)
-        drawArc(ring, -18f, 36f, false, arcTopLeft, arcSize, style = arcStroke)
-        drawArc(ring, 162f, 36f, false, arcTopLeft, arcSize, style = arcStroke)
-        drawCircle(color = ring, radius = p(1.45f), center = Offset(p(12f), p(20f)))
+        val scale = size.minDimension / 24f
+        withTransform({ scale(scale, scale, pivot = Offset.Zero) }) {
+            drawPath(bellPath, body)
+            drawPath(ringPath, ring)
+        }
     }
 }
 
 /**
- * The bell body on a 0..24 grid, kept in sync with the pathData in
- * ic_launcher_foreground / ic_splash / ic_notification: narrow shoulders, a
- * long flare, and a flat rim closing the mouth — the classic bell profile,
- * drawn once and worn by every surface.
+ * The app icon itself: the mark on its ink tile, in the brand's own colours.
+ * Used where رَنّة introduces itself — the welcome screen and «عن رَنّة» — so the
+ * thing on the home screen and the thing in the app are visibly one object.
  */
-private fun buildBellPath(p: (Float) -> Float): Path = Path().apply {
-    moveTo(p(12f), p(4.35f))
-    cubicTo(p(14.75f), p(4.35f), p(16.35f), p(6.6f), p(16.6f), p(10.1f))
-    cubicTo(p(16.85f), p(13.5f), p(17.2f), p(15.4f), p(18.5f), p(16.85f))
-    cubicTo(p(19.0f), p(17.45f), p(18.7f), p(18.25f), p(17.85f), p(18.25f))
-    lineTo(p(6.15f), p(18.25f))
-    cubicTo(p(5.3f), p(18.25f), p(5.0f), p(17.45f), p(5.5f), p(16.85f))
-    cubicTo(p(6.8f), p(15.4f), p(7.15f), p(13.5f), p(7.4f), p(10.1f))
-    cubicTo(p(7.65f), p(6.6f), p(9.25f), p(4.35f), p(12f), p(4.35f))
-    close()
+@Composable
+fun AppIconTile(modifier: Modifier = Modifier.size(96.dp)) {
+    Surface(
+        shape = RoundedCornerShape(percent = 23),
+        color = BrandInk,
+        modifier = modifier,
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            // The fraction, not a fixed inset: the tile keeps the logo's own
+            // proportions at 96 dp and at 112 dp alike.
+            AppMark(
+                body = BrandBell,
+                ring = BrandRing,
+                modifier = Modifier.fillMaxSize(MARK_FRACTION),
+            )
+        }
+    }
 }
+
+/** How much of the tile the mark fills — measured from the logo artwork. */
+private const val MARK_FRACTION = 0.74f
+
+/** The bell body and its clapper, on a 0..24 grid. */
+private const val PATH_BELL =
+    "M10.62,2.08 C9.99,2.18 9.4,2.69 9.27,3.23 C9.23,3.37 9.23,3.37 8.94,3.47 C8.19,3.72 7.56,4.12 6.94,4.74 " +
+        "C6.46,5.21 6.15,5.63 5.9,6.13 C5.42,7.05 5.26,7.73 5.17,9.38 C4.95,13.04 4.6,14.29 3.24,15.99 " +
+        "C2.64,16.76 2.41,17.16 2.31,17.61 C2.2,18.17 2.49,18.57 3.09,18.69 C3.24,18.71 5.4,18.72 11.25,18.71 " +
+        "C18.8,18.7 19.21,18.7 19.35,18.64 C19.95,18.4 20.1,17.87 19.77,17.15 C19.66,16.91 19.32,16.41 19,16.01 " +
+        "C17.74,14.43 17.29,13.06 17.12,10.21 C17.09,9.72 17.06,9.25 17.05,9.15 L17.04,8.97 L16.82,9.13 " +
+        "C16.25,9.54 15.61,9.64 14.94,9.43 C13.63,9.01 13.06,7.44 13.8,6.3 C14.08,5.86 14.62,5.48 15.08,5.38 " +
+        "C15.18,5.36 15.27,5.33 15.27,5.32 C15.27,5.27 14.79,4.73 14.53,4.48 C14.04,4.02 13.47,3.68 12.85,3.47 L12.56,3.37 L12.51,3.2 " +
+        "C12.27,2.44 11.43,1.94 10.62,2.08 Z M9.76,19.31 C9.44,19.67 9.38,20.42 9.62,20.91 " +
+        "C10.41,22.5 12.85,21.87 12.74,20.1 C12.73,19.82 12.6,19.47 12.46,19.32 C12.38,19.22 9.85,19.22 9.76,19.31 " +
+        "Z"
+
+/** The two arcs of sound, on the same grid. */
+private const val PATH_RING =
+    "M16.05,1.54 C15.87,1.61 15.75,1.85 15.8,2.06 C15.85,2.27 15.94,2.33 16.37,2.44 C16.9,2.57 17.13,2.66 17.55,2.87 " +
+        "C19.97,4.06 21.28,6.67 20.72,9.21 C20.62,9.68 20.61,9.75 20.67,9.88 C20.8,10.13 21.16,10.19 21.36,10 " +
+        "C21.61,9.76 21.8,8.24 21.7,7.33 C21.37,4.51 19.21,2.13 16.44,1.56 C16.17,1.5 16.15,1.5 16.05,1.54 " +
+        "Z M15.51,3.48 C15.36,3.57 15.28,3.79 15.33,3.97 C15.38,4.17 15.48,4.24 15.82,4.34 C17.75,4.9 18.95,6.82 18.63,8.84 " +
+        "C18.58,9.15 18.58,9.18 18.63,9.28 C18.78,9.59 19.25,9.63 19.4,9.35 C19.56,9.03 19.6,7.76 19.47,7.17 " +
+        "C19.08,5.44 17.91,4.11 16.27,3.55 C15.86,3.41 15.65,3.39 15.51,3.48 Z"
 
 // ------------------------------------------------------------- the colophon
 
@@ -548,7 +572,7 @@ fun EmptyState(
             Box(contentAlignment = Alignment.Center) {
                 AppMark(
                     body = MaterialTheme.colorScheme.primary,
-                    ring = MaterialTheme.colorScheme.secondary,
+                    ring = BrandRing,
                     modifier = Modifier.size(50.dp),
                 )
             }

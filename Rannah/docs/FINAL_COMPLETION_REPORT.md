@@ -170,7 +170,32 @@ become a path into deleting a series.
   written it since the follow-up feature was removed, but old databases hold such
   rows and they stay readable rather than being re-read as something else.
 
-## 11. Data integrity
+## 11. The logo
+
+The supplied concept (`design/logo/rannah-logo-concept.png`) replaced the drawn
+bell. It was **traced from the artwork**, not re-approximated: the cream and red
+regions were isolated, vectorised, and normalised onto the app's 0..24 grid, so
+the shipped icon is the concept — the tilt, the notch carved out of the right
+shoulder, the free-hanging clapper and the two asymmetric arcs — rather than a
+hand-drawn lookalike.
+
+The result is two path strings, `PATH_BELL` and `PATH_RING`, held once in
+`Components.kt` and copied verbatim into the three vectors. Every surface wears
+the same geometry: launcher, splash, status-bar glyph, home header, editor
+summary, empty state, welcome and About. The notch is carved out of the bell path
+itself, so the gap between bell and sound survives even the one-colour
+notification mask.
+
+Colour: the tile is the concept's ink `#151436`, the bell its cream `#FEF9EE`,
+the arcs its red `#FE5A5F`. The logo keeps its own palette and does not become
+the UI's — teal still means "act", brass still means "accent", and red stays out
+of the interface, where it would collide with the destructive colour. The one
+constant across surfaces is the red ring: inline, the bell takes the surface's
+ink or cream and the arcs stay brand red. «عن رَنّة» and the welcome screen show
+the tile itself, so the icon on the home screen and the mark inside the app are
+visibly one object.
+
+## 12. Data integrity
 
 Room stays at **v5** — skipping needed no schema change, because `SKIPPED` was
 already part of the status column. Reviewed and unchanged: snoozed-occurrence
@@ -179,19 +204,19 @@ idempotency, transaction boundaries (delete-with-records, restore, prune), 180-d
 record retention on both the record and occurrence axes, midnight cleanup, and
 `ReconcileWorker`. No archive, trash screen or history feature was added.
 
-## 12. Build
+## 13. Build
 
 - `:app:testDebugUnitTest` — **124 tests, 0 failures**.
 - `:app:lintDebug` — **0 errors, 0 warnings** in app sources.
 - `:app:assembleDebug` · `:app:assembleRelease` — **BUILD SUCCESSFUL**.
 - APK: `~/Desktop/rannah.apk` and `~/Downloads/rannah.apk`, identical copies,
   19,074,638 bytes,
-  SHA-256 `b7d95463db41f13387261ee290a9daec9b039f18953337e05b4ce7ff7d098403`.
+  SHA-256 `6650f33fadc057e48cd8dec343f3117e73c78e271229214d955cc39ea9e55900`.
 - `com.bal.reminders` · 1.0.0 (versionCode 1) · debug build, signed with the
   Android debug keystore, APK Signature Scheme **v2 verified**. The release build
   has no `signingConfigs` and is therefore unsigned and not installable.
 
-## 13. Remaining runtime-only risks
+## 14. Remaining runtime-only risks
 
 - Layout at 200 % font scale, RTL mirroring of the swipe reveal, and the new row
   density were designed and reasoned about, not observed on a device.

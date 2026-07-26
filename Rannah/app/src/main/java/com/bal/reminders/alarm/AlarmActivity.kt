@@ -55,6 +55,7 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bal.reminders.R
+import com.bal.reminders.ui.theme.BrandRing
 import com.bal.reminders.data.ThemeMode
 import com.bal.reminders.format.BalFormats
 import com.bal.reminders.scheduling.AlarmRingerService
@@ -216,7 +217,7 @@ private fun AlarmScreen(viewModel: AlarmViewModel) {
             )
             AppMark(
                 body = MaterialTheme.colorScheme.onBackground,
-                ring = MaterialTheme.colorScheme.secondary,
+                ring = BrandRing,
                 modifier = Modifier
                     .size(56.dp)
                     .graphicsLayer {

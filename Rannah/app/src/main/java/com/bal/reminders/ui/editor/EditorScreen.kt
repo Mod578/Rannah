@@ -59,6 +59,7 @@ import com.bal.reminders.format.BalFormats
 import com.bal.reminders.ui.components.AppMark
 import com.bal.reminders.ui.components.ChoiceChips
 import com.bal.reminders.ui.components.ChoiceChipsMulti
+import com.bal.reminders.ui.theme.BrandRing
 import com.bal.reminders.ui.theme.Space
 import java.time.DayOfWeek
 import java.time.Instant
@@ -197,7 +198,7 @@ fun EditorScreen(
                     ) {
                         AppMark(
                             body = MaterialTheme.colorScheme.primary,
-                            ring = MaterialTheme.colorScheme.secondary,
+                            ring = BrandRing,
                             modifier = Modifier.size(22.dp),
                         )
                         Text(
