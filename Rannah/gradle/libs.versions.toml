@@ -15,6 +15,8 @@ datastore = "1.1.1"
 workManager = "2.10.0"
 coroutines = "1.9.0"
 junit = "4.13.2"
+sqliteJdbc = "3.47.1.0"
+gson = "2.11.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -49,6 +51,10 @@ work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version
 coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
+# Test-only: a real SQLite engine and a JSON reader, so the Room migrations can
+# be exercised against the exported schemas on the JVM, with no device involved.
+sqlite-jdbc = { group = "org.xerial", name = "sqlite-jdbc", version.ref = "sqliteJdbc" }
+gson = { group = "com.google.code.gson", name = "gson", version.ref = "gson" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

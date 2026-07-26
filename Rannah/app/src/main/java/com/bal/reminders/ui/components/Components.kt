@@ -93,7 +93,7 @@ import kotlinx.coroutines.launch
 fun AppMark(
     body: Color,
     ring: Color,
-    modifier: Modifier = Modifier.size(96.dp),
+    modifier: Modifier = Modifier,
 ) {
     val bellPath = remember { PathParser().parsePathString(PATH_BELL).toPath() }
     val ringPath = remember { PathParser().parsePathString(PATH_RING).toPath() }
@@ -112,7 +112,7 @@ fun AppMark(
  * thing on the home screen and the thing in the app are visibly one object.
  */
 @Composable
-fun AppIconTile(modifier: Modifier = Modifier.size(96.dp)) {
+fun AppIconTile(modifier: Modifier = Modifier) {
     Surface(
         shape = RoundedCornerShape(percent = 23),
         color = BrandInk,

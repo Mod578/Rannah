@@ -1,9 +1,31 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.ksp)
     alias(libs.plugins.hilt)
+}
+
+/**
+ * Release signing credentials live outside the repository and are never tracked.
+ * This file only names where to look for them; it holds no secret itself.
+ *
+ * Default: ~/.keystores/rannah/keystore.properties (mode 0600), which declares
+ * storeFile, storePassword, keyAlias, keyPassword. Override the location with
+ * -Prannah.keystoreProperties=… or the RANNAH_KEYSTORE_PROPERTIES env var.
+ *
+ * When the file is absent the release build still assembles — unsigned — so a
+ * machine without the private key can verify compilation, shrinking and lint.
+ */
+val releaseSigningCredentials: Properties? = run {
+    val configured = providers.gradleProperty("rannah.keystoreProperties").orNull
+        ?: providers.environmentVariable("RANNAH_KEYSTORE_PROPERTIES").orNull
+        ?: "${providers.systemProperty("user.home").get()}/.keystores/rannah/keystore.properties"
+    File(configured).takeIf { it.isFile }?.let { descriptor ->
+        Properties().apply { descriptor.inputStream().use(::load) }
+    }
 }
 
 android {
@@ -20,14 +42,41 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        releaseSigningCredentials?.let { credentials ->
+            create("release") {
+                storeFile = file(credentials.getProperty("storeFile"))
+                storePassword = credentials.getProperty("storePassword")
+                keyAlias = credentials.getProperty("keyAlias")
+                keyPassword = credentials.getProperty("keyPassword")
+                // v2 and v3 sign the whole APK, including the META-INF entries
+                // that v1's per-entry digests cannot cover. Every device رَنّة
+                // supports (minSdk 26) verifies them, so v1 would add only the
+                // weaker signature and the warnings that come with it.
+                enableV1Signing = false
+                enableV2Signing = true
+                enableV3Signing = true
+            }
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            isDebuggable = false
+            signingConfig = signingConfigs.findByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+    }
+
+    packaging {
+        resources {
+            // Coroutines' debug-agent metadata: only the JVM debugger reads it.
+            excludes += "DebugProbesKt.bin"
         }
     }
     compileOptions {
@@ -48,9 +97,19 @@ android {
     }
 }
 
+val roomSchemas: Directory = layout.projectDirectory.dir("schemas")
+
 ksp {
-    arg("room.schemaLocation", "$projectDir/schemas")
+    arg("room.schemaLocation", roomSchemas.asFile.path)
     arg("room.generateKotlin", "true")
+}
+
+// The migration tests build their legacy databases from these exported schemas,
+// so a schema change re-runs them.
+tasks.withType<Test>().configureEach {
+    systemProperty("rannah.schemaDir", roomSchemas.asFile.absolutePath)
+    inputs.dir(roomSchemas).withPropertyName("roomSchemas")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
 }
 
 dependencies {
@@ -86,4 +145,6 @@ dependencies {
 
     testImplementation(libs.junit)
     testImplementation(libs.coroutines.test)
+    testImplementation(libs.sqlite.jdbc)
+    testImplementation(libs.gson)
 }
