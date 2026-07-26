@@ -1,22 +1,48 @@
+# Gradle and build output
 .gradle/
 build/
-local.properties
-.idea/
-.vscode/
-*.iml
-.kotlin/
 captures/
 .externalNativeBuild/
 .cxx/
+*.hprof
 
-# Packaged outputs (attach to releases instead of tracking)
+# Machine-specific
+local.properties
+.kotlin/
+
+# IDE and editor
+.idea/
+.vscode/
+.fleet/
+*.iml
+
+# Developer tooling — never part of the project
+.claude/
+
+# Packaged outputs — attached to GitHub Releases, never tracked here
 *.apk
 *.aab
+*.apks
 
-# Signing credentials — never commit
+# Signing credentials — never commit, in any form
 *.jks
 *.keystore
+*.p12
+*.pepk
 keystore.properties
+signing.properties
 
-# Generated reports
+# Generated reports, logs and scratch files
 reports/
+*.log
+*.bak
+*.orig
+*.tmp
+*~
+
+# OS noise
+.DS_Store
+Thumbs.db
+
+# A separate application that lives in its own repository
+/Fawtara/
