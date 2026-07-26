@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.Bal" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/bal_stone</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+
+    <!-- شاشة البداية: جرس نحاسي على أخضر بحري، توأم للأيقونة على الشاشة الرئيسية -->
+    <style name="Theme.Bal.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/bal_teal</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash</item>
+        <item name="postSplashScreenTheme">@style/Theme.Bal</item>
+    </style>
+</resources>

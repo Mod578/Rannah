@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">رَنّة</string>
+
+    <!-- الإجراءات الموحّدة في كل الشاشات -->
+    <string name="action_ok">تأكيد</string>
+    <string name="action_cancel">إلغاء</string>
+    <string name="action_back">رجوع</string>
+    <string name="action_delete">حذف</string>
+    <string name="action_edit">تعديل</string>
+    <string name="action_done">تم</string>
+    <string name="action_skip_today">تخطي اليوم</string>
+    <string name="action_pause">إيقاف مؤقت</string>
+    <string name="action_resume">استئناف</string>
+    <string name="action_undo">تراجع</string>
+    <string name="action_undo_complete">تراجع عن الإنجاز</string>
+    <string name="action_undo_skip">تراجع عن التخطي</string>
+    <string name="action_delete_reminder">حذف التذكير</string>
+    <string name="action_delete_recurring">حذف التذكير المتكرر</string>
+    <string name="action_new_reminder">تذكير جديد</string>
+    <string name="action_more">إجراءات اليوم</string>
+    <string name="action_increase">زيادة</string>
+    <string name="action_decrease">إنقاص</string>
+
+    <string name="tab_settings">الإعدادات</string>
+
+    <!-- نوع التذكير -->
+    <string name="kind_once">مرة واحدة</string>
+    <string name="kind_recurring">يتكرر</string>
+
+    <!-- فترات اليوم -->
+    <string name="period_fajr">فجرًا</string>
+    <string name="period_morning">صباحًا</string>
+    <string name="period_noon">ظهرًا</string>
+    <string name="period_afternoon">عصرًا</string>
+    <string name="period_evening">مساءً</string>
+
+    <!-- التواريخ -->
+    <string name="date_today">اليوم</string>
+    <string name="date_tomorrow">غدًا</string>
+    <string name="date_time_at">%1$s، %2$s</string>
+
+    <!-- وصف الجدولة كاملًا -->
+    <string name="schedule_once">مرة واحدة، %1$s الساعة %2$s</string>
+    <string name="schedule_daily">كل يوم، الساعة %1$s</string>
+    <string name="schedule_weekly">كل %1$s، الساعة %2$s</string>
+    <string name="schedule_days_workdays">أيام العمل</string>
+    <string name="schedule_days_weekend">نهاية الأسبوع</string>
+    <string name="schedule_days_all">يوم</string>
+    <string name="schedule_monthly">يوم %1$s من كل شهر، الساعة %2$s</string>
+    <string name="schedule_monthly_clamped">يوم %1$s من كل شهر أو آخر يوم في الأشهر الأقصر، الساعة %2$s</string>
+    <string name="schedule_hijri_monthly">يوم %1$s من كل شهر هجري، الساعة %2$s</string>
+    <string name="schedule_hijri_monthly_clamped">يوم %1$s أو آخر يوم من كل شهر هجري، الساعة %2$s</string>
+    <string name="schedule_yearly">يوم %1$s من %2$s كل سنة، الساعة %3$s</string>
+    <string name="schedule_hijri_yearly">يوم %1$s من %2$s كل سنة هجرية، الساعة %3$s</string>
+
+    <!-- علامة التكرار المختصرة على الصفوف -->
+    <string name="repeat_daily">كل يوم</string>
+    <string name="repeat_weekly">كل %1$s</string>
+    <string name="repeat_weekly_many">كل أسبوع</string>
+    <string name="repeat_monthly">كل شهر</string>
+    <string name="repeat_yearly">كل سنة</string>
+
+    <!-- الشاشة الرئيسية -->
+    <string name="home_today">اليوم</string>
+    <string name="home_upcoming">قادم</string>
+    <string name="home_closed_today">انتهت اليوم</string>
+    <string name="home_closed_expand">عرض ما انتهى اليوم</string>
+    <string name="home_closed_collapse">طيّ ما انتهى اليوم</string>
+    <string name="home_paused">متوقفة مؤقتًا</string>
+    <string name="home_nothing_today">لا شيء اليوم</string>
+    <string name="home_empty_title">لا تذكيرات بعد</string>
+    <string name="home_empty_subtitle">أضف أول تذكير</string>
+    <string name="home_next_reminder">الرنّة القادمة</string>
+
+    <!-- حالة الصف -->
+    <string name="state_waiting">ينتظر تأكيدك</string>
+    <string name="state_waiting_at">%1$s · ينتظر تأكيدك</string>
+    <string name="state_snoozed_until">مؤجل حتى %1$s</string>
+    <string name="state_paused">متوقف مؤقتًا</string>
+    <string name="next_short">القادمة %1$s</string>
+
+    <!-- رسائل التراجع -->
+    <string name="undo_completed">تم إنجاز «%1$s»</string>
+    <string name="undo_completed_today">تم إنجاز «%1$s» لليوم</string>
+    <string name="undo_skipped_today">تخطّيت «%1$s» اليوم فقط</string>
+    <string name="undo_deleted">حُذف «%1$s»</string>
+
+    <!-- إضافة وتعديل -->
+    <string name="editor_title_new">تذكير جديد</string>
+    <string name="editor_title_edit">تعديل التذكير</string>
+    <string name="editor_what_hint">بماذا أذكّرك؟</string>
+    <string name="editor_repeat">التكرار</string>
+    <string name="editor_time">الساعة</string>
+    <string name="editor_date">التاريخ</string>
+    <string name="editor_days">الأيام</string>
+    <string name="editor_month">الشهر</string>
+    <string name="editor_day_of_month">يوم الشهر</string>
+    <string name="editor_day_of_month_clamp_note">في الأشهر الأقصر تصلك الرنّة في آخر يوم</string>
+    <string name="editor_add_note">إضافة ملاحظة</string>
+    <string name="editor_field_notes">ملاحظة (اختياري)</string>
+    <string name="editor_apply_understood">فهمت: %1$s، اضغط للتطبيق</string>
+    <string name="editor_error_title">اكتب نص التذكير أولًا</string>
+    <string name="editor_error_past">هذا الوقت مضى، اختر وقتًا قادمًا</string>
+    <string name="editor_error_days">اختر يومًا واحدًا على الأقل</string>
+    <string name="editor_snooze_option">%1$s دقيقة</string>
+    <string name="editor_save">حفظ التذكير</string>
+    <string name="editor_save_changes">حفظ التعديلات</string>
+    <string name="schedule_type_once">مرة واحدة</string>
+    <string name="schedule_type_daily">كل يوم</string>
+    <string name="schedule_type_weekly">كل أسبوع</string>
+    <string name="schedule_type_monthly">كل شهر</string>
+    <string name="schedule_type_yearly">كل سنة</string>
+
+    <!-- الحذف -->
+    <string name="delete_confirm_title">حذف التذكير المتكرر؟</string>
+    <string name="delete_confirm_body">سيُحذف «%1$s» بكل رنّاته القادمة. إن أردت إيقافه لفترة فقط، استخدم الإيقاف المؤقت.</string>
+
+    <!-- التفاصيل -->
+    <string name="details_title">التذكير</string>
+    <string name="details_not_found">هذا التذكير لم يعد موجودًا</string>
+    <string name="details_zone_today">اليوم</string>
+    <string name="details_zone_reminder">التذكير كله</string>
+    <string name="details_today_note">«تم» و«تخطي اليوم» يخصّان رنّة اليوم فقط، وبقية الأيام تبقى كما هي.</string>
+    <string name="details_pause_note">الإيقاف المؤقت يوقف كل الرنّات حتى تستأنفه.</string>
+    <string name="details_today_done">اكتمل اليوم</string>
+    <string name="details_today_skipped">تم تخطيه اليوم</string>
+    <string name="details_next_at">الرنّة القادمة: %1$s</string>
+    <string name="details_snoozed_until">مؤجل حتى %1$s</string>
+    <string name="details_paused_resumes">متوقف مؤقتًا · بعد الاستئناف %1$s</string>
+    <string name="details_history">السجل</string>
+
+    <!-- حالات الحدوث في السجل -->
+    <string name="status_completed">مكتمل</string>
+    <string name="status_skipped">تم تخطيه</string>
+    <string name="status_ignored">تم تجاهله</string>
+    <string name="status_missed">فات موعده</string>
+
+    <!-- الإعدادات -->
+    <string name="settings_theme">المظهر</string>
+    <string name="settings_theme_system">تلقائي</string>
+    <string name="settings_theme_light">نهاري</string>
+    <string name="settings_theme_dark">ليلي</string>
+    <string name="settings_default_snooze">مدة التأجيل</string>
+    <string name="settings_permissions">الأذونات والتنبيهات</string>
+    <string name="settings_permissions_ok">كل شيء جاهز</string>
+    <string name="settings_permissions_attention">هناك ما يحتاج انتباهك</string>
+    <string name="settings_about_title">عن رَنّة</string>
+
+    <!-- عن رَنّة -->
+    <string name="about_title">عن رَنّة</string>
+    <string name="about_tagline">لكل موعد رَنّة</string>
+    <string name="about_version">الإصدار %1$s</string>
+    <string name="about_developer_label">المطوّر</string>
+    <string name="about_developer_name">محمد المطيري</string>
+    <!-- عبارة أصالة بخط التطبيق، وليست شعار برنامج «صنع في السعودية» المسجَّل -->
+    <string name="made_in_saudi">صُنع في السعودية</string>
+
+    <!-- الخصوصية -->
+    <string name="privacy_title">الخصوصية</string>
+    <string name="privacy_summary">تعمل رَنّة على جهازك، بلا حساب وبلا إنترنت.</string>
+    <string name="privacy_no_network">لا تطلب رَنّة إذن الإنترنت، ولا ترسل عنك شيئًا.</string>
+    <string name="privacy_no_account">لا حساب، ولا إعلانات، ولا تتبّع.</string>
+    <string name="privacy_backup">قد ينسخ أندرويد بياناتك إلى حسابك في &#x2066;Google&#x2069;، وهي ميزة من النظام يمكنك إيقافها من إعداداته.</string>
+
+    <!-- الأذونات -->
+    <string name="permissions_title">الأذونات والتنبيهات</string>
+    <string name="permissions_notifications_title">التنبيهات</string>
+    <string name="permissions_notifications_body">بدونها لا تستطيع رَنّة عرض أي تذكير.</string>
+    <string name="permissions_exact_title">التنبيه في وقته</string>
+    <string name="permissions_exact_body">حتى تعمل الرنّة في دقيقتها بالضبط.</string>
+    <string name="permissions_fsi_title">شاشة الرنّة فوق القفل</string>
+    <string name="permissions_fsi_body">بدونها يصلك إشعار فقط.</string>
+    <string name="permissions_battery_title">استثناء البطارية</string>
+    <string name="permissions_battery_body">يمنع النظام من تأخير التذكيرات في الخلفية.</string>
+    <string name="permissions_alarm_volume_title">صوت المنبّه مكتوم</string>
+    <string name="permissions_alarm_volume_body">ارفع صوت المنبّه لتسمع الرنّة.</string>
+    <string name="permissions_enable">تفعيل</string>
+    <string name="permissions_open_settings">فتح الإعدادات</string>
+    <string name="permissions_granted">مفعّل</string>
+    <string name="permissions_optional">اختياري، يحسّن الموثوقية.</string>
+    <string name="permissions_note">تستخدم الرنّة صوت المنبّه: الصامت لا يكتمها، وعدم الإزعاج يكتمها فقط إن كتمت «المنبّهات».</string>
+
+    <!-- الترحيب -->
+    <string name="onboarding_body">تذكيرات عربية بسيطة تعمل على جهازك. فعّل التنبيهات لتصلك الرنّة في وقتها.</string>
+    <string name="onboarding_start">فعّل التنبيهات وابدأ</string>
+
+    <!-- الودجت -->
+    <string name="widget_label">التاريخ والرنّة القادمة</string>
+    <string name="widget_description">تاريخ اليوم مع رنّتك القادمة</string>
+
+    <!-- جاهزية التنبيه -->
+    <string name="readiness_ready_title">رَنّة جاهزة</string>
+    <string name="readiness_ready_body">لا شيء يمنع وصول تذكيراتك في وقتها.</string>
+    <string name="readiness_section">يحتاج انتباهك</string>
+    <string name="readiness_fix">إصلاح</string>
+    <string name="readiness_notifications_title">لن تصلك أي تذكيرات</string>
+    <string name="readiness_notifications_body">إشعارات رَنّة موقوفة، فعّلها لتعمل.</string>
+    <string name="readiness_exact_title">قد تتأخر تذكيراتك</string>
+    <string name="readiness_exact_body">تحتاج رَنّة إذن المنبّهات الدقيقة.</string>
+    <string name="readiness_alarm_channel_title">الرنّات صامتة</string>
+    <string name="readiness_alarm_channel_body">تنبيهات «المنبّهات» موقوفة، فلن تسمع صوتًا.</string>
+    <string name="readiness_fullscreen_title">لن تظهر شاشة الرنّة فوق القفل</string>
+    <string name="readiness_fullscreen_body">سيصلك إشعار فقط.</string>
+    <string name="readiness_volume_title">صوت المنبّه مكتوم</string>
+    <string name="readiness_volume_body">مستوى صوت المنبّه صفر، فتعمل الرنّة بلا صوت.</string>
+    <string name="readiness_battery_title">قد يؤخّر توفير البطارية التنبيه</string>
+    <string name="readiness_battery_body">استثناء رَنّة يجعلها أدق.</string>
+
+    <!-- الإشعارات -->
+    <string name="channel_alarm_name">المنبّهات</string>
+    <string name="channel_alarm_description">رنّة بصوت مستمر حتى تؤجّلها أو تؤكّد إنجازها</string>
+    <string name="notification_alarm_ringing">يرنّ الآن، موعده %1$s</string>
+    <plurals name="notification_snooze_minutes">
+        <item quantity="zero">تأجيل %d دقيقة</item>
+        <item quantity="one">تأجيل دقيقة</item>
+        <item quantity="two">تأجيل دقيقتين</item>
+        <item quantity="few">تأجيل %d دقائق</item>
+        <item quantity="many">تأجيل %d دقيقة</item>
+        <item quantity="other">تأجيل %d دقيقة</item>
+    </plurals>
+
+    <!-- شاشة الرنّة -->
+    <string name="alarm_ringing_now">يرنّ الآن</string>
+    <string name="alarm_slide_to_confirm">اسحب للتأكيد</string>
+    <string name="alarm_slide_hint">اسحب حتى النهاية</string>
+</resources>

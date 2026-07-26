@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- شعار «رَنّة» للإشعارات: الجرس بلون واحد (يعرضه النظام كقناع). يطابق AppMark. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp" android:height="24dp"
+    android:viewportWidth="24" android:viewportHeight="24">
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M11.6,2.3 L12.4,2.3 A1.2,1.2 0 0,1 12.4,4.7 L11.6,4.7 A1.2,1.2 0 0,1 11.6,2.3 Z" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,4.35 C14.75,4.35 16.35,6.6 16.6,10.1 C16.85,13.5 17.2,15.4 18.5,16.85 C19,17.45 18.7,18.25 17.85,18.25 L6.15,18.25 C5.3,18.25 5,17.45 5.5,16.85 C6.8,15.4 7.15,13.5 7.4,10.1 C7.65,6.6 9.25,4.35 12,4.35 Z" />
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.25"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M21.04,8.36 A9.5,9.5 0 0,1 21.04,14.24" />
+    <path
+        android:strokeColor="#FFFFFFFF"
+        android:strokeWidth="1.25"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M2.96,14.24 A9.5,9.5 0 0,1 2.96,8.36" />
+    <path
+        android:fillColor="#FFFFFFFF"
+        android:pathData="M12,20 m-1.45,0 a1.45,1.45 0 1,0 2.9,0 a1.45,1.45 0 1,0 -2.9,0" />
+</vector>
