@@ -15,6 +15,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.bal.reminders.ui.about.AboutScreen
+import com.bal.reminders.ui.about.LicensesScreen
 import com.bal.reminders.ui.about.PrivacyScreen
 import com.bal.reminders.ui.details.DetailsScreen
 import com.bal.reminders.ui.editor.EditorScreen
@@ -79,6 +80,7 @@ fun BalRoot(
             SettingsScreen(
                 onBack = { navController.popBackStack() },
                 onOpenPermissions = { navController.navigate(Routes.PERMISSIONS) },
+                onOpenPrivacy = { navController.navigate(Routes.PRIVACY) },
                 onOpenAbout = { navController.navigate(Routes.ABOUT) },
             )
         }
@@ -88,11 +90,14 @@ fun BalRoot(
         composable(Routes.ABOUT, enterTransition = pushEnter, popExitTransition = pushPopExit) {
             AboutScreen(
                 onBack = { navController.popBackStack() },
-                onOpenPrivacy = { navController.navigate(Routes.PRIVACY) },
+                onOpenLicenses = { navController.navigate(Routes.LICENSES) },
             )
         }
         composable(Routes.PRIVACY, enterTransition = pushEnter, popExitTransition = pushPopExit) {
             PrivacyScreen(onBack = { navController.popBackStack() })
+        }
+        composable(Routes.LICENSES, enterTransition = pushEnter, popExitTransition = pushPopExit) {
+            LicensesScreen(onBack = { navController.popBackStack() })
         }
         composable(
             Routes.DETAILS,

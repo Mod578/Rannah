@@ -145,7 +145,7 @@
     <string name="settings_theme_dark">ليلي</string>
     <string name="settings_default_snooze">مدة التأجيل الافتراضية</string>
     <string name="settings_default_snooze_note">تُطبَّق على كل التذكيرات عند الضغط على «تأجيل». يمكنك اختيار مدة أخرى لرنّة واحدة من شاشة الرنّة.</string>
-    <string name="settings_permissions">الأذونات والتنبيهات</string>
+    <string name="settings_permissions">التنبيهات والأذونات</string>
     <string name="settings_permissions_ok">كل شيء جاهز</string>
     <string name="settings_permissions_attention">هناك ما يحتاج انتباهك</string>
     <string name="settings_about_title">عن رَنّة</string>
@@ -156,18 +156,31 @@
     <string name="about_version">الإصدار %1$s</string>
     <string name="about_developer_label">المطوّر</string>
     <string name="about_developer_name">محمد المطيري</string>
+    <string name="about_linkedin">LinkedIn</string>
+    <string name="about_linkedin_description">فتح صفحة المطوّر على LinkedIn</string>
+    <string name="about_email">البريد الإلكتروني</string>
+    <string name="about_email_description">مراسلة المطوّر بالبريد الإلكتروني</string>
+    <string name="about_github">المشروع على GitHub</string>
+    <string name="about_github_description">فتح صفحة المشروع على GitHub</string>
+    <string name="about_link_failed">لا يوجد تطبيق يفتح هذا الرابط</string>
+    <string name="licenses_title">تراخيص البرامج مفتوحة المصدر</string>
+    <string name="licenses_intro">يستخدم التطبيق أعمالًا مفتوحة المصدر تشترط رخصها إرفاق نصّها.</string>
+    <string name="licenses_tajawal">خط تجوّل</string>
+    <string name="licenses_tajawal_license">SIL Open Font License 1.1</string>
+    <string name="licenses_androidx">AndroidX و Jetpack Compose و Room</string>
+    <string name="licenses_androidx_license">Apache License 2.0</string>
     <!-- عبارة أصالة بخط التطبيق، وليست شعار برنامج «صنع في السعودية» المسجَّل -->
     <string name="made_in_saudi">صُنع في السعودية</string>
 
     <!-- الخصوصية -->
-    <string name="privacy_title">الخصوصية</string>
+    <string name="privacy_title">الخصوصية والبيانات</string>
     <string name="privacy_summary">تعمل رَنّة على جهازك، بلا حساب وبلا إنترنت.</string>
     <string name="privacy_no_network">لا تطلب رَنّة إذن الإنترنت، ولا ترسل عنك شيئًا.</string>
     <string name="privacy_no_account">لا حساب، ولا إعلانات، ولا تتبّع.</string>
     <string name="privacy_backup">قد ينسخ أندرويد بياناتك إلى حسابك في &#x2066;Google&#x2069;، وهي ميزة من النظام يمكنك إيقافها من إعداداته.</string>
 
     <!-- الأذونات -->
-    <string name="permissions_title">الأذونات والتنبيهات</string>
+    <string name="permissions_title">التنبيهات والأذونات</string>
     <string name="permissions_notifications_title">التنبيهات</string>
     <string name="permissions_notifications_body">بدونها لا تستطيع رَنّة عرض أي تذكير.</string>
     <string name="permissions_exact_title">التنبيه في وقته</string>

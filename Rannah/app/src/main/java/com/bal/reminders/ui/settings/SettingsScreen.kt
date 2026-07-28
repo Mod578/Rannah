@@ -17,6 +17,7 @@ import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.NotificationsActive
+import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -56,6 +57,7 @@ import com.bal.reminders.ui.theme.Space
 fun SettingsScreen(
     onBack: () -> Unit,
     onOpenPermissions: () -> Unit,
+    onOpenPrivacy: () -> Unit,
     onOpenAbout: () -> Unit,
     viewModel: SettingsViewModel = hiltViewModel(),
 ) {
@@ -145,6 +147,13 @@ fun SettingsScreen(
                 ),
                 warn = !state.permissionsOk,
                 onClick = onOpenPermissions,
+            )
+
+            SettingsLink(
+                icon = Icons.Rounded.Shield,
+                title = stringResource(R.string.privacy_title),
+                subtitle = null,
+                onClick = onOpenPrivacy,
             )
 
             SettingsLink(

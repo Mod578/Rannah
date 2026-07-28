@@ -16,21 +16,22 @@ local.properties
 .fleet/
 *.iml
 
-# Developer tooling — never part of the project
-.claude/
-
-# Packaged outputs — attached to GitHub Releases, never tracked here
+# Packaged outputs, attached to GitHub Releases and never tracked here
 *.apk
 *.aab
 *.apks
+*.aar
 
-# Signing credentials — never commit, in any form
+# Signing credentials, never committed in any form
 *.jks
 *.keystore
 *.p12
 *.pepk
+*.pem
 keystore.properties
 signing.properties
+secrets.properties
+google-services.json
 
 # Generated reports, logs and scratch files
 reports/
@@ -38,6 +39,7 @@ reports/
 *.bak
 *.orig
 *.tmp
+*.rej
 *~
 
 # OS noise

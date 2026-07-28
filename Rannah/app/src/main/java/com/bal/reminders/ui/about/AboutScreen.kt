@@ -1,6 +1,10 @@
 package com.bal.reminders.ui.about
 
+import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
+import android.widget.Toast
 import android.os.Build
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -18,6 +22,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import androidx.compose.material.icons.rounded.Code
+import androidx.compose.material.icons.rounded.Description
+import androidx.compose.material.icons.rounded.MailOutline
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -31,7 +39,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -42,17 +55,18 @@ import com.bal.reminders.ui.components.MadeInSaudi
 import com.bal.reminders.ui.theme.Space
 
 /**
- * «عن رَنّة»: the mark, the version, who made it, and the way to the privacy
- * page. Nothing here is a feature — a philosophy paragraph and a "note from the
- * developer" were both filler, and both are gone.
+ * «عن رَنّة»: the mark, the version, who made it, and the four links that belong
+ * to the project rather than to the app's behaviour. Privacy lives in settings,
+ * beside the other things a person goes looking for.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(
     onBack: () -> Unit,
-    onOpenPrivacy: () -> Unit,
+    onOpenLicenses: () -> Unit,
 ) {
     val context = LocalContext.current
+    val linkFailed = stringResource(R.string.about_link_failed)
     val versionName = remember {
         val pm = context.packageManager
         val info = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -132,37 +146,100 @@ fun AboutScreen(
                 )
             }
 
-            Surface(
-                onClick = onOpenPrivacy,
-                shape = MaterialTheme.shapes.large,
-                color = MaterialTheme.colorScheme.surfaceContainer,
-                modifier = Modifier.fillMaxWidth().heightIn(min = 64.dp),
-            ) {
-                Row(
-                    Modifier.padding(Space.md),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(
-                        stringResource(R.string.privacy_title),
-                        style = MaterialTheme.typography.titleSmall,
-                        modifier = Modifier.weight(1f),
-                    )
-                    Icon(
-                        Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
+            // Contact and project links. Each opens through ACTION_VIEW and
+            // fails to a message rather than a crash when the device has no
+            // application that can handle it, which is the ordinary case for a
+            // mailto: on a tablet with no mail account.
+            AboutRow(
+                icon = Icons.Rounded.Person,
+                label = stringResource(R.string.about_linkedin),
+                description = stringResource(R.string.about_linkedin_description),
+                onClick = { context.openUri(LINKEDIN_URL, linkFailed) },
+            )
+            AboutRow(
+                icon = Icons.Rounded.MailOutline,
+                label = stringResource(R.string.about_email),
+                description = stringResource(R.string.about_email_description),
+                onClick = { context.openUri(EMAIL_URI, linkFailed) },
+            )
+            AboutRow(
+                icon = Icons.Rounded.Code,
+                label = stringResource(R.string.about_github),
+                description = stringResource(R.string.about_github_description),
+                onClick = { context.openUri(GITHUB_URL, linkFailed) },
+            )
 
-            // The origin line closes the screen. The licence texts still ship
-            // inside the app; naming the toolchain here served nobody reading it.
+            AboutRow(
+                icon = Icons.Rounded.Description,
+                label = stringResource(R.string.licenses_title),
+                description = stringResource(R.string.licenses_title),
+                onClick = onOpenLicenses,
+            )
+
             MadeInSaudi(Modifier.padding(top = Space.sm))
 
             Spacer(Modifier.height(Space.lg))
         }
     }
 }
+
+/**
+ * One tappable line in «عن رَنّة». The whole surface is the target and it is at
+ * least 64dp tall, so it clears the 48dp minimum comfortably; the chevron is
+ * auto-mirrored, so it points the way the next screen arrives from in Arabic.
+ */
+@Composable
+private fun AboutRow(
+    icon: ImageVector,
+    label: String,
+    description: String,
+    onClick: () -> Unit,
+) {
+    Surface(
+        onClick = onClick,
+        shape = MaterialTheme.shapes.large,
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 64.dp)
+            .semantics { contentDescription = description; role = Role.Button },
+    ) {
+        Row(
+            Modifier.padding(horizontal = Space.md, vertical = Space.md),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Space.md),
+        ) {
+            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.secondary)
+            Text(
+                label,
+                style = MaterialTheme.typography.titleSmall,
+                modifier = Modifier.weight(1f),
+            )
+            Icon(
+                Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+    }
+}
+
+/**
+ * Hands a URI to whatever the device uses for it. رَنّة holds no INTERNET
+ * permission and does not need one: opening a link is the browser's or the mail
+ * client's work, not the app's.
+ */
+private fun Context.openUri(uri: String, failureMessage: String) {
+    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(uri))
+        .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+    runCatching { startActivity(intent) }.onFailure {
+        Toast.makeText(this, failureMessage, Toast.LENGTH_SHORT).show()
+    }
+}
+
+private const val LINKEDIN_URL = "https://www.linkedin.com/in/mutiri"
+private const val EMAIL_URI = "mailto:mutirieng@gmail.com"
+private const val GITHUB_URL = "https://github.com/Mod578/Rannah"
 
 @Composable
 private fun InfoCard(content: @Composable ColumnScope.() -> Unit) {

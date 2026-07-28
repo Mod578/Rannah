@@ -7,6 +7,7 @@ object Routes {
     const val PERMISSIONS = "permissions"
     const val ABOUT = "about"
     const val PRIVACY = "privacy"
+    const val LICENSES = "licenses"
     const val DETAILS = "details/{id}"
     const val EDITOR = "editor?id={id}"
 
