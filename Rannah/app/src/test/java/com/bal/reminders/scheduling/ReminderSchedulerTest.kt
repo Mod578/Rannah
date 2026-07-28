@@ -1,6 +1,10 @@
 package com.bal.reminders.scheduling
 
 import com.bal.reminders.domain.HijriAdjustmentProvider
+import com.bal.reminders.domain.OccurrenceStateResolver
+import com.bal.reminders.domain.SnoozeDefaultProvider
+import com.bal.reminders.domain.SnoozeRequest
+import com.bal.reminders.domain.SnoozeResult
 import com.bal.reminders.domain.ReminderRepository
 import com.bal.reminders.domain.model.DeletedReminder
 import com.bal.reminders.domain.model.OccurrenceRecord
@@ -25,135 +29,6 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-/** A clock the test can move, so behaviour over time is observable. */
-private class TestClock(private val zone: ZoneId, var now: Instant) : Clock() {
-    override fun getZone(): ZoneId = zone
-    override fun withZone(zone: ZoneId): Clock = TestClock(zone, now)
-    override fun instant(): Instant = now
-}
-
-private class FakeRepository : ReminderRepository {
-    private val store = MutableStateFlow<Map<Long, Reminder>>(emptyMap())
-    val records = mutableListOf<OccurrenceRecord>()
-    private var nextId = 1L
-
-    override fun observeAll(): Flow<List<Reminder>> = store.map { it.values.toList() }
-    override fun observeById(id: Long): Flow<Reminder?> = store.map { it[id] }
-    override suspend fun getById(id: Long): Reminder? = store.value[id]
-    override suspend fun getActive(): List<Reminder> =
-        store.value.values.filter { it.enabled && !it.isDone }
-
-    override suspend fun upsert(reminder: Reminder): Long {
-        val id = if (reminder.id == 0L) nextId++ else reminder.id
-        store.value = store.value + (id to reminder.copy(id = id))
-        return id
-    }
-
-    override suspend fun deleteWithRecords(id: Long): DeletedReminder? {
-        val reminder = store.value[id] ?: return null
-        val removed = records.filter { it.reminderId == id }
-        records.removeAll { it.reminderId == id }
-        store.value = store.value - id
-        return DeletedReminder(reminder, removed)
-    }
-
-    override suspend fun restore(deleted: DeletedReminder) {
-        store.value = store.value + (deleted.reminder.id to deleted.reminder)
-        deleted.records.forEach { records += it }
-    }
-
-    override suspend fun setEnabled(id: Long, enabled: Boolean) = mutate(id) { it.copy(enabled = enabled) }
-    override suspend fun setSnooze(id: Long, until: Instant?, occurrence: Instant?) =
-        mutate(id) { it.copy(snoozedUntil = until, snoozedOccurrenceAt = occurrence) }
-    override suspend fun setNextTrigger(id: Long, at: Instant?) = mutate(id) { it.copy(nextTriggerAt = at) }
-    override suspend fun markCompleted(id: Long, at: Instant) = mutate(id) {
-        it.copy(
-            completedAt = at,
-            snoozedUntil = null,
-            snoozedOccurrenceAt = null,
-            nextTriggerAt = null,
-        )
-    }
-
-    override suspend fun clearCompleted(id: Long) = mutate(id) { it.copy(completedAt = null) }
-
-    override fun observeRecords(): Flow<List<OccurrenceRecord>> = MutableStateFlow(records.toList())
-    override fun observeRecordsFor(reminderId: Long): Flow<List<OccurrenceRecord>> =
-        MutableStateFlow(records.filter { it.reminderId == reminderId })
-
-    override suspend fun addRecord(record: OccurrenceRecord): Boolean {
-        // Mirrors the DB's unique (reminderId, occurrenceAt, status) index.
-        if (records.any {
-                it.reminderId == record.reminderId &&
-                    it.occurrenceAt == record.occurrenceAt &&
-                    it.status == record.status
-            }
-        ) {
-            return false
-        }
-        records += record.copy(id = (records.maxOfOrNull { it.id } ?: 0L) + 1)
-        return true
-    }
-
-    override suspend fun removeRecord(reminderId: Long, occurrenceAt: Instant, status: OccurrenceStatus) {
-        records.removeAll {
-            it.reminderId == reminderId && it.occurrenceAt == occurrenceAt && it.status == status
-        }
-    }
-
-    override suspend fun hasRecord(reminderId: Long, occurrenceAt: Instant, status: OccurrenceStatus): Boolean =
-        records.any {
-            it.reminderId == reminderId && it.occurrenceAt == occurrenceAt && it.status == status
-        }
-
-    override suspend fun pruneRecordsBefore(before: Instant) {
-        records.removeAll { it.recordedAt.isBefore(before) && it.occurrenceAt.isBefore(before) }
-    }
-
-    override suspend fun pruneCompletedOnceBefore(before: Instant): Int {
-        val ids = store.value.values.filter {
-            it.completedAt != null && !it.schedule.isRecurring && it.completedAt!!.isBefore(before)
-        }.map { it.id }
-        ids.forEach { id ->
-            store.value = store.value - id
-            records.removeAll { it.reminderId == id }
-        }
-        return ids.size
-    }
-
-    private fun mutate(id: Long, transform: (Reminder) -> Reminder) {
-        store.value[id]?.let { store.value = store.value + (id to transform(it)) }
-    }
-}
-
-private class FakeAlarmGateway : AlarmGateway {
-    val scheduled = mutableMapOf<Long, Instant>()
-    var exactAllowed = true
-
-    override fun schedule(reminderId: Long, at: Instant) {
-        scheduled[reminderId] = at
-    }
-
-    override fun cancel(reminderId: Long) {
-        scheduled.remove(reminderId)
-    }
-
-    override fun canScheduleExact(): Boolean = exactAllowed
-}
-
-private class FakeNotifications : ReminderNotifications {
-    val alarms = mutableListOf<Pair<Long, Instant>>()
-    val dismissed = mutableListOf<Long>()
-
-    override fun startAlarm(reminder: Reminder, occurrenceAt: Instant) {
-        alarms += reminder.id to occurrenceAt
-    }
-
-    override fun dismiss(reminderId: Long) {
-        dismissed += reminderId
-    }
-}
-
 class ReminderSchedulerTest {
 
     private val zone = ZoneId.of("Asia/Riyadh")
@@ -163,8 +38,11 @@ class ReminderSchedulerTest {
     private val gateway = FakeAlarmGateway()
     private val notifications = FakeNotifications()
     private val clock = TestClock(zone, now.toInstant())
+    private var defaultSnooze = Reminder.DEFAULT_SNOOZE_MINUTES
     private val scheduler = ReminderScheduler(
-        repository, gateway, notifications, clock, HijriAdjustmentProvider { 0 },
+        repository, gateway, notifications, clock,
+        HijriAdjustmentProvider { 0 },
+        SnoozeDefaultProvider { defaultSnooze },
     )
 
     private fun daily(time: LocalTime = LocalTime.of(21, 0)) = Reminder(
@@ -181,6 +59,18 @@ class ReminderSchedulerTest {
 
     private fun zdt(date: LocalDate, time: LocalTime): Instant =
         date.atTime(time).atZone(zone).toInstant()
+
+    /**
+     * The occurrence a surface would act on — exactly what the resolver hands the
+     * home and the details screens, so the tests answer the same occurrence the
+     * app does rather than inventing one.
+     */
+    private suspend fun occurrenceOf(id: Long): Instant =
+        OccurrenceStateResolver
+            .resolve(repository.getById(id)!!, clock.instant(), zone) { occ ->
+                repository.records.any { it.occurrenceAt == occ && it.status.resolvesOccurrence }
+            }
+            .occurrenceAt!!
 
     // ------------------------------------------------------------ scheduling
 
@@ -221,7 +111,7 @@ class ReminderSchedulerTest {
     @Test
     fun `firing starts the alarm and chains the next occurrence`() = runTest {
         val id = scheduler.save(daily(LocalTime.of(21, 0)))
-        scheduler.onAlarmFired(id)
+        scheduler.onAlarmFired(id, repository.getById(id)!!.nextTriggerAt!!)
         assertEquals(1, notifications.alarms.size)
         assertTrue(gateway.scheduled.containsKey(id))
     }
@@ -261,7 +151,7 @@ class ReminderSchedulerTest {
     @Test
     fun `completing a one-time reminder finishes and cancels it`() = runTest {
         val id = scheduler.save(once(LocalDate.of(2026, 7, 15), LocalTime.of(21, 0)))
-        scheduler.complete(id)
+        scheduler.complete(id, occurrenceOf(id))
         val reminder = repository.getById(id)!!
         assertTrue(reminder.isDone)
         assertNull(gateway.scheduled[id])
@@ -273,7 +163,7 @@ class ReminderSchedulerTest {
     @Test
     fun `completing a recurring reminder early skips today's occurrence`() = runTest {
         val id = scheduler.save(daily(LocalTime.of(21, 0)))
-        scheduler.complete(id) // at 10:00, before today's 21:00
+        scheduler.complete(id, occurrenceOf(id)) // at 10:00, before today's 21:00
         assertEquals(
             zdt(LocalDate.of(2026, 7, 16), LocalTime.of(21, 0)),
             gateway.scheduled[id],
@@ -296,7 +186,7 @@ class ReminderSchedulerTest {
     @Test
     fun `undo complete restores a one-time reminder and its alarm`() = runTest {
         val id = scheduler.save(once(LocalDate.of(2026, 7, 20), LocalTime.of(8, 0)))
-        val occurrence = scheduler.complete(id)!!
+        val occurrence = scheduler.complete(id, occurrenceOf(id))!!
         assertTrue(repository.getById(id)!!.isDone)
 
         scheduler.undoComplete(id, occurrence)
@@ -309,7 +199,7 @@ class ReminderSchedulerTest {
     @Test
     fun `undo complete works even after the reminder itself is gone`() = runTest {
         val id = scheduler.save(daily(LocalTime.of(9, 0)))
-        val occurrence = scheduler.complete(id)!!
+        val occurrence = scheduler.complete(id, occurrenceOf(id))!!
         repository.deleteWithRecords(id) // the record outlives nothing, but be sure
         repository.addRecord(
             OccurrenceRecord(
@@ -388,7 +278,7 @@ class ReminderSchedulerTest {
         val id = scheduler.save(daily(LocalTime.of(9, 0)))
         val todayNine = zdt(LocalDate.of(2026, 7, 15), LocalTime.of(9, 0))
         repository.setNextTrigger(id, todayNine)
-        scheduler.snooze(id, 10, occurrenceAt = todayNine)
+        scheduler.snooze(id, todayNine, SnoozeRequest.Minutes(10))
 
         scheduler.skipOccurrence(id, todayNine)
 
@@ -403,7 +293,7 @@ class ReminderSchedulerTest {
     @Test
     fun `completed one-time reminders are pruned once the day has passed`() = runTest {
         val id = scheduler.save(once(LocalDate.of(2026, 7, 15), LocalTime.of(9, 0)))
-        scheduler.complete(id)
+        scheduler.complete(id, occurrenceOf(id))
         assertTrue(repository.getById(id)!!.isDone)
 
         // Same day: it is still present (shown under «أنجزته اليوم», undoable).
@@ -423,7 +313,7 @@ class ReminderSchedulerTest {
     fun `prune never removes recurring or unresolved reminders`() = runTest {
         val recurring = scheduler.save(daily(LocalTime.of(21, 0)))
         val active = scheduler.save(once(LocalDate.of(2026, 7, 20), LocalTime.of(8, 0)))
-        scheduler.complete(recurring) // recurring stays active, not done
+        scheduler.complete(recurring, occurrenceOf(recurring)) // recurring stays active, not done
 
         clock.now = clock.now.plus(Duration.ofDays(3))
         scheduler.pruneFinished()
@@ -446,7 +336,7 @@ class ReminderSchedulerTest {
             ),
         )
         // Completing early: recorded now, for an occurrence still ahead.
-        val future = scheduler.complete(id)!!
+        val future = scheduler.complete(id, occurrenceOf(id))!!
 
         scheduler.pruneFinished()
 
@@ -474,7 +364,7 @@ class ReminderSchedulerTest {
     @Test
     fun `pausing drops a live snooze so resuming never restores a stale occurrence`() = runTest {
         val id = scheduler.save(daily(LocalTime.of(9, 0)))
-        scheduler.snooze(id, 30)
+        scheduler.snooze(id, occurrenceOf(id), SnoozeRequest.Minutes(30))
         scheduler.setEnabled(id, false)
 
         val paused = repository.getById(id)!!
@@ -489,13 +379,38 @@ class ReminderSchedulerTest {
     // ---------------------------------------------------------------- snooze
 
     @Test
-    fun `snooze moves the alarm and repeated snoozes move it again`() = runTest {
+    fun `snooze moves the alarm, and a second snooze while still postponed is refused`() = runTest {
         val id = scheduler.save(daily(LocalTime.of(21, 0)))
-        scheduler.snooze(id, 10)
+        val occurrence = occurrenceOf(id)
+
+        val first = scheduler.snooze(id, occurrence, SnoozeRequest.Minutes(10))
+
+        assertTrue(first is SnoozeResult.Scheduled)
         assertEquals(clock.instant().plusSeconds(600), gateway.scheduled[id])
-        scheduler.snooze(id, 30)
-        assertEquals(clock.instant().plusSeconds(1800), gateway.scheduled[id])
-        assertEquals(clock.instant().plusSeconds(1800), repository.getById(id)!!.snoozedUntil)
+
+        // A replayed notification action, or a stale screen, must not stack a
+        // second postponement on top of the live one.
+        val again = scheduler.snooze(id, occurrence, SnoozeRequest.Minutes(30))
+
+        assertEquals(SnoozeResult.Unavailable, again)
+        assertEquals(clock.instant().plusSeconds(600), repository.getById(id)!!.snoozedUntil)
+    }
+
+    @Test
+    fun `postponing again after it rings again moves it again, same occurrence`() = runTest {
+        val id = scheduler.save(daily(LocalTime.of(9, 0)))
+        val todayNine = zdt(LocalDate.of(2026, 7, 15), LocalTime.of(9, 0))
+        repository.setNextTrigger(id, todayNine)
+
+        scheduler.snooze(id, todayNine, SnoozeRequest.Minutes(10))
+        clock.now = clock.now.plus(Duration.ofMinutes(10))
+        scheduler.onAlarmFired(id, repository.getById(id)!!.nextTriggerAt!!)
+
+        val second = scheduler.snooze(id, todayNine, SnoozeRequest.Minutes(15))
+
+        assertTrue(second is SnoozeResult.Scheduled)
+        assertEquals(clock.instant().plusSeconds(900), repository.getById(id)!!.snoozedUntil)
+        assertEquals(todayNine, repository.getById(id)!!.snoozedOccurrenceAt)
     }
 
     @Test
@@ -503,9 +418,9 @@ class ReminderSchedulerTest {
         val id = scheduler.save(daily(LocalTime.of(21, 0)))
         val occurrence = repository.getById(id)!!.nextTriggerAt!!
 
-        scheduler.snooze(id, minutes = 10, occurrenceAt = occurrence)
+        scheduler.snooze(id, occurrence, SnoozeRequest.Minutes(10))
         val first = repository.getById(id)!!.snoozedUntil
-        scheduler.snooze(id, minutes = 30, occurrenceAt = occurrence)
+        scheduler.snooze(id, occurrence, SnoozeRequest.Minutes(30))
 
         assertEquals(clock.instant().plusSeconds(600), first)
         assertEquals(first, repository.getById(id)!!.snoozedUntil)
@@ -519,18 +434,18 @@ class ReminderSchedulerTest {
         val todayNine = zdt(LocalDate.of(2026, 7, 15), LocalTime.of(9, 0))
         repository.setNextTrigger(id, todayNine)
 
-        scheduler.snooze(id, 10, occurrenceAt = todayNine)
+        scheduler.snooze(id, todayNine, SnoozeRequest.Minutes(10))
         assertEquals(todayNine, repository.getById(id)!!.snoozedOccurrenceAt)
 
         // The alarm rings again and is postponed a second time: same occurrence.
         clock.now = clock.now.plus(Duration.ofMinutes(10))
-        scheduler.onAlarmFired(id, repository.getById(id)!!.nextTriggerAt)
+        scheduler.onAlarmFired(id, repository.getById(id)!!.nextTriggerAt!!)
         assertEquals(todayNine, notifications.alarms.last().second)
-        scheduler.snooze(id, 10, occurrenceAt = todayNine)
+        scheduler.snooze(id, todayNine, SnoozeRequest.Minutes(10))
         assertEquals(todayNine, repository.getById(id)!!.snoozedOccurrenceAt)
 
         // «تم» resolves the occurrence that rang, not the postponement.
-        val completed = scheduler.complete(id)
+        val completed = scheduler.complete(id, occurrenceOf(id))
         assertEquals(todayNine, completed)
         assertEquals(todayNine, repository.records.single().occurrenceAt)
         assertNull(repository.getById(id)!!.snoozedUntil)
@@ -540,8 +455,8 @@ class ReminderSchedulerTest {
     @Test
     fun `firing a snoozed reminder clears the snooze and restores the base schedule`() = runTest {
         val id = scheduler.save(daily(LocalTime.of(9, 0))) // 09:00 passed → tomorrow
-        scheduler.snooze(id, 10)
-        scheduler.onAlarmFired(id)
+        scheduler.snooze(id, occurrenceOf(id), SnoozeRequest.Minutes(10))
+        scheduler.onAlarmFired(id, repository.getById(id)!!.nextTriggerAt!!)
         assertNull(repository.getById(id)!!.snoozedUntil)
         assertEquals(
             zdt(LocalDate.of(2026, 7, 16), LocalTime.of(9, 0)),
@@ -564,7 +479,7 @@ class ReminderSchedulerTest {
     @Test
     fun `delete cancels the alarm and takes the reminder's records with it`() = runTest {
         val id = scheduler.save(daily())
-        scheduler.complete(id)
+        scheduler.complete(id, occurrenceOf(id))
         assertEquals(1, repository.records.size)
 
         val deleted = scheduler.delete(id)
@@ -586,7 +501,7 @@ class ReminderSchedulerTest {
     @Test
     fun `undo restores the deleted reminder, its records and its alarm`() = runTest {
         val id = scheduler.save(daily(LocalTime.of(21, 0)))
-        scheduler.complete(id)
+        scheduler.complete(id, occurrenceOf(id))
         val deleted = scheduler.delete(id)!!
 
         scheduler.restore(deleted)
@@ -650,7 +565,7 @@ class ReminderSchedulerTest {
     @Test
     fun `a future snooze survives rescheduleAll`() = runTest {
         val id = scheduler.save(daily(LocalTime.of(21, 0)))
-        scheduler.snooze(id, 30)
+        scheduler.snooze(id, occurrenceOf(id), SnoozeRequest.Minutes(30))
         gateway.scheduled.clear()
         scheduler.rescheduleAll()
         assertEquals(clock.instant().plusSeconds(1800), gateway.scheduled[id])
