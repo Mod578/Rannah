@@ -55,13 +55,13 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bal.reminders.R
-import com.bal.reminders.ui.theme.BrandRing
 import com.bal.reminders.data.ThemeMode
 import com.bal.reminders.format.BalFormats
 import com.bal.reminders.scheduling.AlarmRingerService
 import com.bal.reminders.ui.MainViewModel
 import com.bal.reminders.ui.components.AppMark
 import com.bal.reminders.ui.components.SlideToConfirm
+import com.bal.reminders.ui.components.SnoozeSheet
 import com.bal.reminders.ui.theme.BalTheme
 import dagger.hilt.android.AndroidEntryPoint
 import java.time.Instant
@@ -190,10 +190,12 @@ private fun AlarmScreen(viewModel: AlarmViewModel) {
                 delay(10_000)
             }
         }
+        // The label reads the setting, so it is always describing what the
+        // button will actually do — including right after the user changed it.
         val snoozeLabel = context.resources.getQuantityString(
             R.plurals.notification_snooze_minutes,
-            reminder.snoozeMinutes,
-            reminder.snoozeMinutes,
+            state.defaultSnoozeMinutes,
+            state.defaultSnoozeMinutes,
         )
 
         Column(
@@ -216,8 +218,7 @@ private fun AlarmScreen(viewModel: AlarmViewModel) {
                 label = "swing-angle",
             )
             AppMark(
-                body = MaterialTheme.colorScheme.onBackground,
-                ring = BrandRing,
+                tint = MaterialTheme.colorScheme.onBackground,
                 modifier = Modifier
                     .size(56.dp)
                     .graphicsLayer {
@@ -288,9 +289,27 @@ private fun AlarmScreen(viewModel: AlarmViewModel) {
                 ) {
                     Icon(Icons.Rounded.Snooze, contentDescription = null)
                     Spacer(Modifier.size(10.dp))
-                    Text(snoozeLabel, style = MaterialTheme.typography.headlineSmall)
+                    Text(
+                        snoozeLabel,
+                        style = MaterialTheme.typography.headlineSmall,
+                        textAlign = TextAlign.Center,
+                    )
                 }
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(8.dp))
+                // «مدة أخرى»: one quiet, ordinary, focusable button — not a
+                // long-press, which TalkBack and switch access cannot reach and
+                // nobody discovers. Everything it offers lives one layer down,
+                // so the ringing screen keeps its two large answers.
+                TextButton(
+                    onClick = viewModel::openSnoozeOptions,
+                    modifier = Modifier.heightIn(min = 48.dp),
+                ) {
+                    Text(
+                        stringResource(R.string.snooze_other),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                }
+                Spacer(Modifier.height(8.dp))
                 // تم: hush the ring (postpone-safe) and reveal the slide.
                 OutlinedButton(
                     onClick = {
@@ -305,9 +324,19 @@ private fun AlarmScreen(viewModel: AlarmViewModel) {
                     Text(
                         stringResource(R.string.action_done),
                         style = MaterialTheme.typography.headlineSmall,
+                        textAlign = TextAlign.Center,
                     )
                 }
             }
+        }
+
+        state.snoozeOptions?.let { options ->
+            SnoozeSheet(
+                limit = options.limit,
+                rejected = options.rejected,
+                onPick = viewModel::applySnooze,
+                onDismiss = viewModel::dismissSnoozeOptions,
+            )
         }
     }
 }

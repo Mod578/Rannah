@@ -32,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -42,7 +43,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bal.reminders.R
 import com.bal.reminders.data.ThemeMode
 import com.bal.reminders.domain.model.Reminder
-import com.bal.reminders.format.BalFormats
 import com.bal.reminders.ui.components.ChoiceChips
 import com.bal.reminders.ui.theme.Space
 
@@ -112,14 +112,24 @@ fun SettingsScreen(
 
             SettingCard(stringResource(R.string.settings_default_snooze)) {
                 ChoiceChips(
+                    // Android plurals, not «%s دقيقة» pasted together: «٥ دقائق»
+                    // and «١٥ دقيقة» are different words in Arabic, and the
+                    // notification has always said them correctly while this
+                    // screen said «٥ دقيقة».
                     options = Reminder.SNOOZE_CHOICES.map { minutes ->
-                        minutes to stringResource(
-                            R.string.editor_snooze_option,
-                            BalFormats.arabicDigits(minutes.toString()),
+                        minutes to pluralStringResource(
+                            R.plurals.snooze_minutes_option,
+                            minutes,
+                            minutes,
                         )
                     },
                     selected = state.defaultSnoozeMinutes,
                     onSelect = viewModel::setDefaultSnooze,
+                )
+                Text(
+                    stringResource(R.string.settings_default_snooze_note),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
