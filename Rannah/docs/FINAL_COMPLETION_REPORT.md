@@ -248,10 +248,16 @@ migration.
 | applicationId | `com.bal.reminders` |
 | versionName / versionCode | `1.1.0` / `2` |
 | minSdk / targetSdk | 26 / 35 |
-| APK | 2,146,378 bytes · `sha256 87997f0d7ce17c7037ef6d0c8ae8c2db482320dec4666884f4c8ffedf2f08c62` |
-| AAB | 4,478,331 bytes · `sha256 f23e2f53fa2e2224b74f6b6c4bd5a53aed7d9418cbe307f1cfbdcc482fda9253` |
+| APK | 2,146,378 bytes · `sha256 50dd63ef5a5a98d367f79fbd79f02b29ebb9284af79edf3bfae93244dc7c6ee7` |
+| AAB | 4,478,743 bytes · `sha256 d831f15a380026432430d689ec87682bae7c35bb57694a4117e9cf263ad4c116` |
 | Signer | `CN=Rannah, OU=Rannah, O=Mohammed Almutairi, L=Riyadh, C=SA` |
 | Certificate SHA-256 | `70ff2a39e29485fbfb1f08bb917c55fada6bf4ae765d571813c0d4022e46dd50` |
+
+Built from this tree with the Gradle build cache and configuration cache
+disabled, so the artifacts are the product of a real full compile rather than a
+restored one. APK/AAB packaging is not bit-reproducible (archive timestamps, R8,
+signing salt), so a later rebuild will hash differently while containing the same
+code.
 
 Upgrading from 1.0.0 keeps all data: the schema gains no column, and
 `MIGRATION_5_6` only normalises rows older builds could have written.
