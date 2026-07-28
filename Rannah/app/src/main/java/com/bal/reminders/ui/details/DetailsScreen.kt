@@ -20,9 +20,10 @@ import androidx.compose.material.icons.automirrored.rounded.Redo
 import androidx.compose.material.icons.automirrored.rounded.Undo
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.Edit
+import androidx.compose.material.icons.rounded.AlarmOff
 import androidx.compose.material.icons.rounded.PauseCircle
 import androidx.compose.material.icons.rounded.PlayCircle
-import androidx.compose.material.icons.rounded.Repeat
+import androidx.compose.material.icons.rounded.Snooze
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -57,6 +58,7 @@ import com.bal.reminders.domain.ReminderPhase
 import com.bal.reminders.domain.model.OccurrenceStatus
 import com.bal.reminders.format.BalFormats
 import com.bal.reminders.ui.components.SectionTitle
+import com.bal.reminders.ui.components.SnoozeSheet
 import com.bal.reminders.ui.components.color
 import com.bal.reminders.ui.components.icon
 import com.bal.reminders.ui.components.labelRes
@@ -148,10 +150,7 @@ fun DetailsScreen(
                 SummaryCard(
                     title = reminder.title,
                     schedule = BalFormats.scheduleSummary(context, reminder.schedule),
-                    kind = stringResource(
-                        if (recurring) R.string.kind_recurring else R.string.kind_once,
-                    ),
-                    recurring = recurring,
+                    kind = BalFormats.kindLabel(context, reminder.schedule),
                     notes = reminder.notes,
                     status = occurrence?.let { statusLine(context, it) },
                     statusColor = statusColor(occurrence?.phase),
@@ -174,10 +173,14 @@ fun DetailsScreen(
                     }
                 } else {
                     item(key = "today-actions") {
-                        Row(horizontalArrangement = Arrangement.spacedBy(Space.sm)) {
+                        // Stacked, not side by side: at 200% type «تخطي اليوم»
+                        // could not fit half a phone's width, and a Material
+                        // button clips rather than wraps. Two full-width rows
+                        // cost one line of screen and never truncate an action.
+                        Column(verticalArrangement = Arrangement.spacedBy(Space.sm)) {
                             Button(
                                 onClick = { viewModel.complete(todayOccurrence) },
-                                modifier = Modifier.weight(1f).heightIn(min = 56.dp),
+                                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                                 shape = MaterialTheme.shapes.medium,
                             ) {
                                 Icon(Icons.Rounded.Check, contentDescription = null)
@@ -186,10 +189,10 @@ fun DetailsScreen(
                             }
                             // «تخطي اليوم» exists only where it can mean
                             // something: a reminder that has a tomorrow.
-                            if (recurring) {
+                            if (state.canSkip) {
                                 OutlinedButton(
                                     onClick = { viewModel.skipToday(todayOccurrence) },
-                                    modifier = Modifier.weight(1f).heightIn(min = 56.dp),
+                                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                                     shape = MaterialTheme.shapes.medium,
                                 ) {
                                     Icon(Icons.AutoMirrored.Rounded.Redo, contentDescription = null)
@@ -197,12 +200,41 @@ fun DetailsScreen(
                                     Text(stringResource(R.string.action_skip_today))
                                 }
                             }
+                            // A live postponement can be moved or taken back
+                            // here — the two things the ringing screen has no
+                            // room for, offered where there is daylight and space.
+                            if (state.snoozed) {
+                                OutlinedButton(
+                                    onClick = viewModel::openSnoozeOptions,
+                                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                                    shape = MaterialTheme.shapes.medium,
+                                ) {
+                                    Icon(Icons.Rounded.Snooze, contentDescription = null)
+                                    Spacer(Modifier.width(Space.xs))
+                                    Text(stringResource(R.string.action_change_snooze))
+                                }
+                                OutlinedButton(
+                                    onClick = viewModel::cancelSnooze,
+                                    modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                                    shape = MaterialTheme.shapes.medium,
+                                ) {
+                                    Icon(Icons.Rounded.AlarmOff, contentDescription = null)
+                                    Spacer(Modifier.width(Space.xs))
+                                    Text(stringResource(R.string.action_cancel_snooze))
+                                }
+                            }
                         }
                     }
-                    if (recurring) {
-                        item(key = "today-note") {
-                            Hint(stringResource(R.string.details_today_note))
-                        }
+                    item(key = "today-note") {
+                        Hint(
+                            stringResource(
+                                when {
+                                    state.snoozed -> R.string.details_snooze_note
+                                    recurring -> R.string.details_today_note
+                                    else -> R.string.details_once_note
+                                },
+                            ),
+                        )
                     }
                 }
             }
@@ -213,31 +245,37 @@ fun DetailsScreen(
                     ZoneTitle(stringResource(R.string.details_zone_reminder))
                 }
                 item(key = "manage") {
-                    Row(horizontalArrangement = Arrangement.spacedBy(Space.sm)) {
+                    Column(verticalArrangement = Arrangement.spacedBy(Space.sm)) {
                         OutlinedButton(
                             onClick = { onEdit(reminder.id) },
-                            modifier = Modifier.weight(1f).heightIn(min = 56.dp),
+                            modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
                             shape = MaterialTheme.shapes.medium,
                         ) {
                             Icon(Icons.Rounded.Edit, contentDescription = null)
                             Spacer(Modifier.width(Space.xs))
                             Text(stringResource(R.string.action_edit))
                         }
-                        OutlinedButton(
-                            onClick = { viewModel.setEnabled(paused) },
-                            modifier = Modifier.weight(1f).heightIn(min = 56.dp),
-                            shape = MaterialTheme.shapes.medium,
-                        ) {
-                            Icon(
-                                if (paused) Icons.Rounded.PlayCircle else Icons.Rounded.PauseCircle,
-                                contentDescription = null,
-                            )
-                            Spacer(Modifier.width(Space.xs))
-                            Text(stringResource(if (paused) R.string.action_resume else R.string.action_pause))
+                        // Pausing a one-time reminder is a worse answer than the
+                        // obvious one: it has a single date, and moving that date
+                        // is «تعديل». Offering "pause" there invited a state whose
+                        // only exit was a second, unrelated action.
+                        if (recurring) {
+                            OutlinedButton(
+                                onClick = { viewModel.setEnabled(paused) },
+                                modifier = Modifier.fillMaxWidth().heightIn(min = 56.dp),
+                                shape = MaterialTheme.shapes.medium,
+                            ) {
+                                Icon(
+                                    if (paused) Icons.Rounded.PlayCircle else Icons.Rounded.PauseCircle,
+                                    contentDescription = null,
+                                )
+                                Spacer(Modifier.width(Space.xs))
+                                Text(stringResource(if (paused) R.string.action_resume else R.string.action_pause))
+                            }
                         }
                     }
                 }
-                if (!paused) {
+                if (recurring && !paused) {
                     item(key = "pause-note") {
                         Hint(stringResource(R.string.details_pause_note))
                     }
@@ -272,9 +310,22 @@ fun DetailsScreen(
                             ),
                         )
                     }
+                    // The scope, stated where it is easiest to get wrong: this
+                    // is the one action on the screen that takes the future with
+                    // it, and it sits one line below «تخطي اليوم», which does not.
+                    if (recurring) Hint(stringResource(R.string.details_delete_note))
                 }
             }
         }
+    }
+
+    state.snoozeOptions?.let { options ->
+        SnoozeSheet(
+            limit = options.limit,
+            rejected = options.rejected,
+            onPick = viewModel::changeSnooze,
+            onDismiss = viewModel::dismissSnoozeOptions,
+        )
     }
 
     if (confirmDelete) {
@@ -305,7 +356,6 @@ private fun SummaryCard(
     title: String,
     schedule: String,
     kind: String,
-    recurring: Boolean,
     notes: String?,
     status: String?,
     statusColor: Color,
@@ -316,25 +366,12 @@ private fun SummaryCard(
         modifier = Modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(Space.md + Space.xs), verticalArrangement = Arrangement.spacedBy(Space.sm)) {
-            // The kind, said plainly and first: «يتكرر» or «مرة واحدة».
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Space.xs),
-            ) {
-                if (recurring) {
-                    Icon(
-                        Icons.Rounded.Repeat,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.secondary,
-                        modifier = Modifier.size(16.dp),
-                    )
-                }
-                Text(
-                    kind,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.secondary,
-                )
-            }
+            // The kind, said plainly and first: «مرة واحدة», «يومي», «شهري».
+            Text(
+                kind,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.secondary,
+            )
             Text(
                 title,
                 style = MaterialTheme.typography.headlineSmall,
@@ -438,6 +475,9 @@ private fun statusLine(context: android.content.Context, occurrence: ReminderOcc
         ReminderPhase.NEEDS_CONFIRMATION ->
             at?.let { context.getString(R.string.state_waiting_at, BalFormats.time(context, it)) }
                 ?: context.getString(R.string.state_waiting)
+        ReminderPhase.OVERDUE ->
+            at?.let { context.getString(R.string.details_overdue_at, BalFormats.dateTime(context, it)) }
+                ?: context.getString(R.string.state_waiting)
         ReminderPhase.UPCOMING ->
             at?.let { context.getString(R.string.details_next_at, BalFormats.dateTime(context, it)) }
         ReminderPhase.COMPLETED -> {
@@ -458,6 +498,7 @@ private fun statusLine(context: android.content.Context, occurrence: ReminderOcc
 @Composable
 private fun statusColor(phase: ReminderPhase?): Color = when (phase) {
     ReminderPhase.NEEDS_CONFIRMATION, ReminderPhase.UPCOMING -> MaterialTheme.colorScheme.primary
+    ReminderPhase.OVERDUE -> MaterialTheme.colorScheme.error
     ReminderPhase.SNOOZED -> MaterialTheme.colorScheme.tertiary
     ReminderPhase.COMPLETED -> MaterialTheme.colorScheme.secondary
     else -> MaterialTheme.colorScheme.onSurfaceVariant

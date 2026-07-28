@@ -73,6 +73,42 @@ interface ReminderDao {
     @Query("SELECT * FROM completions WHERE reminderId = :reminderId")
     suspend fun recordsFor(reminderId: Long): List<OccurrenceRecordEntity>
 
+    // ------------------------------------------- one answer per occurrence
+
+    /** Terminal answers already recorded for one occurrence: completed or skipped. */
+    @Query(
+        "SELECT COUNT(*) FROM completions WHERE reminderId = :reminderId " +
+            "AND occurrenceAtMillis = :occurrenceAtMillis AND status IN ('completed', 'skipped')",
+    )
+    suspend fun countTerminalRecords(reminderId: Long, occurrenceAtMillis: Long): Int
+
+    @Query(
+        "DELETE FROM completions WHERE reminderId = :reminderId " +
+            "AND occurrenceAtMillis = :occurrenceAtMillis AND status = 'missed'",
+    )
+    suspend fun deleteMissedRecord(reminderId: Long, occurrenceAtMillis: Long)
+
+    /**
+     * Records «تم» or «تخطي اليوم» for one occurrence, and refuses if that
+     * occurrence already has *either* answer. The unique index alone cannot
+     * express this — it is per (reminder, occurrence, status), so a COMPLETED and
+     * a SKIPPED row for the same occurrence are both legal to SQLite — and a
+     * plain unique index on (reminder, occurrence) would forbid the MISSED row
+     * that legitimately precedes a late answer. So the invariant lives here, in
+     * one transaction: read, decide, write.
+     *
+     * A MISSED record for the same occurrence is cleared on the way: the alarm
+     * did ring out, but the user has now answered, and the history should say the
+     * later, truer thing rather than both.
+     */
+    @Transaction
+    suspend fun insertTerminalRecord(entity: OccurrenceRecordEntity): Boolean {
+        if (countTerminalRecords(entity.reminderId, entity.occurrenceAtMillis) > 0) return false
+        if (insertRecord(entity) == -1L) return false
+        deleteMissedRecord(entity.reminderId, entity.occurrenceAtMillis)
+        return true
+    }
+
     // ------------------------------------------------------------ deletion
 
     /**

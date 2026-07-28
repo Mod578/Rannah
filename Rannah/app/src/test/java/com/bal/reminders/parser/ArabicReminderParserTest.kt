@@ -65,13 +65,9 @@ class ArabicReminderParserTest {
     }
 
     @Test
-    fun `monthly without time is an incomplete draft with the day kept`() {
+    fun `monthly without a time offers no suggestion`() {
         val result = parser.parse("ذكّرني يوم 25 من كل شهر بدفع الفاتورة", now)
-        assertTrue(result is ParseResult.Incomplete)
-        val incomplete = result as ParseResult.Incomplete
-        assertEquals(ParseResult.MissingPart.TIME, incomplete.missing)
-        assertEquals("دفع الفاتورة", incomplete.draft.title)
-        assertEquals(25, (incomplete.draft.schedule as Schedule.Monthly).dayOfMonth)
+        assertTrue("a half-understood sentence offers no suggestion", result is ParseResult.NoMatch)
     }
 
     // -------------------------------------------------------------- numerals
@@ -243,37 +239,21 @@ class ArabicReminderParserTest {
         assertEquals(Schedule.Yearly(1, 23, LocalTime.of(17, 0)), r.schedule)
     }
 
-    // ------------------------------------------------------------ incomplete
+    // ------------------------------------------- not enough to suggest anything
 
     @Test
-    fun `date without time asks for the time`() {
-        val result = parser.parse("ذكرني بكرة بالاجتماع", now)
-        assertTrue(result is ParseResult.Incomplete)
-        val incomplete = result as ParseResult.Incomplete
-        assertEquals(ParseResult.MissingPart.TIME, incomplete.missing)
-        assertEquals("الاجتماع", incomplete.draft.title)
-        assertEquals(
-            LocalDate.of(2026, 7, 16),
-            (incomplete.draft.schedule as Schedule.Once).date,
-        )
+    fun `a date with no time offers nothing`() {
+        assertEquals(ParseResult.NoMatch, parser.parse("ذكرني بكرة بالاجتماع", now))
     }
 
     @Test
-    fun `schedule without title asks for the title`() {
-        val result = parser.parse("ذكرني كل يوم الساعة 9", now)
-        assertTrue(result is ParseResult.Incomplete)
-        val incomplete = result as ParseResult.Incomplete
-        assertEquals(ParseResult.MissingPart.TITLE, incomplete.missing)
-        assertEquals(Schedule.Daily(LocalTime.of(9, 0)), incomplete.draft.schedule)
+    fun `a schedule with no title offers nothing`() {
+        assertEquals(ParseResult.NoMatch, parser.parse("ذكرني كل يوم الساعة 9", now))
     }
 
     @Test
-    fun `plain text becomes a title draft`() {
-        val result = parser.parse("موعد المستشفى", now)
-        assertTrue(result is ParseResult.Incomplete)
-        val incomplete = result as ParseResult.Incomplete
-        assertEquals(ParseResult.MissingPart.TIME, incomplete.missing)
-        assertEquals("موعد المستشفى", incomplete.draft.title)
+    fun `plain text with no time offers nothing`() {
+        assertEquals(ParseResult.NoMatch, parser.parse("موعد المستشفى", now))
     }
 
     @Test

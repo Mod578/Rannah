@@ -51,15 +51,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bal.reminders.R
+import com.bal.reminders.domain.model.ReminderKind
 import com.bal.reminders.format.BalFormats
 import com.bal.reminders.ui.components.AppMark
 import com.bal.reminders.ui.components.ChoiceChips
 import com.bal.reminders.ui.components.ChoiceChipsMulti
-import com.bal.reminders.ui.theme.BrandRing
 import com.bal.reminders.ui.theme.Space
 import java.time.DayOfWeek
 import java.time.Instant
@@ -68,11 +69,14 @@ import java.time.LocalTime
 import java.time.ZoneId
 
 /**
- * Adding a reminder is three questions in order — what, when, at what time —
- * and one sentence confirming what رَنّة understood before the reminder is
- * saved. That sentence is the point: it says «كل يوم، الساعة ٦:٠٠ صباحًا» or
- * «مرة واحدة، الأحد ١٢ يوليو»، so nobody has to infer from a chip whether they
- * just built a repeating reminder or a single one.
+ * Adding a reminder starts with the question that decides everything else —
+ * «ما نوع التذكير؟» — and ends with one sentence confirming what رَنّة
+ * understood before anything is saved.
+ *
+ * The three kinds are separate, named choices rather than five equal chips,
+ * because «مرة واحدة» and «يومي» are what most people want and burying "every
+ * day" inside a recurrence menu made them hunt for it. «متكرر» then asks its own
+ * question, and only then.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -161,18 +165,25 @@ fun EditorScreen(
                 }
             }
 
-            // ٢ — متى يتكرر
-            Field(stringResource(R.string.editor_repeat)) {
+            // ٢ — ما نوع التذكير؟ الاختيار الذي يقرّر بقية الشاشة.
+            Field(stringResource(R.string.kind_question)) {
                 ChoiceChips(
                     options = listOf(
-                        ScheduleType.ONCE to stringResource(R.string.schedule_type_once),
-                        ScheduleType.DAILY to stringResource(R.string.schedule_type_daily),
-                        ScheduleType.WEEKLY to stringResource(R.string.schedule_type_weekly),
-                        ScheduleType.MONTHLY to stringResource(R.string.schedule_type_monthly),
-                        ScheduleType.YEARLY to stringResource(R.string.schedule_type_yearly),
+                        ReminderKind.ONCE to stringResource(R.string.kind_once),
+                        ReminderKind.DAILY to stringResource(R.string.kind_daily),
+                        ReminderKind.RECURRING to stringResource(R.string.kind_recurring),
                     ),
-                    selected = state.type,
-                    onSelect = viewModel::setType,
+                    selected = state.kind,
+                    onSelect = viewModel::setKind,
+                )
+                Hint(
+                    stringResource(
+                        when (state.kind) {
+                            ReminderKind.ONCE -> R.string.kind_once_hint
+                            ReminderKind.DAILY -> R.string.kind_daily_hint
+                            ReminderKind.RECURRING -> R.string.kind_recurring_hint
+                        },
+                    ),
                 )
             }
 
@@ -197,14 +208,14 @@ fun EditorScreen(
                         horizontalArrangement = Arrangement.spacedBy(Space.sm),
                     ) {
                         AppMark(
-                            body = MaterialTheme.colorScheme.primary,
-                            ring = BrandRing,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(22.dp),
                         )
                         Text(
                             text = BalFormats.scheduleSummary(context, schedule),
                             style = MaterialTheme.typography.titleSmall,
                             color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f),
                         )
                     }
                 }
@@ -243,6 +254,7 @@ fun EditorScreen(
                 Text(
                     stringResource(if (state.isNew) R.string.editor_save else R.string.editor_save_changes),
                     style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.Center,
                 )
             }
             Spacer(Modifier.height(Space.md))
@@ -263,45 +275,72 @@ private fun Field(label: String, content: @Composable () -> Unit) {
     }
 }
 
+/** What each kind still needs to know. «يومي» needs nothing but the hour. */
 @Composable
 private fun WhenDetails(state: EditorState, viewModel: EditorViewModel) {
-    when (state.type) {
-        ScheduleType.ONCE -> Field(stringResource(R.string.editor_date)) {
+    when (state.kind) {
+        ReminderKind.ONCE -> Field(stringResource(R.string.editor_date)) {
             DateRow(state.date) { viewModel.setDate(it) }
             HijriHint(state.date)
         }
-        ScheduleType.DAILY -> Unit
-        ScheduleType.WEEKLY -> Field(stringResource(R.string.editor_days)) {
-            WeekdayChips(state.days) { viewModel.toggleDay(it) }
-            if (state.daysError) ErrorText(stringResource(R.string.editor_error_days))
-        }
-        ScheduleType.MONTHLY -> Field(stringResource(R.string.editor_day_of_month)) {
-            Stepper(
-                value = BalFormats.arabicDigits(state.dayOfMonth.toString()),
-                onDec = { viewModel.setDayOfMonth(state.dayOfMonth - 1) },
-                onInc = { viewModel.setDayOfMonth(state.dayOfMonth + 1) },
-            )
-            if (state.dayOfMonth >= 29) {
-                Hint(stringResource(R.string.editor_day_of_month_clamp_note))
-            }
-        }
-        ScheduleType.YEARLY -> {
-            Field(stringResource(R.string.editor_month)) {
-                Stepper(
-                    value = BalFormats.gregorianMonthName(state.month),
-                    onDec = { viewModel.setMonth(if (state.month <= 1) 12 else state.month - 1) },
-                    onInc = { viewModel.setMonth(if (state.month >= 12) 1 else state.month + 1) },
+
+        ReminderKind.DAILY -> Unit
+
+        ReminderKind.RECURRING -> {
+            Field(stringResource(R.string.editor_pattern)) {
+                ChoiceChips(
+                    options = listOf(
+                        RecurrencePattern.WEEKLY to stringResource(R.string.kind_weekly),
+                        RecurrencePattern.MONTHLY to stringResource(R.string.kind_monthly),
+                        RecurrencePattern.YEARLY to stringResource(R.string.kind_yearly),
+                    ),
+                    selected = state.pattern,
+                    onSelect = viewModel::setPattern,
                 )
             }
-            Field(stringResource(R.string.editor_day_of_month)) {
-                Stepper(
-                    value = BalFormats.arabicDigits(state.dayOfMonth.toString()),
-                    onDec = { viewModel.setDayOfMonth(state.dayOfMonth - 1) },
-                    onInc = { viewModel.setDayOfMonth(state.dayOfMonth + 1) },
-                )
+            when (state.pattern) {
+                RecurrencePattern.WEEKLY -> Field(stringResource(R.string.editor_days)) {
+                    WeekdayChips(state.days) { viewModel.toggleDay(it) }
+                    if (state.daysError) ErrorText(stringResource(R.string.editor_error_days))
+                }
+
+                RecurrencePattern.MONTHLY -> Field(stringResource(R.string.editor_day_of_month)) {
+                    Stepper(
+                        value = BalFormats.arabicDigits(state.dayOfMonth.toString()),
+                        onDec = { viewModel.setDayOfMonth(wrapDay(state.dayOfMonth - 1)) },
+                        onInc = { viewModel.setDayOfMonth(wrapDay(state.dayOfMonth + 1)) },
+                    )
+                    if (state.dayOfMonth >= 29) {
+                        Hint(stringResource(R.string.editor_day_of_month_clamp_note))
+                    }
+                }
+
+                RecurrencePattern.YEARLY -> {
+                    Field(stringResource(R.string.editor_month)) {
+                        Stepper(
+                            value = BalFormats.gregorianMonthName(state.month),
+                            onDec = { viewModel.setMonth(if (state.month <= 1) 12 else state.month - 1) },
+                            onInc = { viewModel.setMonth(if (state.month >= 12) 1 else state.month + 1) },
+                        )
+                    }
+                    Field(stringResource(R.string.editor_day_of_month)) {
+                        Stepper(
+                            value = BalFormats.arabicDigits(state.dayOfMonth.toString()),
+                            onDec = { viewModel.setDayOfMonth(wrapDay(state.dayOfMonth - 1)) },
+                            onInc = { viewModel.setDayOfMonth(wrapDay(state.dayOfMonth + 1)) },
+                        )
+                    }
+                }
             }
         }
     }
+}
+
+/** 1..31, wrapping: reaching the 28th from the 1st is four taps back, not twenty-seven forward. */
+private fun wrapDay(value: Int): Int = when {
+    value < 1 -> 31
+    value > 31 -> 1
+    else -> value
 }
 
 /** The full Hijri date shown as a companion line under a chosen date. */
@@ -328,7 +367,12 @@ private fun TimeRow(time: LocalTime, onPick: (LocalTime) -> Unit) {
                 }) { Text(stringResource(R.string.action_ok)) }
             },
             dismissButton = { TextButton(onClick = { open = false }) { Text(stringResource(R.string.action_cancel)) } },
-            text = { Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) { TimePicker(state = timeState) } },
+            text = {
+                Box(
+                    Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
+                    contentAlignment = Alignment.Center,
+                ) { TimePicker(state = timeState) }
+            },
         )
     }
 }
@@ -412,12 +456,19 @@ private fun Stepper(value: String, onDec: () -> Unit, onInc: () -> Unit) {
         Row(
             Modifier.padding(Space.sm),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween,
+            horizontalArrangement = Arrangement.spacedBy(Space.sm),
         ) {
             FilledTonalIconButton(onClick = onDec, modifier = Modifier.size(48.dp)) {
                 Icon(Icons.Rounded.Remove, contentDescription = stringResource(R.string.action_decrease))
             }
-            Text(value, style = MaterialTheme.typography.titleMedium)
+            // Weighted, so a long month name at 200% text wraps instead of
+            // pushing the buttons off the edge.
+            Text(
+                value,
+                style = MaterialTheme.typography.titleMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.weight(1f),
+            )
             FilledTonalIconButton(onClick = onInc, modifier = Modifier.size(48.dp)) {
                 Icon(Icons.Rounded.Add, contentDescription = stringResource(R.string.action_increase))
             }

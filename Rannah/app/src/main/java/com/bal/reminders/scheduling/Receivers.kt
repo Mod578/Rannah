@@ -77,8 +77,8 @@ class NotificationActionReceiver : BroadcastReceiver() {
             NotificationManagerCompat.from(context).cancel(notificationId)
         }
 
-        if (intent.action == ACTION_SNOOZE) {
-            runAsync { scheduler.snooze(id, occurrenceAt = occurrence) }
+        if (intent.action == ACTION_SNOOZE && occurrence != null) {
+            runAsync { scheduler.snooze(id, occurrence) }
         }
     }
 

@@ -67,11 +67,9 @@ import com.bal.reminders.ui.components.ClosedRow
 import com.bal.reminders.ui.components.EmptyState
 import com.bal.reminders.ui.components.RowTone
 import com.bal.reminders.ui.components.SectionTitle
-import com.bal.reminders.ui.components.TodayMenu
 import com.bal.reminders.ui.permissions.Permissions
 import com.bal.reminders.ui.permissions.ReadinessIssue
 import com.bal.reminders.ui.permissions.issues
-import com.bal.reminders.ui.theme.BrandRing
 import com.bal.reminders.ui.theme.Space
 import java.time.Instant
 import java.time.ZoneId
@@ -141,6 +139,7 @@ fun ChecklistScreen(
     var closedExpanded by remember { mutableStateOf(false) }
 
     // Section titles are resolved here: the list scope below is not composable.
+    val overdueTitle = stringResource(R.string.home_overdue)
     val todayTitle = stringResource(R.string.home_today)
     val upcomingTitle = stringResource(R.string.home_upcoming)
     val pausedTitle = stringResource(R.string.home_paused)
@@ -175,6 +174,24 @@ fun ChecklistScreen(
                     item { ReadinessBanner(blockingIssue, onOpenPermissions) }
                 }
 
+                // Late and unanswered: above the day, dated, and never dropped.
+                if (state.overdue.isNotEmpty()) {
+                    section(overdueTitle, state.overdue.size)
+                    items(
+                        state.overdue,
+                        key = { "overdue-${it.reminderId}-${it.displayAt?.toEpochMilli() ?: 0}" },
+                    ) { item ->
+                        OccurrenceRow(
+                            item = item,
+                            context = context,
+                            zone = zone,
+                            now = nowTick,
+                            onOpenDetails = onOpenDetails,
+                            onComplete = { viewModel.complete(item) },
+                        )
+                    }
+                }
+
                 if (state.today.isNotEmpty()) {
                     section(todayTitle, state.today.size)
                     items(
@@ -191,7 +208,7 @@ fun ChecklistScreen(
                             // «تخطي اليوم» belongs to reminders that have a
                             // tomorrow. Its absence on a one-time row is itself
                             // the lesson: there is nothing left to keep.
-                            onSkip = if (item.recurring) ({ viewModel.skipToday(item) }) else null,
+                            onSkip = if (item.canSkip) ({ viewModel.skipToday(item) }) else null,
                         )
                     }
                 } else if (state.nothingToday) {
@@ -246,8 +263,8 @@ fun ChecklistScreen(
                         ChecklistRow(
                             title = item.title,
                             meta = BalFormats.scheduleSummary(context, item.schedule),
+                            kindLabel = BalFormats.kindLabel(context, item.schedule),
                             onClick = { onOpenDetails(item.reminderId) },
-                            recurring = item.recurring,
                             tone = RowTone.Muted,
                             trailing = {
                                 ResumeButton(title = item.title, onClick = { viewModel.resume(item) })
@@ -291,22 +308,19 @@ private fun OccurrenceRow(
     ChecklistRow(
         title = item.title,
         meta = metaFor(context, item, zone, now),
+        // The kind is always on the row: «مرة واحدة», «يومي», «أيام العمل»,
+        // «شهري». Nobody should have to remember what they built, or infer it
+        // from an icon.
+        kindLabel = BalFormats.kindLabel(context, item.schedule),
         onClick = { onOpenDetails(item.reminderId) },
-        recurring = item.recurring,
-        // A waiting row spends its second line on the state, not the cadence;
-        // the repeat mark beside it still says the reminder repeats.
-        repeatLabel = if (item.phase == ReminderPhase.NEEDS_CONFIRMATION) {
-            null
-        } else {
-            BalFormats.repeatLabel(context, item.schedule)
-        },
         tone = when (item.phase) {
             ReminderPhase.NEEDS_CONFIRMATION -> RowTone.Waiting
             ReminderPhase.SNOOZED -> RowTone.Snoozed
+            ReminderPhase.OVERDUE -> RowTone.Overdue
             else -> RowTone.Normal
         },
         onComplete = onComplete,
-        trailing = onSkip?.let { skip -> { TodayMenu(title = item.title, onSkip = skip) } },
+        onSkip = onSkip,
     )
 }
 
@@ -326,6 +340,11 @@ private fun metaFor(
     return when (view.phase) {
         ReminderPhase.SNOOZED -> context.getString(R.string.state_snoozed_until, time)
         ReminderPhase.NEEDS_CONFIRMATION -> context.getString(R.string.state_waiting_at, time)
+        // Overdue says the date it was actually due. A bare clock time on a row
+        // that has been waiting three weeks reads as "today at 9:00", which it
+        // is not.
+        ReminderPhase.OVERDUE ->
+            context.getString(R.string.state_overdue_at, BalFormats.dateTime(context, at, zone, now))
         else ->
             if (at.atZone(zone).toLocalDate() == today) {
                 time
@@ -384,8 +403,7 @@ private fun ClearDayNote() {
         horizontalArrangement = Arrangement.spacedBy(Space.sm),
     ) {
         AppMark(
-            body = MaterialTheme.colorScheme.outlineVariant,
-            ring = BrandRing,
+            tint = MaterialTheme.colorScheme.outlineVariant,
             modifier = Modifier.size(28.dp),
         )
         Text(
@@ -433,8 +451,7 @@ private fun Header(now: Instant, onOpenSettings: () -> Unit) {
     Column(Modifier.fillMaxWidth().padding(bottom = Space.xs)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             AppMark(
-                body = MaterialTheme.colorScheme.primary,
-                ring = BrandRing,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.size(24.dp),
             )
             Spacer(Modifier.size(Space.sm))

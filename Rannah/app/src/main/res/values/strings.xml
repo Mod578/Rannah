@@ -10,6 +10,7 @@
     <string name="action_edit">تعديل</string>
     <string name="action_done">تم</string>
     <string name="action_skip_today">تخطي اليوم</string>
+    <string name="action_snooze">تأجيل</string>
     <string name="action_pause">إيقاف مؤقت</string>
     <string name="action_resume">استئناف</string>
     <string name="action_undo">تراجع</string>
@@ -18,15 +19,23 @@
     <string name="action_delete_reminder">حذف التذكير</string>
     <string name="action_delete_recurring">حذف التذكير المتكرر</string>
     <string name="action_new_reminder">تذكير جديد</string>
-    <string name="action_more">إجراءات اليوم</string>
     <string name="action_increase">زيادة</string>
     <string name="action_decrease">إنقاص</string>
 
     <string name="tab_settings">الإعدادات</string>
 
-    <!-- نوع التذكير -->
+    <!-- أنواع التذكير: السؤال الأول في المحرر، والوسم الذي يظهر في كل شاشة -->
     <string name="kind_once">مرة واحدة</string>
-    <string name="kind_recurring">يتكرر</string>
+    <string name="kind_daily">يومي</string>
+    <string name="kind_recurring">متكرر</string>
+    <string name="kind_weekly">أسبوعي</string>
+    <string name="kind_monthly">شهري</string>
+    <string name="kind_yearly">سنوي</string>
+    <string name="kind_question">ما نوع التذكير؟</string>
+    <string name="kind_once_hint">موعد أو مهمة تحدث مرة واحدة، ثم تنتهي.</string>
+    <string name="kind_daily_hint">يرنّ كل يوم في الوقت نفسه.</string>
+    <string name="kind_recurring_hint">أيام من الأسبوع، أو شهريًا، أو سنويًا.</string>
+    <string name="editor_pattern">نمط التكرار</string>
 
     <!-- فترات اليوم -->
     <string name="period_fajr">فجرًا</string>
@@ -41,12 +50,11 @@
     <string name="date_time_at">%1$s، %2$s</string>
 
     <!-- وصف الجدولة كاملًا -->
-    <string name="schedule_once">مرة واحدة، %1$s الساعة %2$s</string>
-    <string name="schedule_daily">كل يوم، الساعة %1$s</string>
-    <string name="schedule_weekly">كل %1$s، الساعة %2$s</string>
+    <string name="schedule_once">مرة واحدة، %1$s، الساعة %2$s</string>
+    <string name="schedule_daily">يومي، الساعة %1$s</string>
+    <string name="schedule_weekly">%1$s، الساعة %2$s</string>
     <string name="schedule_days_workdays">أيام العمل</string>
     <string name="schedule_days_weekend">نهاية الأسبوع</string>
-    <string name="schedule_days_all">يوم</string>
     <string name="schedule_monthly">يوم %1$s من كل شهر، الساعة %2$s</string>
     <string name="schedule_monthly_clamped">يوم %1$s من كل شهر أو آخر يوم في الأشهر الأقصر، الساعة %2$s</string>
     <string name="schedule_hijri_monthly">يوم %1$s من كل شهر هجري، الساعة %2$s</string>
@@ -54,15 +62,12 @@
     <string name="schedule_yearly">يوم %1$s من %2$s كل سنة، الساعة %3$s</string>
     <string name="schedule_hijri_yearly">يوم %1$s من %2$s كل سنة هجرية، الساعة %3$s</string>
 
-    <!-- علامة التكرار المختصرة على الصفوف -->
-    <string name="repeat_daily">كل يوم</string>
+    <!-- وسم التكرار المختصر على الصفوف -->
     <string name="repeat_weekly">كل %1$s</string>
-    <string name="repeat_weekly_many">كل أسبوع</string>
-    <string name="repeat_monthly">كل شهر</string>
-    <string name="repeat_yearly">كل سنة</string>
 
     <!-- الشاشة الرئيسية -->
     <string name="home_today">اليوم</string>
+    <string name="home_overdue">متأخرة</string>
     <string name="home_upcoming">قادم</string>
     <string name="home_closed_today">انتهت اليوم</string>
     <string name="home_closed_expand">عرض ما انتهى اليوم</string>
@@ -76,21 +81,21 @@
     <!-- حالة الصف -->
     <string name="state_waiting">ينتظر تأكيدك</string>
     <string name="state_waiting_at">%1$s · ينتظر تأكيدك</string>
+    <string name="state_overdue_at">كان موعده %1$s · لم يُغلق بعد</string>
     <string name="state_snoozed_until">مؤجل حتى %1$s</string>
     <string name="state_paused">متوقف مؤقتًا</string>
     <string name="next_short">القادمة %1$s</string>
 
-    <!-- رسائل التراجع -->
+    <!-- رسائل التراجع — تذكر دائمًا نطاق ما حدث: اليوم فقط، أم التذكير كله -->
     <string name="undo_completed">تم إنجاز «%1$s»</string>
-    <string name="undo_completed_today">تم إنجاز «%1$s» لليوم</string>
-    <string name="undo_skipped_today">تخطّيت «%1$s» اليوم فقط</string>
-    <string name="undo_deleted">حُذف «%1$s»</string>
+    <string name="undo_completed_today">تم إنجاز «%1$s» لليوم فقط</string>
+    <string name="undo_skipped_today">تم تخطي «%1$s» لليوم فقط</string>
+    <string name="undo_deleted">حُذف «%1$s» بكل رنّاته</string>
 
     <!-- إضافة وتعديل -->
     <string name="editor_title_new">تذكير جديد</string>
     <string name="editor_title_edit">تعديل التذكير</string>
     <string name="editor_what_hint">بماذا أذكّرك؟</string>
-    <string name="editor_repeat">التكرار</string>
     <string name="editor_time">الساعة</string>
     <string name="editor_date">التاريخ</string>
     <string name="editor_days">الأيام</string>
@@ -103,14 +108,8 @@
     <string name="editor_error_title">اكتب نص التذكير أولًا</string>
     <string name="editor_error_past">هذا الوقت مضى، اختر وقتًا قادمًا</string>
     <string name="editor_error_days">اختر يومًا واحدًا على الأقل</string>
-    <string name="editor_snooze_option">%1$s دقيقة</string>
     <string name="editor_save">حفظ التذكير</string>
     <string name="editor_save_changes">حفظ التعديلات</string>
-    <string name="schedule_type_once">مرة واحدة</string>
-    <string name="schedule_type_daily">كل يوم</string>
-    <string name="schedule_type_weekly">كل أسبوع</string>
-    <string name="schedule_type_monthly">كل شهر</string>
-    <string name="schedule_type_yearly">كل سنة</string>
 
     <!-- الحذف -->
     <string name="delete_confirm_title">حذف التذكير المتكرر؟</string>
@@ -119,14 +118,17 @@
     <!-- التفاصيل -->
     <string name="details_title">التذكير</string>
     <string name="details_not_found">هذا التذكير لم يعد موجودًا</string>
-    <string name="details_zone_today">اليوم</string>
+    <string name="details_zone_today">هذه الرنّة فقط</string>
     <string name="details_zone_reminder">التذكير كله</string>
     <string name="details_today_note">«تم» و«تخطي اليوم» يخصّان رنّة اليوم فقط، وبقية الأيام تبقى كما هي.</string>
+    <string name="details_once_note">تذكير لمرة واحدة: بعد «تم» ينتهي، ويمكنك التراجع في اليوم نفسه.</string>
     <string name="details_pause_note">الإيقاف المؤقت يوقف كل الرنّات حتى تستأنفه.</string>
+    <string name="details_delete_note">الحذف يزيل التذكير وكل رنّاته القادمة.</string>
     <string name="details_today_done">اكتمل اليوم</string>
     <string name="details_today_skipped">تم تخطيه اليوم</string>
     <string name="details_next_at">الرنّة القادمة: %1$s</string>
     <string name="details_snoozed_until">مؤجل حتى %1$s</string>
+    <string name="details_overdue_at">كان موعده %1$s</string>
     <string name="details_paused_resumes">متوقف مؤقتًا · بعد الاستئناف %1$s</string>
     <string name="details_history">السجل</string>
 
@@ -141,7 +143,8 @@
     <string name="settings_theme_system">تلقائي</string>
     <string name="settings_theme_light">نهاري</string>
     <string name="settings_theme_dark">ليلي</string>
-    <string name="settings_default_snooze">مدة التأجيل</string>
+    <string name="settings_default_snooze">مدة التأجيل الافتراضية</string>
+    <string name="settings_default_snooze_note">تُطبَّق على كل التذكيرات عند الضغط على «تأجيل». يمكنك اختيار مدة أخرى لرنّة واحدة من شاشة الرنّة.</string>
     <string name="settings_permissions">الأذونات والتنبيهات</string>
     <string name="settings_permissions_ok">كل شيء جاهز</string>
     <string name="settings_permissions_attention">هناك ما يحتاج انتباهك</string>
@@ -175,6 +178,9 @@
     <string name="permissions_battery_body">يمنع النظام من تأخير التذكيرات في الخلفية.</string>
     <string name="permissions_alarm_volume_title">صوت المنبّه مكتوم</string>
     <string name="permissions_alarm_volume_body">ارفع صوت المنبّه لتسمع الرنّة.</string>
+    <string name="permissions_channel_title">قناة «المنبّهات»</string>
+    <string name="permissions_channel_body">أوقفتَ إشعارات المنبّهات، فلن تسمع أي رنّة.</string>
+    <string name="permissions_channel_action">فتح إعدادات القناة</string>
     <string name="permissions_enable">تفعيل</string>
     <string name="permissions_open_settings">فتح الإعدادات</string>
     <string name="permissions_granted">مفعّل</string>
@@ -224,4 +230,27 @@
     <string name="alarm_ringing_now">يرنّ الآن</string>
     <string name="alarm_slide_to_confirm">اسحب للتأكيد</string>
     <string name="alarm_slide_hint">اسحب حتى النهاية</string>
+
+    <!-- التأجيل بمدة أخرى -->
+    <string name="snooze_other">مدة أخرى</string>
+    <string name="snooze_sheet_title">تأجيل هذه الرنّة</string>
+    <string name="snooze_sheet_note">تخصّ هذه المرة فقط. الرنّة القادمة تعود إلى المدة الافتراضية.</string>
+    <string name="snooze_until_time">حتى وقت محدد</string>
+    <string name="snooze_until_resolved">سيرنّ %1$s</string>
+    <string name="snooze_too_late">لا يمكن التأجيل إلى هذا الوقت، فالرنّة القادمة تسبقه. أقصى تأجيل ممكن: %1$s</string>
+    <string name="snooze_unavailable">لم يعد بالإمكان تأجيل هذه الرنّة.</string>
+    <string name="snooze_confirm">تأجيل</string>
+    <plurals name="snooze_minutes_option">
+        <item quantity="zero">%d دقيقة</item>
+        <item quantity="one">دقيقة واحدة</item>
+        <item quantity="two">دقيقتان</item>
+        <item quantity="few">%d دقائق</item>
+        <item quantity="many">%d دقيقة</item>
+        <item quantity="other">%d دقيقة</item>
+    </plurals>
+
+    <!-- إدارة التأجيل من التفاصيل -->
+    <string name="action_change_snooze">تغيير وقت التأجيل</string>
+    <string name="action_cancel_snooze">إلغاء التأجيل</string>
+    <string name="details_snooze_note">إلغاء التأجيل يعيد هذه الرنّة كما كانت، دون إنجاز ولا تخطٍّ.</string>
 </resources>

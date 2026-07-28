@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import com.bal.reminders.R
+import com.bal.reminders.scheduling.NotificationPresenter
 import com.bal.reminders.ui.theme.Space
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -152,6 +153,28 @@ fun PermissionsScreen(onBack: () -> Unit) {
                     context.startActivity(Permissions.batterySettingsIntent())
                 },
             )
+
+            // «الرنّات صامتة» used to be reported as a blocking problem with no
+            // way to act on it: the readiness summary named it, the home banner
+            // linked here, and this screen had no card for it. The intent to fix
+            // it already existed and had no caller.
+            if (status.alarmChannelBlocked) {
+                PermissionCard(
+                    icon = Icons.Rounded.NotificationsActive,
+                    title = stringResource(R.string.permissions_channel_title),
+                    body = stringResource(R.string.permissions_channel_body),
+                    granted = false,
+                    actionLabel = stringResource(R.string.permissions_channel_action),
+                    onAction = {
+                        context.startActivity(
+                            Permissions.channelSettingsIntent(
+                                context,
+                                NotificationPresenter.CHANNEL_ALARM,
+                            ),
+                        )
+                    },
+                )
+            }
 
             if (status.alarmVolumeMuted) {
                 PermissionCard(

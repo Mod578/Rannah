@@ -66,36 +66,14 @@ class ArabicReminderParser @Inject constructor() : ReminderParser {
             else -> null
         }
 
-        return when {
-            schedule != null && title.isNotBlank() ->
-                ParseResult.Success(title, schedule)
-
-            schedule != null ->
-                ParseResult.Incomplete(
-                    ParseResult.Draft(title = null, schedule = schedule),
-                    ParseResult.MissingPart.TITLE,
-                )
-
-            else -> {
-                // A date or recurrence without a time (or nothing at all):
-                // build the best partial schedule with a placeholder time so
-                // the editor opens pre-filled.
-                val placeholder = LocalTime.of(8, 0)
-                val partial: Schedule? = when {
-                    yearly && dateRef != null -> yearlySchedule(dateRef, placeholder, now)
-                    monthlyDay != null -> Schedule.Monthly(monthlyDay, placeholder)
-                    weeklyDays != null -> Schedule.Weekly(weeklyDays, placeholder)
-                    daily -> Schedule.Daily(placeholder)
-                    dateRef != null -> Schedule.Once(resolveDateOnly(dateRef, now), placeholder)
-                    onceWeekday != null ->
-                        Schedule.Once(nextDateFor(onceWeekday, now.toLocalDate(), inclusiveToday = false), placeholder)
-                    else -> null
-                }
-                ParseResult.Incomplete(
-                    ParseResult.Draft(title = title.ifBlank { null }, schedule = partial),
-                    ParseResult.MissingPart.TIME,
-                )
-            }
+        // A suggestion is offered only when the sentence carried both halves. A
+        // schedule with no title, or a date with no time, is not something to
+        // put in front of the user as «فهمت: …» — the pickers below already say
+        // what رَنّة will do, and a half-guess would only have to be corrected.
+        return if (schedule != null && title.isNotBlank()) {
+            ParseResult.Success(title, schedule)
+        } else {
+            ParseResult.NoMatch
         }
     }
 
@@ -277,31 +255,6 @@ class ArabicReminderParser @Inject constructor() : ReminderParser {
             is DateRef.DayNum -> Schedule.Yearly(now.monthValue, ref.day, time)
             is DateRef.Offset -> null
         }
-
-    private fun resolveDateOnly(ref: DateRef, now: ZonedDateTime): LocalDate {
-        val today = now.toLocalDate()
-        return when (ref) {
-            is DateRef.Offset -> today.plusDays(ref.days)
-            is DateRef.DayNum -> {
-                var month = YearMonth.from(now)
-                var date = month.atDay(minOf(ref.day, month.lengthOfMonth()))
-                if (date < today) {
-                    month = month.plusMonths(1)
-                    date = month.atDay(minOf(ref.day, month.lengthOfMonth()))
-                }
-                date
-            }
-            is DateRef.DayMonth -> {
-                var month = YearMonth.of(now.year, ref.month)
-                var date = month.atDay(minOf(ref.day, month.lengthOfMonth()))
-                if (date < today) {
-                    month = month.plusYears(1)
-                    date = month.atDay(minOf(ref.day, month.lengthOfMonth()))
-                }
-                date
-            }
-        }
-    }
 
     private fun onceForWeekday(day: DayOfWeek, raw: RawTime, now: ZonedDateTime): Schedule.Once {
         val time = resolveTime(raw)

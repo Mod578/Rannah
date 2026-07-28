@@ -22,12 +22,15 @@ private const val TYPE_YEARLY = "yearly"
 private const val TYPE_HIJRI_MONTHLY_LEGACY = "hijri_monthly"
 
 /**
- * رَنّة dropped categories, priorities, alert modes, follow-up and per-reminder
- * alarm options. The columns survive so old databases migrate losslessly (and a
- * downgrade would still read); every new row writes these neutral defaults, and
- * nothing in the app reads them back. Hijri schedule columns are also preserved
- * so reminders saved before the Gregorian-only switch keep firing on their
- * announced dates.
+ * رَنّة dropped categories, priorities, alert modes, follow-up, per-reminder
+ * alarm options and — since 1.1 — the per-reminder snooze length. The columns
+ * survive so old databases migrate losslessly (and a downgrade would still
+ * read); every new row writes these neutral defaults, and nothing in the app
+ * reads them back. Hijri schedule columns are also preserved so reminders saved
+ * before the Gregorian-only switch keep firing on their announced dates.
+ *
+ * `snoozeMinutes` in particular is now written as the constant default and never
+ * read: how long «تأجيل» lasts is one global setting, applied at snooze time.
  */
 private const val LEGACY_CATEGORY_ID = "personal"
 private const val LEGACY_PRIORITY = 0
@@ -70,7 +73,6 @@ fun ReminderEntity.toDomain(): Reminder {
         notes = notes,
         schedule = schedule,
         enabled = enabled,
-        snoozeMinutes = snoozeMinutes,
         snoozedUntil = snoozedUntilMillis?.let(Instant::ofEpochMilli),
         snoozedOccurrenceAt = snoozedOccurrenceAtMillis?.let(Instant::ofEpochMilli),
         nextTriggerAt = nextTriggerAtMillis?.let(Instant::ofEpochMilli),
@@ -117,7 +119,7 @@ fun Reminder.toEntity(): ReminderEntity {
         alertMode = LEGACY_ALERT_MODE,
         soundEnabled = true,
         vibrationEnabled = true,
-        snoozeMinutes = snoozeMinutes,
+        snoozeMinutes = Reminder.DEFAULT_SNOOZE_MINUTES,
         ringtoneUri = null,
         alarmTimeoutMinutes = Reminder.DEFAULT_ALARM_TIMEOUT_MINUTES,
         alarmGradualVolume = true,

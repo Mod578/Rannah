@@ -46,6 +46,7 @@ class AlarmRingerService : Service() {
 
     @Inject lateinit var repository: ReminderRepository
     @Inject lateinit var presenter: NotificationPresenter
+    @Inject lateinit var scheduler: ReminderScheduler
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private val handler = Handler(Looper.getMainLooper())
@@ -194,8 +195,20 @@ class AlarmRingerService : Service() {
         }
     }
 
-    /** The alarm rang unanswered: stop quietly. The occurrence stays «يحتاج تأكيدك». */
+    /**
+     * The alarm rang its full length unanswered: stop quietly. The occurrence
+     * stays «يحتاج تأكيدك» — رَنّة decides nothing for the user — but the fact
+     * that it rang out is written down, so an ignored ring leaves a trace in the
+     * reminder's history instead of vanishing when the day turns.
+     */
     private fun onTimeout() {
+        val id = reminderId
+        val occurrence = occurrenceAt
+        if (id > 0 && occurrence != Instant.EPOCH) {
+            CoroutineScope(SupervisorJob() + Dispatchers.Default).launch {
+                scheduler.markMissed(id, occurrence)
+            }
+        }
         finish(removeNotification = true)
     }
 

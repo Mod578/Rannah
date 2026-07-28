@@ -75,6 +75,9 @@ class ReminderRepositoryImpl @Inject constructor(
     override suspend fun addRecord(record: OccurrenceRecord): Boolean =
         dao.insertRecord(record.toEntity()) != -1L
 
+    override suspend fun addTerminalRecord(record: OccurrenceRecord): Boolean =
+        dao.insertTerminalRecord(record.toEntity())
+
     override suspend fun removeRecord(
         reminderId: Long,
         occurrenceAt: Instant,

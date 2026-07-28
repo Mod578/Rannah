@@ -1,6 +1,7 @@
 package com.bal.reminders.domain
 
 import com.bal.reminders.domain.model.Reminder
+import com.bal.reminders.domain.model.ReminderKind
 import com.bal.reminders.domain.model.Schedule
 import java.time.Instant
 import java.time.ZoneId
@@ -18,8 +19,18 @@ enum class ReminderPhase {
     /** مؤجل — postponed; waiting until a known instant. */
     SNOOZED,
 
-    /** يحتاج تأكيدك — an occurrence's time has passed and it is still unresolved. */
+    /** يحتاج تأكيدك — today's occurrence has passed and is still unresolved. */
     NEEDS_CONFIRMATION,
+
+    /**
+     * متأخر — a one-time reminder whose day is behind us and which was never
+     * answered. It is deliberately *not* [NEEDS_CONFIRMATION]: that state belongs
+     * to today, and filing a three-week-old errand under «اليوم» with nothing but
+     * a clock time told the user something untrue. An overdue reminder is shown
+     * with its real date, above the day, until it is completed or deleted — it is
+     * never silently discarded.
+     */
+    OVERDUE,
 
     /** مكتمل — a one-time reminder that has been completed. */
     COMPLETED,
@@ -42,7 +53,16 @@ data class ReminderOccurrence(
     val phase: ReminderPhase,
     val occurrenceAt: Instant?,
     val displayAt: Instant?,
-)
+) {
+    /** Which of the three user-facing kinds this reminder is. */
+    val kind: ReminderKind get() = schedule.kind
+
+    /** «تخطي اليوم» only means something where there is a next occurrence to keep. */
+    val canSkip: Boolean get() = recurring &&
+        (phase == ReminderPhase.NEEDS_CONFIRMATION ||
+            phase == ReminderPhase.SNOOZED ||
+            phase == ReminderPhase.UPCOMING)
+}
 
 /**
  * The one place a reminder's display state is computed. Scheduling stays
@@ -57,7 +77,7 @@ object OccurrenceStateResolver {
      *
      * Priority: paused/ended → snoozed → today's fired-unresolved → today's
      * later → (today's already resolved → next occurrence) → future → one-time
-     * overdue.
+     * passed (today: needs confirmation; an earlier day: overdue).
      */
     fun resolve(
         reminder: Reminder,
@@ -116,10 +136,17 @@ object OccurrenceStateResolver {
         }
         if (occToday != null) return view(ReminderPhase.UPCOMING, occToday, occToday) // a future day
 
-        // A one-time reminder whose moment has passed and was never resolved.
-        val overdue = onceInstant(reminder.schedule, zone)?.takeIf { !it.isAfter(now) }
-        if (overdue != null && !isResolved(overdue)) {
-            return view(ReminderPhase.NEEDS_CONFIRMATION, overdue, overdue)
+        // A one-time reminder whose moment has passed and was never resolved. Its
+        // own day makes it today's business; any earlier day makes it overdue, and
+        // it says so with the date it was actually due.
+        val passed = onceInstant(reminder.schedule, zone)?.takeIf { !it.isAfter(now) }
+        if (passed != null && !isResolved(passed)) {
+            val phase = if (passed.atZone(zone).toLocalDate() < today) {
+                ReminderPhase.OVERDUE
+            } else {
+                ReminderPhase.NEEDS_CONFIRMATION
+            }
+            return view(phase, passed, passed)
         }
         return view(ReminderPhase.UPCOMING, reminder.nextTriggerAt, reminder.nextTriggerAt)
     }

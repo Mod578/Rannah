@@ -3,6 +3,10 @@ package com.bal.reminders.scheduling
 import com.bal.reminders.domain.HijriAdjustmentProvider
 import com.bal.reminders.domain.RecurrenceCalculator
 import com.bal.reminders.domain.ReminderRepository
+import com.bal.reminders.domain.SnoozeDefaultProvider
+import com.bal.reminders.domain.SnoozeLimits
+import com.bal.reminders.domain.SnoozeRequest
+import com.bal.reminders.domain.SnoozeResult
 import com.bal.reminders.domain.model.DeletedReminder
 import com.bal.reminders.domain.model.OccurrenceRecord
 import com.bal.reminders.domain.model.OccurrenceStatus
@@ -30,11 +34,10 @@ import javax.inject.Singleton
  * («إيقاف مؤقت» / «استئناف»), and [delete] removes the reminder outright,
  * returning a snapshot [restore] can put back.
  *
- * Every action is idempotent: occurrence records are unique per
- * (reminder, occurrence, status), so replayed intents and double taps no-op.
- * An occurrence that rang and was neither postponed nor confirmed simply stays
- * unresolved — it surfaces on the checklist as «يحتاج تأكيدك», derived from the
- * schedule and the records, with no extra state to keep in step.
+ * Every action is idempotent, and every occurrence has at most one answer:
+ * [complete] and [skipOccurrence] both go through the repository's transactional
+ * terminal write, so a replayed intent, a double tap, or a race between the row
+ * and the menu cannot make one occurrence both «مكتمل» and «تم تخطيه».
  */
 @Singleton
 class ReminderScheduler @Inject constructor(
@@ -43,6 +46,7 @@ class ReminderScheduler @Inject constructor(
     private val notifications: ReminderNotifications,
     private val clock: Clock,
     private val hijriAdjustment: HijriAdjustmentProvider,
+    private val snoozeDefault: SnoozeDefaultProvider,
 ) {
 
     /** Computes and registers the next trigger for [reminderId]; cancels if none. */
@@ -70,7 +74,7 @@ class ReminderScheduler @Inject constructor(
             )?.toInstant()
         if (next == null) {
             // A one-time reminder whose moment has passed: no alarm, it shows
-            // as «يحتاج تأكيدك» in the app until completed or deleted.
+            // as «يحتاج تأكيدك» (or «متأخر») in the app until completed or deleted.
             alarmGateway.cancel(reminder.id)
             repository.setNextTrigger(reminder.id, null)
         } else {
@@ -84,16 +88,19 @@ class ReminderScheduler @Inject constructor(
      * rejects a broadcast left over from an edit/cancel and makes duplicate
      * AlarmManager deliveries harmless.
      */
-    suspend fun onAlarmFired(reminderId: Long, expectedOccurrence: Instant? = null) {
+    suspend fun onAlarmFired(reminderId: Long, expectedOccurrence: Instant) {
         val reminder = repository.getById(reminderId) ?: return
         if (!reminder.enabled || reminder.isDone) return
         val trigger = reminder.nextTriggerAt ?: return
-        if (expectedOccurrence != null && trigger != expectedOccurrence) return
+        if (trigger != expectedOccurrence) return
         // What rings is the trigger; what the user answers about is the
         // occurrence. After «تأجيل» those differ, and every surface downstream
         // (alarm screen, notification action, completion record) uses the latter.
         val occurrence = reminder.snoozedOccurrenceAt ?: trigger
-        notifications.startAlarm(reminder, occurrence)
+        // Clear the snooze *before* the surface appears. The other order left a
+        // window in which the alarm screen was already up while the reminder
+        // still looked snoozed, and a fast «تأجيل» in that window was rejected as
+        // a duplicate and silently did nothing.
         if (reminder.snoozedUntil != null || reminder.snoozedOccurrenceAt != null) {
             repository.setSnooze(reminderId, null, null)
         }
@@ -105,21 +112,20 @@ class ReminderScheduler @Inject constructor(
         } else {
             repository.setNextTrigger(reminderId, null)
         }
+        notifications.startAlarm(reminder, occurrence)
     }
 
     /**
-     * Completes one occurrence («تم»). Idempotent: a duplicate intent finds the
-     * record already present and does nothing. Returns the occurrence instant
-     * recorded, or null when nothing changed (already completed / not found).
+     * Completes one occurrence («تم»). Idempotent, and exclusive: an occurrence
+     * that was already completed *or* skipped is left alone. Returns the
+     * occurrence instant recorded, or null when nothing changed.
      */
-    suspend fun complete(reminderId: Long, occurrenceAt: Instant? = null): Instant? {
+    suspend fun complete(reminderId: Long, occurrenceAt: Instant): Instant? {
         val reminder = repository.getById(reminderId) ?: return null
         val now = clock.instant()
-        val occurrence = occurrenceAt
-            ?: reminder.snoozedOccurrenceAt
-            ?: reminder.nextTriggerAt
-            ?: now
-        val inserted = repository.addRecord(record(reminder, occurrence, OccurrenceStatus.COMPLETED))
+        val inserted = repository.addTerminalRecord(
+            record(reminder, occurrenceAt, OccurrenceStatus.COMPLETED),
+        )
         if (!inserted) return null
         if (!reminder.schedule.isRecurring) {
             repository.markCompleted(reminderId, now)
@@ -129,26 +135,29 @@ class ReminderScheduler @Inject constructor(
             // Completing early ("done already") skips the completed occurrence.
             scheduleNext(
                 reminder.copy(snoozedUntil = null, snoozedOccurrenceAt = null),
-                after = occurrence,
+                after = occurrenceAt,
             )
         }
         notifications.dismiss(reminderId)
-        return occurrence
+        return occurrenceAt
     }
 
     /**
-     * «تخطي اليوم»: closes today's occurrence without claiming the task was
-     * done, and moves on to the next one. This is the answer to "not today, but
-     * keep the rest" — it touches one occurrence, never the reminder, so it can
-     * never be confused with pausing or deleting the series.
+     * «تخطي اليوم»: closes this occurrence without claiming the task was done,
+     * and moves on to the next one. This is the answer to "not today, but keep
+     * the rest" — it touches one occurrence, never the reminder, so it can never
+     * be confused with pausing or deleting the series.
      *
-     * Recurring only: a one-time reminder has no next occurrence to keep, so
-     * skipping it would just be a deletion wearing another word.
+     * Recurring only (which includes «يومي»): a one-time reminder has no next
+     * occurrence to keep, so skipping it would just be a deletion wearing another
+     * word.
      */
     suspend fun skipOccurrence(reminderId: Long, occurrenceAt: Instant): Instant? {
         val reminder = repository.getById(reminderId) ?: return null
         if (!reminder.schedule.isRecurring) return null
-        val inserted = repository.addRecord(record(reminder, occurrenceAt, OccurrenceStatus.SKIPPED))
+        val inserted = repository.addTerminalRecord(
+            record(reminder, occurrenceAt, OccurrenceStatus.SKIPPED),
+        )
         if (!inserted) return null
         repository.setSnooze(reminderId, null, null)
         scheduleNext(
@@ -157,6 +166,18 @@ class ReminderScheduler @Inject constructor(
         )
         notifications.dismiss(reminderId)
         return occurrenceAt
+    }
+
+    /**
+     * The alarm rang its full length and nobody answered. The occurrence stays
+     * unresolved — رَنّة never decides for the user — but it is written down, so
+     * «فات موعده» is a state the app actually reaches instead of a label it only
+     * shows after a power cut. A later «تم» supersedes the record.
+     */
+    suspend fun markMissed(reminderId: Long, occurrenceAt: Instant) {
+        val reminder = repository.getById(reminderId) ?: return
+        if (isResolved(reminderId, occurrenceAt)) return
+        repository.addRecord(record(reminder, occurrenceAt, OccurrenceStatus.MISSED))
     }
 
     /**
@@ -189,6 +210,9 @@ class ReminderScheduler @Inject constructor(
      * (shown for their day under «انتهت اليوم», then gone), and occurrence
      * records older than [RECORD_RETENTION] that no longer answer anything.
      * Idempotent; safe on every launch, on the daily reconcile, and at midnight.
+     *
+     * An *unresolved* one-time reminder is never touched here, however old: it
+     * moves to «متأخرة» with its real date and waits for the user.
      */
     suspend fun pruneFinished() {
         val startOfToday = LocalDate.now(clock).atStartOfDay(clock.zone).toInstant()
@@ -196,29 +220,97 @@ class ReminderScheduler @Inject constructor(
         repository.pruneRecordsBefore(startOfToday.minus(RECORD_RETENTION))
     }
 
+    // ------------------------------------------------------------------ تأجيل
+
     /**
-     * Postpones the current occurrence («تأجيل»); repeated snoozes after it rings
-     * again move it again. [occurrenceAt] identifies notification actions so
-     * replaying the same PendingIntent after the first snooze is a no-op.
+     * The last instant [occurrenceAt] may be postponed to, or null when the
+     * reminder is gone. Bounded by [SnoozeLimits.MAXIMUM] and — the part that
+     * matters — by the reminder's own next natural occurrence: there is one alarm
+     * and one trigger per reminder, so a postponement that ran past the next
+     * occurrence would quietly swallow it.
+     */
+    suspend fun snoozeLimit(reminderId: Long, occurrenceAt: Instant): Instant? {
+        val reminder = repository.getById(reminderId) ?: return null
+        return snoozeLimit(reminder, occurrenceAt)
+    }
+
+    private suspend fun snoozeLimit(reminder: Reminder, occurrenceAt: Instant): Instant {
+        val now = clock.instant()
+        val ceiling = now.plus(SnoozeLimits.MAXIMUM)
+        val nextNatural = RecurrenceCalculator.nextOccurrence(
+            reminder.schedule,
+            occurrenceAt.atZone(clock.zone),
+            hijriAdjustment.adjustmentDays(),
+        )?.toInstant()?.minus(SnoozeLimits.SAFETY_MARGIN)
+        val limit = listOfNotNull(ceiling, nextNatural).min()
+        // Degenerate case only: the user is answering so late that the next
+        // occurrence is already upon us. A one-minute postponement is still more
+        // useful than refusing every one, and the next fire re-derives from the
+        // schedule anyway.
+        return maxOf(limit, now.plus(SnoozeLimits.MINIMUM))
+    }
+
+    /**
+     * Postpones [occurrenceAt] («تأجيل»); repeated snoozes after it rings again
+     * move it again, and the occurrence keeps its identity throughout.
+     *
+     * [SnoozeRequest.Default] is the one-tap button and is clamped to the limit
+     * silently — it promises the setting's duration, and near the next occurrence
+     * safety outranks the promise by at most a minute. An explicit choice from
+     * «مدة أخرى» is never clamped: it comes back as [SnoozeResult.TooLate] so the
+     * sheet can say why and ask for another time.
      */
     suspend fun snooze(
         reminderId: Long,
-        minutes: Int? = null,
-        occurrenceAt: Instant? = null,
-    ) {
-        val reminder = repository.getById(reminderId) ?: return
-        if (occurrenceAt != null && reminder.snoozedUntil != null) return
-        val delay = (minutes ?: reminder.snoozeMinutes).coerceAtLeast(1)
-        val until = clock.instant().plus(Duration.ofMinutes(delay.toLong()))
+        occurrenceAt: Instant,
+        request: SnoozeRequest = SnoozeRequest.Default,
+    ): SnoozeResult {
+        val reminder = repository.getById(reminderId) ?: return SnoozeResult.Unavailable
+        if (!reminder.enabled || reminder.isDone) return SnoozeResult.Unavailable
+        // A replayed notification intent must not postpone an already-postponed
+        // occurrence a second time.
+        if (reminder.snoozedUntil?.isAfter(clock.instant()) == true) return SnoozeResult.Unavailable
+
+        val now = clock.instant()
+        val limit = snoozeLimit(reminder, occurrenceAt)
+        val requested = when (request) {
+            SnoozeRequest.Default ->
+                now.plus(Duration.ofMinutes(snoozeDefault.defaultMinutes().coerceAtLeast(1).toLong()))
+            is SnoozeRequest.Minutes ->
+                now.plus(Duration.ofMinutes(request.minutes.coerceAtLeast(1).toLong()))
+            is SnoozeRequest.Until -> request.instant
+        }
+        val until = when {
+            request is SnoozeRequest.Default -> minOf(requested, limit)
+            requested.isAfter(limit) -> return SnoozeResult.TooLate(limit)
+            !requested.isAfter(now) -> return SnoozeResult.TooLate(limit)
+            else -> requested
+        }
+
         // The occurrence being postponed, kept through repeated «تأجيل» taps.
-        val occurrence = reminder.snoozedOccurrenceAt
-            ?: occurrenceAt
-            ?: reminder.nextTriggerAt
+        val occurrence = reminder.snoozedOccurrenceAt ?: occurrenceAt
         repository.setSnooze(reminderId, until, occurrence)
         repository.setNextTrigger(reminderId, until)
         alarmGateway.schedule(reminderId, until)
         notifications.dismiss(reminderId)
+        return SnoozeResult.Scheduled(until, occurrence)
     }
+
+    /**
+     * «إلغاء التأجيل»: the occurrence returns to exactly where it was before the
+     * postponement — unresolved, unanswered, and neither completed nor skipped.
+     * The alarm is re-derived from the schedule, so a still-future occurrence
+     * rings on time and a past one goes back to «ينتظر تأكيدك».
+     */
+    suspend fun cancelSnooze(reminderId: Long) {
+        val reminder = repository.getById(reminderId) ?: return
+        if (reminder.snoozedUntil == null && reminder.snoozedOccurrenceAt == null) return
+        repository.setSnooze(reminderId, null, null)
+        notifications.dismiss(reminderId)
+        scheduleNext(reminder.copy(snoozedUntil = null, snoozedOccurrenceAt = null))
+    }
+
+    // ------------------------------------------------------------- lifecycle
 
     /** Saves a reminder and (re)schedules it. Returns the id. */
     suspend fun save(reminder: Reminder): Long {
@@ -282,7 +374,9 @@ class ReminderScheduler @Inject constructor(
                 val occurrence = reminder.snoozedOccurrenceAt ?: missedTrigger
                 val grace = if (reminder.schedule.isRecurring) RECURRING_GRACE else ONCE_GRACE
                 if (Duration.between(missedTrigger, now) <= grace) {
-                    notifications.startAlarm(reminder, occurrence)
+                    if (!isResolved(reminder.id, occurrence)) {
+                        notifications.startAlarm(reminder, occurrence)
+                    }
                 } else if (reminder.schedule.isRecurring && !isResolved(reminder.id, occurrence)) {
                     repository.addRecord(record(reminder, occurrence, OccurrenceStatus.MISSED))
                 }
@@ -302,9 +396,10 @@ class ReminderScheduler @Inject constructor(
         }
     }
 
-    /** An occurrence is resolved once the user completed it. */
+    /** An occurrence is resolved once the user answered it — completed or skipped. */
     private suspend fun isResolved(reminderId: Long, occurrenceAt: Instant): Boolean =
-        repository.hasRecord(reminderId, occurrenceAt, OccurrenceStatus.COMPLETED)
+        repository.hasRecord(reminderId, occurrenceAt, OccurrenceStatus.COMPLETED) ||
+            repository.hasRecord(reminderId, occurrenceAt, OccurrenceStatus.SKIPPED)
 
     private fun record(reminder: Reminder, occurrenceAt: Instant, status: OccurrenceStatus) =
         OccurrenceRecord(

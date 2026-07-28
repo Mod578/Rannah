@@ -3,15 +3,10 @@ package com.bal.reminders.ui.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bal.reminders.R
-import com.bal.reminders.domain.OccurrenceStateResolver
-import com.bal.reminders.domain.RecurrenceCalculator
 import com.bal.reminders.domain.ReminderOccurrence
-import com.bal.reminders.domain.ReminderPhase
 import com.bal.reminders.domain.ReminderRepository
 import com.bal.reminders.domain.model.OccurrenceRecord
 import com.bal.reminders.domain.model.OccurrenceStatus
-import com.bal.reminders.domain.model.Reminder
-import com.bal.reminders.domain.model.Schedule
 import com.bal.reminders.scheduling.ReminderScheduler
 import com.bal.reminders.ui.UndoCoordinator
 import com.bal.reminders.ui.UndoRequest
@@ -41,6 +36,12 @@ data class ClosedItem(
 )
 
 data class ChecklistState(
+    /**
+     * One-time reminders whose day is behind us and which were never answered.
+     * They ride above the day with their real date — filing a three-week-old
+     * errand under «اليوم» with nothing but a clock time was simply untrue.
+     */
+    val overdue: List<ReminderOccurrence> = emptyList(),
     /** Everything due today: waiting, postponed, and still to come — in time order. */
     val today: List<ReminderOccurrence> = emptyList(),
     val upcoming: List<ReminderOccurrence> = emptyList(),
@@ -49,7 +50,7 @@ data class ChecklistState(
     val hasAnyReminder: Boolean = false,
 ) {
     /** Reminders exist, but nothing is waiting today. */
-    val nothingToday: Boolean get() = hasAnyReminder && today.isEmpty()
+    val nothingToday: Boolean get() = hasAnyReminder && today.isEmpty() && overdue.isEmpty()
 }
 
 @HiltViewModel
@@ -93,83 +94,8 @@ class ChecklistViewModel @Inject constructor(
         repository.observeRecords(),
         minuteTick,
     ) { reminders, records, _ ->
-        build(reminders, records)
+        ChecklistGrouping.group(reminders, records, clock.instant(), clock.zone)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ChecklistState())
-
-    private fun build(
-        reminders: List<Reminder>,
-        records: List<OccurrenceRecord>,
-    ): ChecklistState {
-        val now = clock.instant()
-        val zone = clock.zone
-        val today = now.atZone(zone).toLocalDate()
-
-        // reminderId -> occurrences already answered (completed or skipped).
-        val resolved = HashMap<Long, HashSet<Long>>()
-        records.forEach { r ->
-            if (r.status.resolvesOccurrence) {
-                resolved.getOrPut(r.reminderId) { HashSet() }.add(r.occurrenceAt.toEpochMilli())
-            }
-        }
-        val closedRecords = records.filter {
-            it.status.resolvesOccurrence && it.recordedAt.atZone(zone).toLocalDate() == today
-        }
-        val closedIds = closedRecords.map { it.reminderId }.toHashSet()
-        val byId = reminders.associateBy { it.id }
-
-        val todayList = ArrayList<ReminderOccurrence>()
-        val upcoming = ArrayList<ReminderOccurrence>()
-        val paused = ArrayList<ReminderOccurrence>()
-
-        reminders.forEach { reminder ->
-            val ids = resolved[reminder.id]
-            val view = OccurrenceStateResolver.resolve(reminder, now, zone) { occ ->
-                ids?.contains(occ.toEpochMilli()) == true
-            }
-            when (view.phase) {
-                ReminderPhase.COMPLETED -> Unit // one-time done → listed from its record below
-                ReminderPhase.PAUSED -> paused += view
-                ReminderPhase.NEEDS_CONFIRMATION, ReminderPhase.SNOOZED -> todayList += view
-                ReminderPhase.UPCOMING -> {
-                    val at = view.displayAt
-                    when {
-                        reminder.id in closedIds -> Unit // finished for today; not listed twice
-                        at != null && at.atZone(zone).toLocalDate() == today -> todayList += view
-                        else -> upcoming += view
-                    }
-                }
-            }
-        }
-
-        val closed = closedRecords
-            .sortedByDescending { it.recordedAt }
-            .map { record ->
-                val reminder = byId[record.reminderId]
-                ClosedItem(
-                    reminderId = record.reminderId,
-                    title = record.reminderTitle,
-                    occurrenceAt = record.occurrenceAt,
-                    status = record.status,
-                    returnsAt = reminder?.takeIf { it.schedule.isRecurring && it.enabled }
-                        ?.let { nextAfterToday(it.schedule, now) },
-                )
-            }
-
-        return ChecklistState(
-            // What is waiting rides above what is merely scheduled; inside each
-            // group, the clock decides.
-            today = todayList.sortedWith(
-                compareBy({ it.phase != ReminderPhase.NEEDS_CONFIRMATION }, { it.displayAt }),
-            ),
-            upcoming = upcoming.sortedBy { it.displayAt },
-            closed = closed,
-            paused = paused.sortedBy { it.title },
-            hasAnyReminder = reminders.isNotEmpty(),
-        )
-    }
-
-    private fun nextAfterToday(schedule: Schedule, now: Instant): Instant? =
-        RecurrenceCalculator.nextOccurrence(schedule, now.atZone(clock.zone))?.toInstant()
 
     /** «تم» on a row — the ring, or the swipe. Idempotent and undoable. */
     fun complete(item: ReminderOccurrence) {
@@ -186,8 +112,10 @@ class ChecklistViewModel @Inject constructor(
     }
 
     /**
-     * «تخطي اليوم» on a repeating row: today's occurrence is closed without
-     * claiming it was done, and the reminder keeps every day after it.
+     * «تخطي اليوم» on a daily or recurring row: this occurrence is closed without
+     * claiming it was done, and the reminder keeps every day after it. The undo
+     * message names the scope out loud — «لليوم فقط» — because the one thing a
+     * person needs to be sure of here is that they did not just end the series.
      */
     fun skipToday(item: ReminderOccurrence) {
         val occ = item.occurrenceAt ?: return

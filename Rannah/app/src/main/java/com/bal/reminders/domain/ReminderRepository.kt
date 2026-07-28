@@ -49,6 +49,13 @@ interface ReminderRepository {
      */
     suspend fun addRecord(record: OccurrenceRecord): Boolean
 
+    /**
+     * Records the one terminal answer an occurrence may have («تم» or «تخطي
+     * اليوم»). Returns false when that occurrence already carries either answer,
+     * so an occurrence can never be both completed and skipped.
+     */
+    suspend fun addTerminalRecord(record: OccurrenceRecord): Boolean
+
     /** Removes a record again (undo). */
     suspend fun removeRecord(reminderId: Long, occurrenceAt: Instant, status: OccurrenceStatus)
 

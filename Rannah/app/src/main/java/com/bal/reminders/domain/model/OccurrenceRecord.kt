@@ -29,8 +29,18 @@ enum class OccurrenceStatus(val id: String) {
     val resolvesOccurrence: Boolean get() = this == COMPLETED || this == SKIPPED
 
     companion object {
+        /**
+         * An unrecognised value reads as [MISSED], never as [COMPLETED].
+         *
+         * The fallback used to be "completed", which meant a row written by a
+         * build this one does not know about — a downgrade, a restored backup, a
+         * future status — would be read as *the user asserting the task was
+         * done*, and would silently resolve the occurrence. Guessing wrong
+         * towards "unanswered" costs one extra ring; guessing wrong towards
+         * "done" loses the reminder.
+         */
         fun fromId(id: String?): OccurrenceStatus =
-            entries.firstOrNull { it.id == id } ?: COMPLETED
+            entries.firstOrNull { it.id == id } ?: MISSED
     }
 }
 

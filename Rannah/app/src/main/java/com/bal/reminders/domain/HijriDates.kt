@@ -1,7 +1,6 @@
 package com.bal.reminders.domain
 
 import java.time.LocalDate
-import java.time.chrono.HijrahChronology
 import java.time.chrono.HijrahDate
 import java.time.temporal.ChronoField
 import java.time.temporal.ChronoUnit
@@ -36,12 +35,4 @@ object HijriDates {
         HijrahDate.from(date).plus(adjustmentDays.toLong(), ChronoUnit.DAYS)
     }.getOrNull()
 
-    /** Today's announced Hijri year, used to seed pickers. */
-    fun yearOf(date: LocalDate, adjustmentDays: Int = 0): Int? =
-        fromGregorian(date, adjustmentDays)?.get(ChronoField.YEAR)
-
-    /** The inclusive Hijri year range representable by the Umm al-Qura tables. */
-    val supportedYears: IntRange = HijrahChronology.INSTANCE.range(ChronoField.YEAR).let {
-        it.minimum.toInt()..it.maximum.toInt()
-    }
 }

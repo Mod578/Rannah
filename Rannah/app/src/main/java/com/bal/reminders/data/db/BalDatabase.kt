@@ -10,7 +10,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         ReminderEntity::class,
         OccurrenceRecordEntity::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
 )
 abstract class BalDatabase : RoomDatabase() {
@@ -177,6 +177,44 @@ abstract class BalDatabase : RoomDatabase() {
                         "WHERE completedAtMillis IS NOT NULL AND recurrenceType <> 'once'",
                 )
                 db.execSQL("DROP TABLE IF EXISTS `pending_confirmations`")
+            }
+        }
+
+        /**
+         * v6: one answer per occurrence, and one global snooze length.
+         *
+         * The table shape does not change — this migration is entirely about
+         * data that older builds could produce and 1.1 no longer can:
+         *
+         * - An occurrence could hold **both** a `completed` and a `skipped`
+         *   record. The unique index is per (reminder, occurrence, status), so
+         *   SQLite always allowed the pair, and two surfaces racing could write
+         *   it. «تم» is the stronger claim — it asserts the task happened — so a
+         *   contradicting `skipped` row is dropped and the completion stands.
+         * - A `missed` record alongside an answer said two things about one
+         *   occurrence. The answer is the later and truer one; the `missed` row
+         *   goes.
+         * - `snoozeMinutes` stops being read: how long «تأجيل» lasts is now the
+         *   one setting, applied when the button is pressed. The column stays
+         *   (dropping it would mean rebuilding the table for no user-visible
+         *   gain) and is normalised to the default so nothing carries a stale
+         *   per-reminder value that could confuse a future reader.
+         */
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "DELETE FROM completions WHERE status = 'skipped' AND EXISTS (" +
+                        "SELECT 1 FROM completions c2 WHERE c2.reminderId = completions.reminderId " +
+                        "AND c2.occurrenceAtMillis = completions.occurrenceAtMillis " +
+                        "AND c2.status = 'completed')",
+                )
+                db.execSQL(
+                    "DELETE FROM completions WHERE status = 'missed' AND EXISTS (" +
+                        "SELECT 1 FROM completions c2 WHERE c2.reminderId = completions.reminderId " +
+                        "AND c2.occurrenceAtMillis = completions.occurrenceAtMillis " +
+                        "AND c2.status IN ('completed', 'skipped'))",
+                )
+                db.execSQL("UPDATE reminders SET snoozeMinutes = 10")
             }
         }
     }

@@ -67,6 +67,9 @@ object BalFormats {
 
     fun dayName(day: DayOfWeek): String = day.getDisplayName(TextStyle.FULL, arabicLocale)
 
+    /** «أحد» — the bare name, for «كل أحد» where the article would be wrong. */
+    fun bareDayName(day: DayOfWeek): String = dayName(day).removePrefix("ال")
+
     /** «٩:٠٠ صباحًا» for an instant in [zone]. */
     fun time(context: Context, at: Instant, zone: ZoneId = ZoneId.systemDefault()): String =
         time(context, at.atZone(zone).toLocalTime())
@@ -136,10 +139,11 @@ object BalFormats {
      * is how people say it, and it stays readable on a card; spelling out five
      * day names for a clock-in reminder is technically true and useless.
      */
-    private fun dayNamesShort(context: Context, days: Set<DayOfWeek>): String = when (days) {
-        WORKDAYS -> context.getString(R.string.schedule_days_workdays)
-        WEEKEND -> context.getString(R.string.schedule_days_weekend)
-        ALL_DAYS -> context.getString(R.string.schedule_days_all)
+    private fun dayNamesShort(context: Context, days: Set<DayOfWeek>): String = when {
+        days == WORKDAYS -> context.getString(R.string.schedule_days_workdays)
+        days == WEEKEND -> context.getString(R.string.schedule_days_weekend)
+        days == ALL_DAYS -> context.getString(R.string.kind_daily)
+        days.size == 1 -> context.getString(R.string.repeat_weekly, bareDayName(days.first()))
         else -> dayNames(days)
     }
 
@@ -151,26 +155,35 @@ object BalFormats {
     private val ALL_DAYS = DayOfWeek.entries.toSet()
 
     /**
-     * The repeat badge on a list row: «كل يوم», «كل أحد», «أيام العمل», «كل شهر».
-     * Null for a one-time reminder — that is the whole point of the badge. Two
-     * or three named days are spelled out; past that the list stops being
-     * readable at a glance and «أسبوعيًا» says the same thing.
+     * The kind badge every surface wears — creation, home, details — so nobody
+     * has to open documentation, or infer from a chip, to know what they made:
+     * «مرة واحدة», «يومي», «أيام العمل», «كل أحد», «الأحد والثلاثاء», «أسبوعي»,
+     * «شهري», «سنوي».
+     *
+     * Two or three named days are spelled out; past that the list stops being
+     * readable at a glance and «أسبوعي» says the same thing.
      */
-    fun repeatLabel(context: Context, schedule: Schedule): String? = when (schedule) {
-        is Schedule.Once, is Schedule.OnceHijri -> null
-        is Schedule.Daily -> context.getString(R.string.repeat_daily)
+    fun kindLabel(context: Context, schedule: Schedule): String = when (schedule) {
+        is Schedule.Once, is Schedule.OnceHijri -> context.getString(R.string.kind_once)
+        is Schedule.Daily -> context.getString(R.string.kind_daily)
         is Schedule.Weekly -> when {
-            schedule.days == ALL_DAYS -> context.getString(R.string.repeat_daily)
+            schedule.days == ALL_DAYS -> context.getString(R.string.kind_daily)
             schedule.days == WORKDAYS -> context.getString(R.string.schedule_days_workdays)
             schedule.days == WEEKEND -> context.getString(R.string.schedule_days_weekend)
-            schedule.days.size <= 3 -> context.getString(R.string.repeat_weekly, dayNames(schedule.days))
-            else -> context.getString(R.string.repeat_weekly_many)
+            schedule.days.size == 1 ->
+                context.getString(R.string.repeat_weekly, bareDayName(schedule.days.first()))
+            schedule.days.size <= 3 -> dayNames(schedule.days)
+            else -> context.getString(R.string.kind_weekly)
         }
-        is Schedule.Monthly, is Schedule.HijriMonthly -> context.getString(R.string.repeat_monthly)
-        is Schedule.Yearly, is Schedule.HijriYearly -> context.getString(R.string.repeat_yearly)
+        is Schedule.Monthly, is Schedule.HijriMonthly -> context.getString(R.string.kind_monthly)
+        is Schedule.Yearly, is Schedule.HijriYearly -> context.getString(R.string.kind_yearly)
     }
 
-    /** «يوميًا، ٩:٠٠ صباحًا» — the one-line schedule description. */
+    /**
+     * The one-line description the editor confirms with before saving, and the
+     * one the details card carries: «مرة واحدة، الأحد ٢ أغسطس، الساعة ٤:٠٠ مساءً»,
+     * «يومي، الساعة ٦:٠٠ صباحًا», «الأحد والثلاثاء، الساعة ٨:٠٠ مساءً».
+     */
     fun scheduleSummary(context: Context, schedule: Schedule, today: LocalDate = LocalDate.now()): String {
         val timeText = time(context, schedule.time)
         return when (schedule) {

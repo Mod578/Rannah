@@ -3,10 +3,10 @@ package com.bal.reminders.ui.editor
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.bal.reminders.data.SettingsRepository
 import com.bal.reminders.domain.RecurrenceCalculator
 import com.bal.reminders.domain.ReminderRepository
 import com.bal.reminders.domain.model.Reminder
+import com.bal.reminders.domain.model.ReminderKind
 import com.bal.reminders.domain.model.Schedule
 import com.bal.reminders.parser.ParseResult
 import com.bal.reminders.parser.ReminderParser
@@ -21,24 +21,26 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-enum class ScheduleType { ONCE, DAILY, WEEKLY, MONTHLY, YEARLY }
+/** The shapes «متكرر» can take. «يومي» is deliberately not one of them: it is its own choice. */
+enum class RecurrencePattern { WEEKLY, MONTHLY, YEARLY }
 
 data class EditorState(
     val loaded: Boolean = false,
     val editingId: Long = 0L,
     val title: String = "",
     val notes: String = "",
-    val type: ScheduleType = ScheduleType.ONCE,
+    /** The first question: «ما نوع التذكير؟» */
+    val kind: ReminderKind = ReminderKind.ONCE,
+    /** Only asked when [kind] is [ReminderKind.RECURRING]. */
+    val pattern: RecurrencePattern = RecurrencePattern.WEEKLY,
     val time: LocalTime = LocalTime.of(8, 0),
     val date: LocalDate = LocalDate.now(),
     val days: Set<DayOfWeek> = emptySet(),
     val dayOfMonth: Int = 1,
     val month: Int = 1,
-    val snoozeMinutes: Int = Reminder.DEFAULT_SNOOZE_MINUTES,
     /** A schedule understood from the title, offered as a one-tap accelerator. */
     val parsedSchedule: Schedule? = null,
     val parsedTitle: String? = null,
@@ -49,13 +51,25 @@ data class EditorState(
 ) {
     val isNew: Boolean get() = editingId == 0L
 
-    /** The schedule exactly as it would be saved, or null while invalid. Gregorian only. */
-    fun buildSchedule(): Schedule? = when (type) {
-        ScheduleType.ONCE -> Schedule.Once(date, time)
-        ScheduleType.DAILY -> Schedule.Daily(time)
-        ScheduleType.WEEKLY -> if (days.isEmpty()) null else Schedule.Weekly(days, time)
-        ScheduleType.MONTHLY -> Schedule.Monthly(dayOfMonth.coerceIn(1, 31), time)
-        ScheduleType.YEARLY -> Schedule.Yearly(month, dayOfMonth.coerceIn(1, monthLengthMax()), time)
+    /**
+     * The schedule exactly as it would be saved, or null while invalid. Gregorian
+     * only. Selecting all seven weekdays is «يومي» and is stored as such: one
+     * representation per meaning, so the reminder reads back as the kind the user
+     * actually described.
+     */
+    fun buildSchedule(): Schedule? = when (kind) {
+        ReminderKind.ONCE -> Schedule.Once(date, time)
+        ReminderKind.DAILY -> Schedule.Daily(time)
+        ReminderKind.RECURRING -> when (pattern) {
+            RecurrencePattern.WEEKLY -> when {
+                days.isEmpty() -> null
+                days.size == DayOfWeek.entries.size -> Schedule.Daily(time)
+                else -> Schedule.Weekly(days, time)
+            }
+            RecurrencePattern.MONTHLY -> Schedule.Monthly(dayOfMonth.coerceIn(1, 31), time)
+            RecurrencePattern.YEARLY ->
+                Schedule.Yearly(month, dayOfMonth.coerceIn(1, monthLengthMax()), time)
+        }
     }
 
     private fun monthLengthMax(): Int = java.time.Month.of(month.coerceIn(1, 12)).maxLength()
@@ -66,7 +80,6 @@ class EditorViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val repository: ReminderRepository,
     private val scheduler: ReminderScheduler,
-    private val settingsRepository: SettingsRepository,
     private val parser: ReminderParser,
     private val clock: Clock,
 ) : ViewModel() {
@@ -74,7 +87,7 @@ class EditorViewModel @Inject constructor(
     private val _state = MutableStateFlow(EditorState())
     val state = _state.asStateFlow()
 
-    /** Emitted once after a successful save or delete. */
+    /** Emitted once after a successful save. */
     val done = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
     private var original: Reminder? = null
@@ -82,8 +95,7 @@ class EditorViewModel @Inject constructor(
     init {
         val id: Long = savedStateHandle["id"] ?: 0L
         viewModelScope.launch {
-            val settings = settingsRepository.settings.first()
-            if (id > 0) loadExisting(id) else loadDraft(savedStateHandle, settings.defaultSnoozeMinutes)
+            if (id > 0) loadExisting(id) else loadDraft(savedStateHandle)
         }
     }
 
@@ -103,7 +115,6 @@ class EditorViewModel @Inject constructor(
                 editingId = id,
                 title = reminder.title,
                 notes = reminder.notes.orEmpty(),
-                snoozeMinutes = reminder.snoozeMinutes,
             )
         }
     }
@@ -127,30 +138,16 @@ class EditorViewModel @Inject constructor(
         }
     }
 
-    private fun loadDraft(handle: SavedStateHandle, defaultSnooze: Int) {
+    private fun loadDraft(handle: SavedStateHandle) {
         val today = LocalDate.now(clock)
-        val type = when (handle.get<String>("type")) {
-            "daily" -> ScheduleType.DAILY
-            "weekly" -> ScheduleType.WEEKLY
-            "monthly" -> ScheduleType.MONTHLY
-            "yearly" -> ScheduleType.YEARLY
-            else -> ScheduleType.ONCE
-        }
         _state.update {
             it.copy(
                 loaded = true,
                 title = handle.get<String>("title").orEmpty(),
-                type = type,
                 time = handle.get<String>("time")?.let(LocalTime::parse) ?: LocalTime.of(8, 0),
                 date = handle.get<String>("date")?.let(LocalDate::parse) ?: today,
-                days = handle.get<String>("days")
-                    ?.split(",")
-                    ?.mapNotNull { v -> v.toIntOrNull()?.let(DayOfWeek::of) }
-                    ?.toSet()
-                    ?: emptySet(),
-                dayOfMonth = handle.get<String>("dom")?.toIntOrNull() ?: today.dayOfMonth,
-                month = handle.get<String>("month")?.toIntOrNull() ?: today.monthValue,
-                snoozeMinutes = defaultSnooze,
+                dayOfMonth = today.dayOfMonth,
+                month = today.monthValue,
             )
         }
     }
@@ -191,8 +188,12 @@ class EditorViewModel @Inject constructor(
 
     fun setNotes(v: String) = _state.update { it.copy(notes = v) }
 
-    fun setType(v: ScheduleType) =
-        _state.update { it.copy(type = v, pastError = false, daysError = false) }
+    /** The first question. Changing it never silently keeps the previous answer's errors. */
+    fun setKind(v: ReminderKind) =
+        _state.update { it.copy(kind = v, pastError = false, daysError = false) }
+
+    fun setPattern(v: RecurrencePattern) =
+        _state.update { it.copy(pattern = v, pastError = false, daysError = false) }
 
     fun setTime(v: LocalTime) = _state.update { it.copy(time = v, pastError = false) }
     fun setDate(v: LocalDate) = _state.update { it.copy(date = v, pastError = false) }
@@ -217,12 +218,14 @@ class EditorViewModel @Inject constructor(
             _state.update { it.copy(titleError = true) }
             return
         }
-        if (s.type == ScheduleType.WEEKLY && s.days.isEmpty()) {
+        val weeklySelected = s.kind == ReminderKind.RECURRING &&
+            s.pattern == RecurrencePattern.WEEKLY
+        if (weeklySelected && s.days.isEmpty()) {
             _state.update { it.copy(daysError = true) }
             return
         }
         val schedule = s.buildSchedule() ?: run {
-            _state.update { it.copy(daysError = s.type == ScheduleType.WEEKLY) }
+            _state.update { it.copy(daysError = weeklySelected) }
             return
         }
         if (schedule is Schedule.Once &&
@@ -247,7 +250,6 @@ class EditorViewModel @Inject constructor(
                         // shown as what «استئناف» will return to), rather than
                         // silently starting to ring again.
                         enabled = base?.enabled ?: true,
-                        snoozeMinutes = s.snoozeMinutes,
                         createdAt = base?.createdAt ?: clock.instant(),
                         // A completed reminder is never editable — details offers
                         // «تراجع» or «حذف» instead — so this is always already null.
@@ -262,14 +264,14 @@ class EditorViewModel @Inject constructor(
     }
 }
 
-/** Maps a concrete Gregorian schedule onto the granular picker fields. */
+/** Maps a concrete Gregorian schedule onto the kind, the pattern and the pickers. */
 private fun EditorState.applySchedule(s: Schedule): EditorState = copy(
-    type = when (s) {
-        is Schedule.Once, is Schedule.OnceHijri -> ScheduleType.ONCE
-        is Schedule.Daily -> ScheduleType.DAILY
-        is Schedule.Weekly -> ScheduleType.WEEKLY
-        is Schedule.Monthly, is Schedule.HijriMonthly -> ScheduleType.MONTHLY
-        is Schedule.Yearly, is Schedule.HijriYearly -> ScheduleType.YEARLY
+    kind = s.kind,
+    pattern = when (s) {
+        is Schedule.Weekly -> RecurrencePattern.WEEKLY
+        is Schedule.Monthly, is Schedule.HijriMonthly -> RecurrencePattern.MONTHLY
+        is Schedule.Yearly, is Schedule.HijriYearly -> RecurrencePattern.YEARLY
+        else -> pattern
     },
     time = s.time,
     date = (s as? Schedule.Once)?.date ?: date,

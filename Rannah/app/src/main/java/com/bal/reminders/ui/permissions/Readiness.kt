@@ -63,5 +63,4 @@ fun PermissionsStatus.issues(): List<ReadinessIssue> = buildList {
     if (!batteryUnrestricted) add(ReadinessIssue.BATTERY)
 }
 
-/** True when nothing is in the way and رَنّة can say so in one line. */
 val PermissionsStatus.ready: Boolean get() = issues().isEmpty()

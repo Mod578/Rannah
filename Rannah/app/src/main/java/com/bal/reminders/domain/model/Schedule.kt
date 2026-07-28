@@ -5,6 +5,26 @@ import java.time.LocalDate
 import java.time.LocalTime
 
 /**
+ * The three kinds of reminder رَنّة puts in front of the user, and the first
+ * question the editor asks: «ما نوع التذكير؟».
+ *
+ * This is a *presentation* classification over the one scheduling engine, not a
+ * second model. [DAILY] is [Schedule.Daily] — a preset, not a separate code path
+ * — but it is named and chosen on its own because "every day" is what most
+ * people actually want and burying it inside «متكرر» made them hunt for it.
+ */
+enum class ReminderKind {
+    /** مرة واحدة — one Gregorian date and time, then it is finished. */
+    ONCE,
+
+    /** يومي — every day at the same time. */
+    DAILY,
+
+    /** متكرر — weekly days, monthly, or yearly. */
+    RECURRING,
+}
+
+/**
  * The calendar system a date-bearing schedule is defined in. This is part of
  * the reminder's scheduling semantics, not a display preference: a Hijri
  * reminder recurs in Hijri months/years and is never silently converted to
@@ -74,6 +94,24 @@ sealed interface Schedule {
     data class HijriYearly(val month: Int, val day: Int, override val time: LocalTime) : Schedule
 
     val isRecurring: Boolean get() = this !is Once && this !is OnceHijri
+
+    /**
+     * Which of the three user-facing kinds this schedule is. A [Weekly] covering
+     * all seven days is «يومي»: the editor normalises that case to [Daily] when
+     * saving, and this keeps a reminder written by an older build reading the
+     * same way it would be written today.
+     */
+    val kind: ReminderKind
+        get() = when (this) {
+            is Once, is OnceHijri -> ReminderKind.ONCE
+            is Daily -> ReminderKind.DAILY
+            is Weekly -> if (days.size == DayOfWeek.entries.size) {
+                ReminderKind.DAILY
+            } else {
+                ReminderKind.RECURRING
+            }
+            else -> ReminderKind.RECURRING
+        }
 
     /** The calendar system the schedule's dates are defined in. */
     val calendar: CalendarSystem

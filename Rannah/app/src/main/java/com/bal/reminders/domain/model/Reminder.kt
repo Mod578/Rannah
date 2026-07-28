@@ -5,8 +5,10 @@ import java.time.Instant
 /**
  * A single reminder. رَنّة has one alerting behaviour: every reminder rings as a
  * full-screen alarm at its time, and is either postponed («تأجيل») or confirmed
- * done («تم»). There is no per-reminder alert style, follow-up policy or
- * ringtone to configure — the whole point of the app is that it just rings.
+ * done («تم»). There is no per-reminder alert style, follow-up policy, ringtone
+ * or snooze length to configure — the whole point of the app is that it just
+ * rings, and that «مدة التأجيل الافتراضية» in settings means what it says for
+ * every reminder, not only for the ones created after it was changed.
  */
 data class Reminder(
     val id: Long = 0L,
@@ -14,8 +16,6 @@ data class Reminder(
     val notes: String? = null,
     val schedule: Schedule,
     val enabled: Boolean = true,
-    /** Minutes «تأجيل» postpones the current occurrence. Seeded from settings. */
-    val snoozeMinutes: Int = DEFAULT_SNOOZE_MINUTES,
     /** Set while a fired occurrence is snoozed; overrides the natural next occurrence. */
     val snoozedUntil: Instant? = null,
     /**
@@ -39,9 +39,17 @@ data class Reminder(
     /** Done: a one-time reminder the user confirmed. */
     val isDone: Boolean get() = completedAt != null
 
+    /** Which of the three user-facing kinds this reminder is. */
+    val kind: ReminderKind get() = schedule.kind
+
     companion object {
         const val DEFAULT_SNOOZE_MINUTES = 10
         const val DEFAULT_ALARM_TIMEOUT_MINUTES = 3
-        val SNOOZE_CHOICES = listOf(5, 10, 15, 30)
+
+        /**
+         * The durations «مدة التأجيل الافتراضية» offers, and the same set the
+         * alarm screen's «مدة أخرى» sheet offers for a single occurrence.
+         */
+        val SNOOZE_CHOICES = listOf(5, 10, 15, 30, 60)
     }
 }

@@ -3,10 +3,12 @@ package com.bal.reminders.di
 import android.content.Context
 import androidx.room.Room
 import com.bal.reminders.data.ReminderRepositoryImpl
+import com.bal.reminders.data.SettingsRepository
 import com.bal.reminders.data.db.BalDatabase
 import com.bal.reminders.data.db.ReminderDao
 import com.bal.reminders.domain.HijriAdjustmentProvider
 import com.bal.reminders.domain.ReminderRepository
+import com.bal.reminders.domain.SnoozeDefaultProvider
 import com.bal.reminders.parser.ArabicReminderParser
 import com.bal.reminders.parser.ReminderParser
 import com.bal.reminders.scheduling.AlarmGateway
@@ -21,6 +23,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import java.time.Clock
 import javax.inject.Singleton
+import kotlinx.coroutines.flow.first
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -48,6 +51,7 @@ abstract class AppModule {
                     BalDatabase.MIGRATION_2_3,
                     BalDatabase.MIGRATION_3_4,
                     BalDatabase.MIGRATION_4_5,
+                    BalDatabase.MIGRATION_5_6,
                 )
                 .build()
 
@@ -66,5 +70,15 @@ abstract class AppModule {
         @Provides
         @Singleton
         fun hijriAdjustment(): HijriAdjustmentProvider = HijriAdjustmentProvider { 0 }
+
+        /**
+         * «مدة التأجيل الافتراضية», read at the moment «تأجيل» is pressed rather
+         * than copied onto a reminder when it is created. That is what makes the
+         * setting true for reminders that already exist.
+         */
+        @Provides
+        @Singleton
+        fun snoozeDefault(settings: SettingsRepository): SnoozeDefaultProvider =
+            SnoozeDefaultProvider { settings.settings.first().defaultSnoozeMinutes }
     }
 }

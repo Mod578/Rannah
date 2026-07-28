@@ -31,12 +31,10 @@ class MappersTest {
                 id = 42,
                 title = "موعد",
                 schedule = schedule,
-                snoozeMinutes = 15,
                 createdAt = createdAt,
             ).toEntity().toDomain()
 
             assertEquals("calendar semantics changed for $schedule", schedule, restored.schedule)
-            assertEquals(15, restored.snoozeMinutes)
         }
     }
 }

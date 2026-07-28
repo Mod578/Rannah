@@ -55,13 +55,6 @@ class NotificationPresenter @Inject constructor(
         nm.createNotificationChannel(channel)
     }
 
-    /** True when the system will honor a full-screen alarm UI. */
-    fun canUseFullScreenIntent(): Boolean {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE) return true
-        val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        return nm.canUseFullScreenIntent()
-    }
-
     override fun startAlarm(reminder: Reminder, occurrenceAt: Instant) {
         ensureChannels()
         val intent = Intent(context, AlarmRingerService::class.java)
@@ -101,7 +94,12 @@ class NotificationPresenter @Inject constructor(
             .setContentIntent(fullScreen)
             .addAction(
                 0,
-                snoozeLabel(reminder),
+                // Just «تأجيل», not «تأجيل ١٠ دقائق». A notification is built
+                // once and can sit on the lock screen while the user changes
+                // «مدة التأجيل الافتراضية»; a duration printed here would then
+                // be a promise the button no longer keeps. The alarm screen,
+                // which reads the setting live, names the exact duration.
+                context.getString(R.string.action_snooze),
                 actionIntent(NotificationActionReceiver.ACTION_SNOOZE, reminder, occurrenceAt, notifId, 2),
             )
             .build()
@@ -116,13 +114,6 @@ class NotificationPresenter @Inject constructor(
 
     private fun occurrenceTime(occurrenceAt: Instant): String =
         BalFormats.time(context, occurrenceAt.atZone(ZoneId.systemDefault()).toLocalTime())
-
-    private fun snoozeLabel(reminder: Reminder): String =
-        context.resources.getQuantityString(
-            R.plurals.notification_snooze_minutes,
-            reminder.snoozeMinutes,
-            reminder.snoozeMinutes,
-        )
 
     private fun notifySafely(id: Int, notification: android.app.Notification) {
         try {

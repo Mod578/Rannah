@@ -30,6 +30,7 @@ class MigrationChainTest {
         BalDatabase.MIGRATION_2_3,
         BalDatabase.MIGRATION_3_4,
         BalDatabase.MIGRATION_4_5,
+        BalDatabase.MIGRATION_5_6,
     )
 
     @Test
