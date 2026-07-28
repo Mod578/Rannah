@@ -72,7 +72,7 @@
 
 ## English summary
 
-رَنّة collects nothing. The app has **no `INTERNET` permission**, so it cannot
+Rannah collects nothing. The app has **no `INTERNET` permission**, so it cannot
 send data anywhere. There is no account, no sign-in, no ads, no tracking, no
 analytics and no crash reporting. Reminders live in a local database (`bal.db`)
 inside the app's private storage.
