@@ -1,14 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- هوية «رَنّة»: جرس نحاسي على حجر. -->
-    <!-- بقية اللوحة تعيش في ui/theme/Theme.kt؛ هنا فقط ما تحتاجه موارد XML. -->
-    <color name="bal_stone">#F4F1EA</color>       <!-- أرضية نهار -->
-    <color name="bal_coal">#1A1915</color>        <!-- أرضية ليل -->
-    <color name="bal_ink">#151436</color>         <!-- حِبري: خلفية الشعار والبداية -->
+    <!--
+      هوية «رَنّة»: جرس على أرضية حجرية. لوحة واحدة للتطبيق وللشعار معًا —
+      الأخضر البحري للفعل، والنحاس للمسات، والحجر أرضيةً. ما كان للشعار لونٌ
+      خاص (حِبري وأحمر) لا يظهر في أي شاشة، فصار الشعار يرتدي ألوان المنتج.
 
-    <!-- الودجت: بطاقة ليل ثابتة تطابق هوية التطبيق -->
-    <color name="widget_night">#232219</color>
-    <color name="widget_cream">#ECE8DD</color>
-    <color name="widget_cream_soft">#C7C3B6</color>
-    <color name="widget_amber">#E1B667</color>
+      بقية اللوحة تعيش في ui/theme/Theme.kt؛ هنا فقط ما تحتاجه موارد XML.
+    -->
+    <color name="brand_teal">#0B6B5F</color>      <!-- اللون الأساسي: خلفية الأيقونة -->
+    <color name="brand_cream">#FEF9EE</color>     <!-- الجرس على الأيقونة -->
+
+    <color name="bal_stone">#F4F1EA</color>       <!-- أرضية نهار -->
+    <color name="bal_coal">#1A1915</color>        <!-- أرضية ليل: الأرضية الداكنة الوحيدة -->
+
+    <!-- شاشة البداية: أرضية التطبيق نفسها، فلا قفزة لونية عند أول إطار -->
+    <color name="splash_background">@color/bal_stone</color>
+    <color name="splash_mark">#0B6B5F</color>
+
+    <!-- الودجت: يتبع مظهر النظام مثل بقية التطبيق -->
+    <color name="widget_surface">#FCFBF6</color>
+    <color name="widget_on_surface">#1B1D19</color>
+    <color name="widget_on_surface_variant">#52564D</color>
+    <color name="widget_accent">#9A6B1E</color>
 </resources>

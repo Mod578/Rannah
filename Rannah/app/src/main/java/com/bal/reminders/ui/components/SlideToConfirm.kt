@@ -7,7 +7,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -25,7 +27,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -38,7 +39,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import kotlin.math.roundToInt
 
 /**
  * Slide to confirm «تم الإنجاز» on the alarm screen.
@@ -64,6 +64,11 @@ import kotlin.math.roundToInt
  * click action, so TalkBack and switch access confirm with a single activation
  * instead of being asked to emulate a drag. The label carries the whole meaning,
  * so it stays understandable with animation off and without relying on colour.
+ *
+ * The track has a *minimum* height, not a fixed one, and the label is allowed
+ * two lines. At a 200% font scale «اسحب للتأكيد» no longer runs out of a 76dp
+ * box and get clipped — on the one screen where an ambiguous confirmation is
+ * unacceptable, the control grows instead.
  */
 @Composable
 fun SlideToConfirm(
@@ -98,7 +103,7 @@ fun SlideToConfirm(
                 color = MaterialTheme.colorScheme.surfaceContainerHigh,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(trackHeight)
+                    .heightIn(min = trackHeight)
                     .semantics(mergeDescendants = true) {
                         contentDescription = text
                         role = Role.Button
@@ -114,21 +119,24 @@ fun SlideToConfirm(
                 Box(contentAlignment = Alignment.Center) {
                     // The fill is feedback, never the message: the label says the
                     // same thing whether or not anything animates.
-                    Surface(
-                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
-                        shape = MaterialTheme.shapes.large,
-                        content = {},
-                        modifier = Modifier
-                            .align(Alignment.CenterStart)
-                            .fillMaxWidth(progress.coerceAtLeast(0.0001f))
-                            .height(trackHeight),
-                    )
+                    Box(Modifier.matchParentSize()) {
+                        Surface(
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.18f),
+                            shape = MaterialTheme.shapes.large,
+                            content = {},
+                            modifier = Modifier
+                                .align(Alignment.CenterStart)
+                                .fillMaxWidth(progress.coerceAtLeast(0.0001f))
+                                .fillMaxHeight(),
+                        )
+                    }
                     Text(
                         text = text,
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(horizontal = thumbSize),
+                        maxLines = 2,
+                        modifier = Modifier.padding(horizontal = thumbSize, vertical = 12.dp),
                     )
                     Surface(
                         shape = CircleShape,
@@ -136,7 +144,7 @@ fun SlideToConfirm(
                         modifier = Modifier
                             .align(Alignment.CenterStart)
                             .padding(horizontal = inset)
-                            .forwardOffset(offsetPx.value)
+                            .forwardShift { offsetPx.value }
                             .size(thumbSize)
                             .pointerInput(text, travelPx) {
                                 detectHorizontalDragGestures(
@@ -188,14 +196,3 @@ fun SlideToConfirm(
         )
     }
 }
-
-/** Offsets by raw pixels along the reading direction; `placeRelative` mirrors for RTL. */
-private fun Modifier.forwardOffset(x: Float): Modifier =
-    this.then(
-        Modifier.layout { measurable, constraints ->
-            val placeable = measurable.measure(constraints)
-            layout(placeable.width, placeable.height) {
-                placeable.placeRelative(x.roundToInt(), 0)
-            }
-        },
-    )

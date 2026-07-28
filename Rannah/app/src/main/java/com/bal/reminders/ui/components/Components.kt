@@ -17,38 +17,26 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Redo
 import androidx.compose.material.icons.rounded.Check
-import androidx.compose.material.icons.rounded.MoreVert
-import androidx.compose.material.icons.rounded.Repeat
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -65,95 +53,60 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.bal.reminders.R
-import com.bal.reminders.ui.theme.BrandBell
-import com.bal.reminders.ui.theme.BrandInk
-import com.bal.reminders.ui.theme.BrandRing
-import kotlin.math.roundToInt
 import kotlinx.coroutines.launch
 
 // ------------------------------------------------------------- the bell mark
 
 /**
- * The «رَنّة» mark: a bell caught mid-swing, its clapper hanging free, two arcs
- * of sound coming off its right shoulder.
+ * The «رَنّة» mark: a bell caught mid-swing. The body leans 12°, and the clapper
+ * hangs the other way — the lag of a bell that has just been struck. That is the
+ * whole idea: **ringing is said by posture**, not by hairlines beside the bell.
  *
- * The geometry is the product's logo, kept as one canonical pair of paths on a
- * 0..24 grid — [PATH_BELL] (body and clapper) and [PATH_RING] (the two arcs) —
- * and worn unchanged by every surface: the launcher tile, the splash, the
- * status-bar glyph and every place the mark appears inside the app. The three
- * XML vectors carry the same two strings verbatim, because XML cannot import
- * Kotlin; nothing else redraws the bell.
+ * The mark it replaced carried two wi-fi-style arcs 2.5% of the icon wide, a
+ * clapper floating free below the rim, and a notch cut out of the bell's
+ * shoulder to make room for the arcs. All three were the first things to vanish
+ * — or to look like damage — at the sizes that decide whether an icon is
+ * recognised: 24dp in the status bar, 48dp on a home screen, one flat tint under
+ * a themed-icon mask.
  *
- * Two colours, split by meaning: the bell is one solid [body], and the sound —
- * the arcs — is the brand [ring] red. The notch under the arcs is carved out of
- * the bell itself, so the gap stays true whatever colour sits behind it, right
- * down to a one-colour notification mask.
+ * The geometry is one canonical path on a 0..24 grid, and every surface wears it
+ * unchanged: the launcher tile, the monochrome layer, the splash, the status-bar
+ * glyph and every place the mark appears inside the app. The four XML vectors
+ * carry the same string verbatim, because XML cannot import Kotlin; nothing else
+ * redraws the bell.
+ *
+ * One colour, always. The crown and the clapper **overlap** the body, so the
+ * mark is a single solid shape at any scale and under any tint — there is no
+ * second colour left to lose, and nothing that can come apart.
  */
 @Composable
 fun AppMark(
-    body: Color,
-    ring: Color,
+    tint: Color,
     modifier: Modifier = Modifier,
 ) {
-    val bellPath = remember { PathParser().parsePathString(PATH_BELL).toPath() }
-    val ringPath = remember { PathParser().parsePathString(PATH_RING).toPath() }
+    val path = remember { PathParser().parsePathString(PATH_MARK).toPath() }
     Canvas(modifier) {
         val scale = size.minDimension / 24f
         withTransform({ scale(scale, scale, pivot = Offset.Zero) }) {
-            drawPath(bellPath, body)
-            drawPath(ringPath, ring)
+            drawPath(path, tint)
         }
     }
 }
 
 /**
- * The app icon itself: the mark on its ink tile, in the brand's own colours.
- * Used where رَنّة introduces itself — the welcome screen and «عن رَنّة» — so the
- * thing on the home screen and the thing in the app are visibly one object.
+ * The bell, leaning, with its crown and clapper — one closed silhouette on a
+ * 0..24 grid. Optically centred on (12, 12); its bounds are x [4.71, 17.64] and
+ * y [2.23, 20.06].
  */
-@Composable
-fun AppIconTile(modifier: Modifier = Modifier) {
-    Surface(
-        shape = RoundedCornerShape(percent = 23),
-        color = BrandInk,
-        modifier = modifier,
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            // The fraction, not a fixed inset: the tile keeps the logo's own
-            // proportions at 96 dp and at 112 dp alike.
-            AppMark(
-                body = BrandBell,
-                ring = BrandRing,
-                modifier = Modifier.fillMaxSize(MARK_FRACTION),
-            )
-        }
-    }
-}
-
-/** How much of the tile the mark fills — measured from the logo artwork. */
-private const val MARK_FRACTION = 0.74f
-
-/** The bell body and its clapper, on a 0..24 grid. */
-private const val PATH_BELL =
-    "M10.62,2.08 C9.99,2.18 9.4,2.69 9.27,3.23 C9.23,3.37 9.23,3.37 8.94,3.47 C8.19,3.72 7.56,4.12 6.94,4.74 " +
-        "C6.46,5.21 6.15,5.63 5.9,6.13 C5.42,7.05 5.26,7.73 5.17,9.38 C4.95,13.04 4.6,14.29 3.24,15.99 " +
-        "C2.64,16.76 2.41,17.16 2.31,17.61 C2.2,18.17 2.49,18.57 3.09,18.69 C3.24,18.71 5.4,18.72 11.25,18.71 " +
-        "C18.8,18.7 19.21,18.7 19.35,18.64 C19.95,18.4 20.1,17.87 19.77,17.15 C19.66,16.91 19.32,16.41 19,16.01 " +
-        "C17.74,14.43 17.29,13.06 17.12,10.21 C17.09,9.72 17.06,9.25 17.05,9.15 L17.04,8.97 L16.82,9.13 " +
-        "C16.25,9.54 15.61,9.64 14.94,9.43 C13.63,9.01 13.06,7.44 13.8,6.3 C14.08,5.86 14.62,5.48 15.08,5.38 " +
-        "C15.18,5.36 15.27,5.33 15.27,5.32 C15.27,5.27 14.79,4.73 14.53,4.48 C14.04,4.02 13.47,3.68 12.85,3.47 L12.56,3.37 L12.51,3.2 " +
-        "C12.27,2.44 11.43,1.94 10.62,2.08 Z M9.76,19.31 C9.44,19.67 9.38,20.42 9.62,20.91 " +
-        "C10.41,22.5 12.85,21.87 12.74,20.1 C12.73,19.82 12.6,19.47 12.46,19.32 C12.38,19.22 9.85,19.22 9.76,19.31 " +
-        "Z"
-
-/** The two arcs of sound, on the same grid. */
-private const val PATH_RING =
-    "M16.05,1.54 C15.87,1.61 15.75,1.85 15.8,2.06 C15.85,2.27 15.94,2.33 16.37,2.44 C16.9,2.57 17.13,2.66 17.55,2.87 " +
-        "C19.97,4.06 21.28,6.67 20.72,9.21 C20.62,9.68 20.61,9.75 20.67,9.88 C20.8,10.13 21.16,10.19 21.36,10 " +
-        "C21.61,9.76 21.8,8.24 21.7,7.33 C21.37,4.51 19.21,2.13 16.44,1.56 C16.17,1.5 16.15,1.5 16.05,1.54 " +
-        "Z M15.51,3.48 C15.36,3.57 15.28,3.79 15.33,3.97 C15.38,4.17 15.48,4.24 15.82,4.34 C17.75,4.9 18.95,6.82 18.63,8.84 " +
-        "C18.58,9.15 18.58,9.18 18.63,9.28 C18.78,9.59 19.25,9.63 19.4,9.35 C19.56,9.03 19.6,7.76 19.47,7.17 " +
-        "C19.08,5.44 17.91,4.11 16.27,3.55 C15.86,3.41 15.65,3.39 15.51,3.48 Z"
+private const val PATH_MARK =
+    "M4.73,14.86 C5.57,14.02 7.30,12.14 7.76,10.19 C8.45,6.96 10.86,4.51 13.55,5.08 " +
+        "C16.24,5.65 17.45,8.88 16.76,12.10 C16.39,14.07 17.21,16.49 17.64,17.61 " +
+        "C17.52,18.14 16.99,18.49 16.45,18.38 L5.50,16.05 C4.96,15.93 4.61,15.40 4.73,14.86 Z " +
+        "M13.85,2.22 C14.65,2.22 15.29,2.87 15.29,3.66 C15.29,4.46 14.65,5.10 13.85,5.10 " +
+        "C13.06,5.10 12.41,4.46 12.41,3.66 C12.41,2.87 13.06,2.22 13.85,2.22 Z " +
+        "M10.60,15.39 L12.05,15.70 L9.94,18.73 L8.37,18.40 Z " +
+        "M9.15,17.06 C9.98,17.06 10.65,17.73 10.65,18.56 C10.65,19.39 9.98,20.06 9.15,20.06 " +
+        "C8.32,20.06 7.65,19.39 7.65,18.56 C7.65,17.73 8.32,17.06 9.15,17.06 Z"
 
 // ------------------------------------------------------------- the colophon
 
@@ -168,8 +121,6 @@ private const val PATH_RING =
  * programme, and it may not be redrawn, recoloured or combined with other
  * symbols. رَنّة is not enrolled, so the app states its origin in its own words
  * and its own type instead of borrowing an official mark it has no right to.
- * If the programme membership is ever granted, the official asset can replace
- * this composable without touching anything else.
  */
 @Composable
 fun MadeInSaudi(modifier: Modifier = Modifier) {
@@ -224,40 +175,37 @@ fun SectionTitle(text: String, count: Int? = null) {
 
 // ----------------------------------------------------------- the checklist row
 
-/** How loudly a row speaks: waiting for an answer, postponed, or just listed. */
-enum class RowTone { Normal, Waiting, Snoozed, Muted }
+/** How loudly a row speaks: waiting for an answer, postponed, overdue, or just listed. */
+enum class RowTone { Normal, Waiting, Snoozed, Overdue, Muted }
 
 /**
- * One reminder on the list: what it is, when it rings, and — where it means
- * something — the one useful answer, «تم».
+ * One reminder on the list: what kind it is, when it rings, and — where it means
+ * something — the answers that belong to **today only**.
  *
- * [recurring] draws the repeat mark, so the *kind* of reminder is readable at a
- * glance; [repeatLabel] spells the cadence out beside it. A row that is waiting
- * for an answer passes the mark without the words, because on that row the
- * state is worth more line than the cadence.
+ * [kindLabel] is always shown, so the kind of reminder a row describes («مرة
+ * واحدة», «يومي», «أيام العمل», «شهري») never has to be inferred from an icon or
+ * remembered from the editor.
  *
- * The row is built to be read in one glance and to say which *kind* of reminder
- * it is without a word of explanation: a repeating reminder wears the repeat
- * mark and its cadence («كل يوم»), a one-time reminder shows only its date. The
- * ring and the swipe both mean «تم» and both answer **today's occurrence only**;
+ * The ring and the swipe both mean «تم» and both answer **this occurrence only**;
  * they are latched so a double activation cannot double-process, and an undo
- * snackbar covers a mis-tap.
+ * snackbar covers a mis-tap. [onSkip] is «تخطي اليوم» — a labelled secondary
+ * action, not an overflow menu holding a single item, and never offered on a
+ * one-time reminder, which has no tomorrow to keep.
  *
  * [onComplete] null means this occurrence cannot be answered yet (a future day,
  * a paused reminder): no ring, no swipe, so the row never offers an affordance
- * that does nothing. [trailing] carries the row's own action instead —
- * «استئناف» on a paused reminder. Nothing destructive is reachable from a row.
+ * that does nothing. Nothing destructive is reachable from a row.
  */
 @Composable
 fun ChecklistRow(
     title: String,
     meta: String,
+    kindLabel: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    recurring: Boolean = false,
-    repeatLabel: String? = null,
     tone: RowTone = RowTone.Normal,
     onComplete: (() -> Unit)? = null,
+    onSkip: (() -> Unit)? = null,
     trailing: (@Composable () -> Unit)? = null,
 ) {
     val shape = MaterialTheme.shapes.large
@@ -338,13 +286,13 @@ fun ChecklistRow(
             onClick = onClick,
             modifier = Modifier
                 .fillMaxWidth()
-                .absoluteShift { if (rtl) -offset.value else offset.value }
+                .forwardShift { offset.value }
                 .then(dragModifier),
         ) {
             Row(
                 Modifier.padding(
                     start = if (onComplete != null) 8.dp else 16.dp,
-                    end = if (trailing != null) 8.dp else 16.dp,
+                    end = if (trailing != null || onSkip != null) 8.dp else 16.dp,
                     top = 12.dp,
                     bottom = 12.dp,
                 ),
@@ -364,32 +312,47 @@ fun ChecklistRow(
                             MaterialTheme.colorScheme.onSurface
                         },
                     )
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(5.dp),
-                    ) {
-                        if (recurring) {
-                            Icon(
-                                Icons.Rounded.Repeat,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(15.dp),
-                            )
-                        }
-                        Text(
-                            text = if (repeatLabel != null) "$repeatLabel · $meta" else meta,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = when (tone) {
-                                RowTone.Waiting -> MaterialTheme.colorScheme.primary
-                                RowTone.Snoozed -> MaterialTheme.colorScheme.tertiary
-                                else -> MaterialTheme.colorScheme.onSurfaceVariant
-                            },
-                        )
-                    }
+                    Text(
+                        text = "$kindLabel · $meta",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = when (tone) {
+                            RowTone.Waiting -> MaterialTheme.colorScheme.primary
+                            RowTone.Snoozed -> MaterialTheme.colorScheme.tertiary
+                            RowTone.Overdue -> MaterialTheme.colorScheme.error
+                            else -> MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                    )
                 }
+                if (onSkip != null) SkipButton(title = title, onClick = onSkip)
                 trailing?.invoke()
             }
         }
+    }
+}
+
+/**
+ * «تخطي اليوم» on a row. It replaced an overflow menu whose entire contents were
+ * this one item — two taps and a guess for one action, and the trigger said
+ * "more" rather than what it did. A labelled button is one tap, says its own
+ * name, and matches «استئناف» in the same slot on a paused row.
+ */
+@Composable
+private fun SkipButton(title: String, onClick: () -> Unit) {
+    val label = stringResource(R.string.action_skip_today)
+    TextButton(
+        onClick = onClick,
+        modifier = Modifier
+            .heightIn(min = 48.dp)
+            .widthIn(max = 132.dp)
+            .semantics { contentDescription = "$label: $title" },
+    ) {
+        Icon(
+            Icons.AutoMirrored.Rounded.Redo,
+            contentDescription = null,
+            modifier = Modifier.size(18.dp),
+        )
+        Spacer(Modifier.size(4.dp))
+        Text(label, style = MaterialTheme.typography.labelLarge)
     }
 }
 
@@ -431,6 +394,10 @@ private fun CompleteRing(waiting: Boolean, label: String, onComplete: () -> Unit
  * behind the mark. The row is deliberately quieter than a live one and offers
  * **only** undo: there is no way into the reminder from here, so a checkmark can
  * never become a path to deleting a repeating reminder.
+ *
+ * The text column and the undo button share the width rather than competing for
+ * it, so a long title at 200% type pushes the button down instead of squeezing
+ * it out of the row.
  */
 @Composable
 fun ClosedRow(
@@ -489,6 +456,7 @@ fun ClosedRow(
                 onClick = onUndo,
                 modifier = Modifier
                     .heightIn(min = 48.dp)
+                    .widthIn(max = 110.dp)
                     .semantics { contentDescription = "$undoLabel: $title" },
             ) {
                 Text(undoLabel, style = MaterialTheme.typography.labelLarge)
@@ -498,49 +466,15 @@ fun ClosedRow(
 }
 
 /**
- * Today's secondary action, folded into a menu so the row keeps exactly one
- * visible action: the completion ring. The trigger is the ordinary "more"
- * affordance, not an invented glyph for skipping — the action names itself in
- * full inside the menu, where there is room to say «تخطي اليوم».
+ * Shift a node along the reading direction. One helper, used by every draggable
+ * surface in the app: `placeRelative` already mirrors for RTL, so the caller
+ * supplies "how far onward" and never a sign.
  */
-@Composable
-fun TodayMenu(title: String, onSkip: () -> Unit) {
-    var open by remember { mutableStateOf(false) }
-    val menuLabel = stringResource(R.string.action_more)
-    Box {
-        IconButton(
-            onClick = { open = true },
-            modifier = Modifier
-                .size(48.dp)
-                .semantics { contentDescription = "$menuLabel: $title" },
-        ) {
-            Icon(
-                Icons.Rounded.MoreVert,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
-            DropdownMenuItem(
-                text = { Text(stringResource(R.string.action_skip_today)) },
-                leadingIcon = {
-                    Icon(Icons.AutoMirrored.Rounded.Redo, contentDescription = null)
-                },
-                onClick = {
-                    open = false
-                    onSkip()
-                },
-            )
-        }
-    }
-}
-
-/** Shift a node by absolute pixels (the caller supplies the RTL-correct sign). */
-private fun Modifier.absoluteShift(x: () -> Float): Modifier = this.then(
+internal fun Modifier.forwardShift(x: () -> Float): Modifier = this.then(
     Modifier.layout { measurable, constraints ->
         val placeable = measurable.measure(constraints)
         layout(placeable.width, placeable.height) {
-            placeable.place(x().roundToInt(), 0)
+            placeable.placeRelative(x().toInt(), 0)
         }
     },
 )
@@ -548,8 +482,9 @@ private fun Modifier.absoluteShift(x: () -> Float): Modifier = this.then(
 // ------------------------------------------------------------ empty state
 
 /**
- * The signature empty state: the «رَنّة» bell drawn calm and large, with a
- * message underneath. No stock illustration.
+ * The signature empty state: the «رَنّة» bell drawn calm and large, standing on
+ * its own. No stock illustration, and no container behind it — the mark is the
+ * mark, on whatever surface it lands.
  */
 @Composable
 fun EmptyState(
@@ -564,19 +499,10 @@ fun EmptyState(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Surface(
-            shape = CircleShape,
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            modifier = Modifier.size(96.dp),
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                AppMark(
-                    body = MaterialTheme.colorScheme.primary,
-                    ring = BrandRing,
-                    modifier = Modifier.size(50.dp),
-                )
-            }
-        }
+        AppMark(
+            tint = MaterialTheme.colorScheme.outlineVariant,
+            modifier = Modifier.size(76.dp),
+        )
         Spacer(Modifier.height(2.dp))
         Text(
             text = title,

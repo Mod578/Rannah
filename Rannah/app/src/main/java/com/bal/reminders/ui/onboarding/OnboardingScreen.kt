@@ -24,7 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.bal.reminders.R
-import com.bal.reminders.ui.components.AppIconTile
+import com.bal.reminders.ui.components.AppMark
 import com.bal.reminders.ui.components.MadeInSaudi
 
 /**
@@ -52,7 +52,7 @@ fun OnboardingScreen(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        AppIconTile(Modifier.size(112.dp))
+        AppMark(tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(96.dp))
         Spacer(Modifier.height(24.dp))
         Text(
             stringResource(R.string.app_name),

@@ -37,7 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.bal.reminders.R
 import com.bal.reminders.format.BalFormats
-import com.bal.reminders.ui.components.AppIconTile
+import com.bal.reminders.ui.components.AppMark
 import com.bal.reminders.ui.components.MadeInSaudi
 import com.bal.reminders.ui.theme.Space
 
@@ -96,7 +96,7 @@ fun AboutScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(Space.xs),
             ) {
-                AppIconTile(Modifier.size(96.dp))
+                AppMark(tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(84.dp))
                 Spacer(Modifier.height(Space.sm))
                 Text(
                     stringResource(R.string.app_name),

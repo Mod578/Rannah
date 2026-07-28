@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- خلفية الودجت: بطاقة ليل «رَنّة» بزوايا مستديرة. -->
+<!-- خلفية الودجت: بطاقة «رَنّة» بزوايا مستديرة، تتبع مظهر النظام كبقية التطبيق. -->
 <shape xmlns:android="http://schemas.android.com/apk/res/android"
     android:shape="rectangle">
-    <solid android:color="@color/widget_night" />
+    <solid android:color="@color/widget_surface" />
     <corners android:radius="24dp" />
 </shape>

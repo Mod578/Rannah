@@ -114,17 +114,14 @@ val DarkColors = darkColorScheme(
 )
 
 // ---------------------------------------------------------------- الشعار
-// ألوان الشعار وحدها: مربّع حِبري، جرس كريمي، ورنين أحمر. لا تدخل في واجهة
-// التطبيق (البحري للفعل والنحاس للمسات)، فالشعار علامة قائمة بذاتها.
+// لا لوحة ثانية للشعار. كان يرتدي حِبريًّا وأحمرَ لا يظهران في أي شاشة، فبدا
+// كأنه علامة منتج آخر ملصقة على هذا. الآن يرتدي ألوان التطبيق نفسها: البحري
+// أرضيةً للأيقونة، والكريمي جرسًا — واللونان مستعملان أصلًا في الواجهة.
 
-/** The logo tile: deep ink. */
-val BrandInk = Color(0xFF151436)
-
-/** The bell on the tile. */
-val BrandBell = Color(0xFFFEF9EE)
-
-/** The sound: the one colour that stays the same on every surface. */
-val BrandRing = Color(0xFFFE5A5F)
+// The launcher's ground is @color/brand_teal and the bell on it is
+// @color/brand_cream — the same teal the app uses for its primary action. They
+// live in colors.xml because only XML resources need them; nothing in Compose
+// draws the mark in anything but a theme colour.
 
 // ---------------------------------------------------------------- المسافات
 

@@ -14,7 +14,7 @@
         android:id="@+id/widget_date_primary"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@color/widget_cream"
+        android:textColor="@color/widget_on_surface"
         android:textSize="16sp"
         android:textStyle="bold"
         android:maxLines="1"
@@ -25,7 +25,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="2dp"
-        android:textColor="@color/widget_cream_soft"
+        android:textColor="@color/widget_on_surface_variant"
         android:textSize="13sp"
         android:maxLines="1"
         android:ellipsize="end" />
@@ -36,14 +36,14 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
         android:text="@string/home_next_reminder"
-        android:textColor="@color/widget_amber"
+        android:textColor="@color/widget_accent"
         android:textSize="11sp" />
 
     <TextView
         android:id="@+id/widget_next_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@color/widget_cream"
+        android:textColor="@color/widget_on_surface"
         android:textSize="15sp"
         android:maxLines="1"
         android:ellipsize="end" />
@@ -52,7 +52,7 @@
         android:id="@+id/widget_next_time"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:textColor="@color/widget_cream_soft"
+        android:textColor="@color/widget_on_surface_variant"
         android:textSize="12sp"
         android:maxLines="1"
         android:ellipsize="end" />
