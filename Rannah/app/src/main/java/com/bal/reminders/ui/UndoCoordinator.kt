@@ -27,7 +27,7 @@ data class UndoRequest(
 /**
  * The single channel for undo offers. Completing sits on the home screen, but
  * deleting happens in the details screen and immediately closes it, so the
- * offer has to outlive the screen that produced it — without ever becoming
+ * offer has to outlive the screen that produced it, without ever becoming
  * persisted state. Nothing here touches the database: an undo either runs
  * while the app lives, or the act it reverses simply stands.
  *

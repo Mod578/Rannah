@@ -69,8 +69,8 @@ import java.time.LocalTime
 import java.time.ZoneId
 
 /**
- * Adding a reminder starts with the question that decides everything else —
- * «ما نوع التذكير؟» — and ends with one sentence confirming what رَنّة
+ * Adding a reminder starts with the question that decides everything else, 
+ * «ما نوع التذكير؟», and ends with one sentence confirming what رَنّة
  * understood before anything is saved.
  *
  * The three kinds are separate, named choices rather than five equal chips,
@@ -119,7 +119,7 @@ fun EditorScreen(
                 .padding(horizontal = Space.screen),
             verticalArrangement = Arrangement.spacedBy(Space.md),
         ) {
-            // ١ — ماذا
+            // ١: ماذا
             OutlinedTextField(
                 value = state.title,
                 onValueChange = viewModel::setTitle,
@@ -165,7 +165,7 @@ fun EditorScreen(
                 }
             }
 
-            // ٢ — ما نوع التذكير؟ الاختيار الذي يقرّر بقية الشاشة.
+            // ٢: ما نوع التذكير؟ الاختيار الذي يقرّر بقية الشاشة.
             Field(stringResource(R.string.kind_question)) {
                 ChoiceChips(
                     options = listOf(
@@ -189,13 +189,13 @@ fun EditorScreen(
 
             WhenDetails(state, viewModel)
 
-            // ٣ — الساعة
+            // ٣: الساعة
             Field(stringResource(R.string.editor_time)) {
                 TimeRow(state.time) { viewModel.setTime(it) }
             }
             if (state.pastError) ErrorText(stringResource(R.string.editor_error_past))
 
-            // ما الذي سيحدث فعلًا — بجملة واحدة قبل الحفظ.
+            // ما الذي سيحدث فعلًا: بجملة واحدة قبل الحفظ.
             state.buildSchedule()?.let { schedule ->
                 Surface(
                     shape = MaterialTheme.shapes.medium,

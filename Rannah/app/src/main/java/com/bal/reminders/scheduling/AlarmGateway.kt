@@ -16,7 +16,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
  * Thin seam over AlarmManager so scheduling logic stays unit-testable. One alarm
  * per reminder: the reminder id is the PendingIntent request code, which makes
  * scheduling idempotent and edits/cancellations atomic. Every reminder is a real
- * alarm, so it schedules through `setAlarmClock` — the system surfaces it as the
+ * alarm, so it schedules through `setAlarmClock`, the system surfaces it as the
  * device's next alarm and exempts it from Doze deferral.
  */
 interface AlarmGateway {

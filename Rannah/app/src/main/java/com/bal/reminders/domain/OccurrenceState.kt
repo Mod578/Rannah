@@ -8,41 +8,41 @@ import java.time.ZoneId
 
 /**
  * The single user-facing state of a reminder's current occurrence. Every surface
- * — home, details, and (through the same instants) notifications and alarm
- * restoration — reads this instead of re-deriving state from raw fields, so they
+ * home, details, and (through the same instants) notifications and alarm
+ * restoration: reads this instead of re-deriving state from raw fields, so they
  * can never disagree.
  */
 enum class ReminderPhase {
-    /** قادم — enabled, next occurrence is still ahead (today-later or a future day). */
+    /** قادم: enabled, next occurrence is still ahead (today-later or a future day). */
     UPCOMING,
 
-    /** مؤجل — postponed; waiting until a known instant. */
+    /** مؤجل: postponed; waiting until a known instant. */
     SNOOZED,
 
-    /** يحتاج تأكيدك — today's occurrence has passed and is still unresolved. */
+    /** يحتاج تأكيدك: today's occurrence has passed and is still unresolved. */
     NEEDS_CONFIRMATION,
 
     /**
-     * متأخر — a one-time reminder whose day is behind us and which was never
+     * متأخر: a one-time reminder whose day is behind us and which was never
      * answered. It is deliberately *not* [NEEDS_CONFIRMATION]: that state belongs
      * to today, and filing a three-week-old errand under «اليوم» with nothing but
      * a clock time told the user something untrue. An overdue reminder is shown
-     * with its real date, above the day, until it is completed or deleted — it is
+     * with its real date, above the day, until it is completed or deleted, it is
      * never silently discarded.
      */
     OVERDUE,
 
-    /** مكتمل — a one-time reminder that has been completed. */
+    /** مكتمل: a one-time reminder that has been completed. */
     COMPLETED,
 
-    /** متوقف مؤقتًا — paused (disabled), or a legacy ended recurring series. */
+    /** متوقف مؤقتًا: paused (disabled), or a legacy ended recurring series. */
     PAUSED,
 }
 
 /**
  * The resolved current occurrence of one reminder. [occurrenceAt] is the identity
- * an action (complete/undo) must use — the same identity the alarm and the home
- * use — and [displayAt] is the instant to show (the snooze time when SNOOZED, the
+ * an action (complete/undo) must use: the same identity the alarm and the home
+ * use, and [displayAt] is the instant to show (the snooze time when SNOOZED, the
  * occurrence/next time otherwise).
  */
 data class ReminderOccurrence(
@@ -107,7 +107,7 @@ object OccurrenceStateResolver {
                 view(ReminderPhase.COMPLETED, onceInstant(reminder.schedule, zone), reminder.completedAt)
             }
         }
-        // Paused: silent, subdued, reachable — and [displayAt] is the occurrence
+        // Paused: silent, subdued, reachable, and [displayAt] is the occurrence
         // it would return to, so «استئناف» is never a leap in the dark.
         if (!reminder.enabled) {
             return view(ReminderPhase.PAUSED, null, nextFrom(reminder, now, zone))

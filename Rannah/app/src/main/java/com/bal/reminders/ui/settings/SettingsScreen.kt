@@ -226,7 +226,7 @@ private fun SettingsLink(
             }
             // Auto-mirrored: it points the way the next screen comes from, which
             // in Arabic is leftwards. The un-mirrored left chevron this replaced
-            // was flipping to point right — back, in an RTL layout.
+            // was flipping to point right: back, in an RTL layout.
             Icon(
                 Icons.AutoMirrored.Rounded.KeyboardArrowRight,
                 contentDescription = null,

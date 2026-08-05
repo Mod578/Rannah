@@ -122,7 +122,7 @@ fun Connection.tableNames(): List<String> =
  *
  * Column *order* is deliberately ignored. `ALTER TABLE ADD COLUMN` appends,
  * while a freshly created table places the column where the entity declares it,
- * so a migrated v5 and a fresh v5 differ in order and in nothing else — which
+ * so a migrated v5 and a fresh v5 differ in order and in nothing else, which
  * is exactly the distinction Room itself makes when it validates a schema.
  */
 fun Connection.describeSchema(): String = buildString {

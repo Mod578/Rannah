@@ -116,7 +116,7 @@ class SnoozeModelTest {
     @Test
     fun `the cap is the next natural occurrence, not just twelve hours`() = runTest {
         // Daily 09:00. Answering at 22:00, the next ring is 11 hours away, so the
-        // 12-hour ceiling is not what binds — the reminder's own next occurrence is.
+        // 12-hour ceiling is not what binds, the reminder's own next occurrence is.
         val (id, _) = dailyAt(LocalTime.of(9, 0))
         val todayNine = zdt(LocalDate.of(2026, 7, 15), LocalTime.of(9, 0))
         repository.setNextTrigger(id, todayNine)

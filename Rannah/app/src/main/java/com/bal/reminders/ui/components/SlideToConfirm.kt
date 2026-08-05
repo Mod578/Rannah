@@ -44,7 +44,7 @@ import kotlinx.coroutines.launch
  * Slide to confirm «تم الإنجاز» on the alarm screen.
  *
  * The alarm screen is the one place رَنّة is read by someone half-awake, in the
- * dark, with a sound going. A tap there is not evidence of intent — it is
+ * dark, with a sound going. A tap there is not evidence of intent: it is
  * evidence of wanting the noise to stop. So the act that writes down "I did the
  * thing in the real world" asks for a movement nobody performs by accident, and
  * the track is labelled with the claim it records («اسحب للتأكيد»), not a bare
@@ -67,7 +67,7 @@ import kotlinx.coroutines.launch
  *
  * The track has a *minimum* height, not a fixed one, and the label is allowed
  * two lines. At a 200% font scale «اسحب للتأكيد» no longer runs out of a 76dp
- * box and get clipped — on the one screen where an ambiguous confirmation is
+ * box and get clipped: on the one screen where an ambiguous confirmation is
  * unacceptable, the control grows instead.
  */
 @Composable

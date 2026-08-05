@@ -41,7 +41,7 @@ class Migration5To6Test {
         reminder(2, "once", snooze = 5)
 
         // The contradiction older builds could race into: one occurrence holding
-        // both answers. The unique index allowed it — it is per status.
+        // both answers. The unique index allowed it, it is per status.
         record(1, 1, OCCURRENCE_A, "completed")
         record(2, 1, OCCURRENCE_A, "skipped")
         // A ring that was missed and later answered: two claims about one moment.

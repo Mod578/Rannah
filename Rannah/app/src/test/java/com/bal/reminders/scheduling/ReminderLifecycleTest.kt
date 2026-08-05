@@ -22,7 +22,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * The three kinds a user actually chooses — «مرة واحدة», «يومي», «متكرر» — each
+ * The three kinds a user actually chooses, «مرة واحدة», «يومي», «متكرر», each
  * followed all the way through the life it has: what completing does, what
  * skipping does, what pausing does, what deleting does, and what is left behind.
  *

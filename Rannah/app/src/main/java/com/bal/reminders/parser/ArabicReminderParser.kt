@@ -68,7 +68,7 @@ class ArabicReminderParser @Inject constructor() : ReminderParser {
 
         // A suggestion is offered only when the sentence carried both halves. A
         // schedule with no title, or a date with no time, is not something to
-        // put in front of the user as «فهمت: …» — the pickers below already say
+        // put in front of the user as «فهمت: …», the pickers below already say
         // what رَنّة will do, and a half-guess would only have to be corrected.
         return if (schedule != null && title.isNotBlank()) {
             ParseResult.Success(title, schedule)
@@ -327,7 +327,7 @@ class ArabicReminderParser @Inject constructor() : ReminderParser {
         )
 
         val WEEKLY = w("كل (?:يوم |ايام )?(?:ال)?(?:$DAY_ALT)(?: ?و ?(?:ال)?(?:$DAY_ALT))*")
-        // و? — a day may arrive glued to واو العطف («وثلاثاء», «والثلاثا»).
+        // و?: a day may arrive glued to واو العطف («وثلاثاء», «والثلاثا»).
         val DAY_TOKEN = Regex("(?<![\\p{L}])و?(?:ال)?($DAY_ALT)(?![\\p{L}])")
         val ONCE_WEEKDAY = w("يوم (?:ال)?($DAY_ALT)(?: (?:الجايه|الجاي|القادمه|القادم|الجيه))?|ال($DAY_ALT)(?: (?:الجايه|الجاي|القادمه|القادم|الجيه))?")
 

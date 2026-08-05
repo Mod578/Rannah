@@ -9,18 +9,18 @@ import java.time.LocalTime
  * question the editor asks: «ما نوع التذكير؟».
  *
  * This is a *presentation* classification over the one scheduling engine, not a
- * second model. [DAILY] is [Schedule.Daily] — a preset, not a separate code path
- * — but it is named and chosen on its own because "every day" is what most
+ * second model. [DAILY] is [Schedule.Daily], a preset, not a separate code path
+ * but it is named and chosen on its own because "every day" is what most
  * people actually want and burying it inside «متكرر» made them hunt for it.
  */
 enum class ReminderKind {
-    /** مرة واحدة — one Gregorian date and time, then it is finished. */
+    /** مرة واحدة: one Gregorian date and time, then it is finished. */
     ONCE,
 
-    /** يومي — every day at the same time. */
+    /** يومي: every day at the same time. */
     DAILY,
 
-    /** متكرر — weekly days, monthly, or yearly. */
+    /** متكرر: weekly days, monthly, or yearly. */
     RECURRING,
 }
 

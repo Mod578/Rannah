@@ -13,7 +13,7 @@ import org.junit.Test
 /**
  * The three kinds the user chooses between, read back off the schedule.
  *
- * «يومي» is a preset over [Schedule.Daily], not a separate scheduling path —
+ * «يومي» is a preset over [Schedule.Daily], not a separate scheduling path, 
  * these tests pin that it is a *label* decision and that the recurrence engine
  * underneath is the same one every other repeating reminder uses.
  */
