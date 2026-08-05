@@ -71,7 +71,7 @@ class ChecklistGroupingTest {
     @Test
     fun `a reminder completed today is still listed when another occurrence rings today`() {
         // The defect this pins: complete the 09:00 daily, then edit it to 21:00.
-        // The 21:00 occurrence is unresolved and its alarm is armed — the list
+        // The 21:00 occurrence is unresolved and its alarm is armed, the list
         // used to hide it and show only «مكتمل», so the app rang for something
         // it was telling the user was finished.
         val edited = reminder(1, Schedule.Daily(LocalTime.of(21, 0)))

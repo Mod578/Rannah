@@ -12,7 +12,7 @@ interface ReminderRepository {
     fun observeById(id: Long): Flow<Reminder?>
     suspend fun getById(id: Long): Reminder?
 
-    /** Enabled, not-completed reminders — the set that needs alarms. */
+    /** Enabled, not-completed reminders, the set that needs alarms. */
     suspend fun getActive(): List<Reminder>
 
     /** Inserts when id == 0, updates otherwise. Returns the reminder id. */

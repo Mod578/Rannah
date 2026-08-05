@@ -99,7 +99,7 @@ class AlarmViewModel @Inject constructor(
         confirming.value = false
     }
 
-    /** «تأجيل»: the global default, applied now — not a number frozen into the reminder. */
+    /** «تأجيل»: the global default, applied now, not a number frozen into the reminder. */
     fun snooze() = resolveOnce { id, occurrence ->
         scheduler.snooze(id, occurrence, SnoozeRequest.Default)
     }

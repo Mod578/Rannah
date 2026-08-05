@@ -92,7 +92,7 @@ class DetailsViewModel @Inject constructor(
 
         // The occurrence this zone acts on: a live one first, always. Preferring
         // an answer given earlier today would hide a *new* occurrence that an
-        // edit has put back on the clock — the screen would say «اكتمل اليوم»
+        // edit has put back on the clock: the screen would say «اكتمل اليوم»
         // while an alarm it never mentioned was still armed for this evening.
         val live = occurrence?.occurrenceAt?.takeIf {
             when (occurrence.phase) {
@@ -119,7 +119,7 @@ class DetailsViewModel @Inject constructor(
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), DetailsState())
 
-    /** «تم» — this occurrence only; a repeating reminder keeps its future. */
+    /** «تم»: this occurrence only; a repeating reminder keeps its future. */
     fun complete(occurrenceAt: Instant) {
         viewModelScope.launch {
             val done = scheduler.complete(id, occurrenceAt) ?: return@launch
@@ -131,7 +131,7 @@ class DetailsViewModel @Inject constructor(
         }
     }
 
-    /** «تخطي اليوم» — close today without claiming it was done. Repeating only. */
+    /** «تخطي اليوم»: close today without claiming it was done. Repeating only. */
     fun skipToday(occurrenceAt: Instant) {
         viewModelScope.launch {
             val skipped = scheduler.skipOccurrence(id, occurrenceAt) ?: return@launch
@@ -154,7 +154,7 @@ class DetailsViewModel @Inject constructor(
 
     // ------------------------------------------------------------------ تأجيل
 
-    /** «تغيير وقت التأجيل» — the same sheet the alarm screen offers, in daylight. */
+    /** «تغيير وقت التأجيل»: the same sheet the alarm screen offers, in daylight. */
     fun openSnoozeOptions() {
         val occurrence = state.value.occurrence?.occurrenceAt ?: return
         viewModelScope.launch {
@@ -168,7 +168,7 @@ class DetailsViewModel @Inject constructor(
 
     /**
      * Moving a live postponement. The current snooze is cleared first so the
-     * scheduler sees an unpostponed occurrence — otherwise it would refuse the
+     * scheduler sees an unpostponed occurrence, otherwise it would refuse the
      * change as a duplicate of the postponement already in place.
      */
     fun changeSnooze(request: SnoozeRequest) {
@@ -190,7 +190,7 @@ class DetailsViewModel @Inject constructor(
     }
 
     /**
-     * «إلغاء التأجيل»: the occurrence returns to where it was — unresolved and
+     * «إلغاء التأجيل»: the occurrence returns to where it was, unresolved and
      * unanswered. It is not completed, not skipped, not paused and not deleted.
      */
     fun cancelSnooze() {
@@ -199,7 +199,7 @@ class DetailsViewModel @Inject constructor(
 
     // ------------------------------------------------------------ the reminder
 
-    /** «إيقاف مؤقت» / «استئناف» — the whole reminder. */
+    /** «إيقاف مؤقت» / «استئناف»: the whole reminder. */
     fun setEnabled(enabled: Boolean) {
         viewModelScope.launch { scheduler.setEnabled(id, enabled) }
     }

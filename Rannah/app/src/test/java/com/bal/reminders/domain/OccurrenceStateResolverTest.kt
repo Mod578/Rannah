@@ -42,7 +42,7 @@ class OccurrenceStateResolverTest {
     fun `a one-time reminder from an earlier day is overdue, with its real date`() {
         val v = resolve(reminder(Schedule.Once(LocalDate.of(2026, 7, 10), LocalTime.of(9, 0))))
         assertEquals(ReminderPhase.OVERDUE, v.phase)
-        // The date it was actually due — not a bare time filed under «اليوم».
+        // The date it was actually due: not a bare time filed under «اليوم».
         assertEquals(zdt(LocalDate.of(2026, 7, 10), LocalTime.of(9, 0)), v.displayAt)
     }
 

@@ -13,9 +13,9 @@ import java.time.ZoneId
 /**
  * Which section of the home list each reminder belongs in.
  *
- * This is pure on purpose. The one real defect the list ever had lived here —
+ * This is pure on purpose. The one real defect the list ever had lived here, 
  * a reminder was hidden from «اليوم» because it *had a completed record today*,
- * regardless of whether another occurrence was still coming — and a rule that
+ * regardless of whether another occurrence was still coming, and a rule that
  * subtle deserves to be checkable without a device, a view model, or a clock
  * that only moves forwards.
  */
@@ -105,7 +105,7 @@ internal object ChecklistGrouping {
         )
     }
 
-    /** The real next occurrence — never a fixed phrase that assumes "tomorrow". */
+    /** The real next occurrence: never a fixed phrase that assumes "tomorrow". */
     private fun nextAfter(schedule: Schedule, now: Instant, zone: ZoneId): Instant? =
         RecurrenceCalculator.nextOccurrence(schedule, now.atZone(zone))?.toInstant()
 }

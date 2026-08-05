@@ -145,7 +145,7 @@ class ReminderScheduler @Inject constructor(
     /**
      * «تخطي اليوم»: closes this occurrence without claiming the task was done,
      * and moves on to the next one. This is the answer to "not today, but keep
-     * the rest" — it touches one occurrence, never the reminder, so it can never
+     * the rest": it touches one occurrence, never the reminder, so it can never
      * be confused with pausing or deleting the series.
      *
      * Recurring only (which includes «يومي»): a one-time reminder has no next
@@ -170,7 +170,7 @@ class ReminderScheduler @Inject constructor(
 
     /**
      * The alarm rang its full length and nobody answered. The occurrence stays
-     * unresolved — رَنّة never decides for the user — but it is written down, so
+     * unresolved: رَنّة never decides for the user, but it is written down, so
      * «فات موعده» is a state the app actually reaches instead of a label it only
      * shows after a power cut. A later «تم» supersedes the record.
      */
@@ -183,7 +183,7 @@ class ReminderScheduler @Inject constructor(
     /**
      * Reverses a «تم» («تراجع»). The record goes first, so an undo still cleans
      * up after a reminder that was deleted in between, and the reminder returns
-     * to the state it had before the completion — alarm included.
+     * to the state it had before the completion, alarm included.
      */
     suspend fun undoComplete(reminderId: Long, occurrenceAt: Instant) =
         undoResolution(reminderId, occurrenceAt, OccurrenceStatus.COMPLETED)
@@ -224,8 +224,8 @@ class ReminderScheduler @Inject constructor(
 
     /**
      * The last instant [occurrenceAt] may be postponed to, or null when the
-     * reminder is gone. Bounded by [SnoozeLimits.MAXIMUM] and — the part that
-     * matters — by the reminder's own next natural occurrence: there is one alarm
+     * reminder is gone. Bounded by [SnoozeLimits.MAXIMUM] and, the part that
+     * matters, by the reminder's own next natural occurrence: there is one alarm
      * and one trigger per reminder, so a postponement that ran past the next
      * occurrence would quietly swallow it.
      */
@@ -255,7 +255,7 @@ class ReminderScheduler @Inject constructor(
      * move it again, and the occurrence keeps its identity throughout.
      *
      * [SnoozeRequest.Default] is the one-tap button and is clamped to the limit
-     * silently — it promises the setting's duration, and near the next occurrence
+     * silently: it promises the setting's duration, and near the next occurrence
      * safety outranks the promise by at most a minute. An explicit choice from
      * «مدة أخرى» is never clamped: it comes back as [SnoozeResult.TooLate] so the
      * sheet can say why and ask for another time.
@@ -298,7 +298,7 @@ class ReminderScheduler @Inject constructor(
 
     /**
      * «إلغاء التأجيل»: the occurrence returns to exactly where it was before the
-     * postponement — unresolved, unanswered, and neither completed nor skipped.
+     * postponement: unresolved, unanswered, and neither completed nor skipped.
      * The alarm is re-derived from the schedule, so a still-future occurrence
      * rings on time and a past one goes back to «ينتظر تأكيدك».
      */
@@ -333,7 +333,7 @@ class ReminderScheduler @Inject constructor(
 
     /**
      * «تراجع» after a deletion: puts the reminder back exactly as it stood. The
-     * alarm is restored from the trigger the reminder carried, not recomputed —
+     * alarm is restored from the trigger the reminder carried, not recomputed, 
      * recomputing would re-arm an occurrence the user had already completed,
      * skipped or postponed past.
      */
@@ -359,7 +359,7 @@ class ReminderScheduler @Inject constructor(
     }
 
     /**
-     * Rebuilds every alarm from the database — after boot, app update, process
+     * Rebuilds every alarm from the database, after boot, app update, process
      * restart, and time or timezone changes. A trigger missed while the device
      * was off rings late within a grace window; beyond the window a recurring
      * occurrence is recorded as missed and the schedule moves forward.
@@ -396,7 +396,7 @@ class ReminderScheduler @Inject constructor(
         }
     }
 
-    /** An occurrence is resolved once the user answered it — completed or skipped. */
+    /** An occurrence is resolved once the user answered it, completed or skipped. */
     private suspend fun isResolved(reminderId: Long, occurrenceAt: Instant): Boolean =
         repository.hasRecord(reminderId, occurrenceAt, OccurrenceStatus.COMPLETED) ||
             repository.hasRecord(reminderId, occurrenceAt, OccurrenceStatus.SKIPPED)

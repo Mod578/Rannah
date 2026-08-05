@@ -116,10 +116,10 @@ val DarkColors = darkColorScheme(
 // ---------------------------------------------------------------- الشعار
 // لا لوحة ثانية للشعار. كان يرتدي حِبريًّا وأحمرَ لا يظهران في أي شاشة، فبدا
 // كأنه علامة منتج آخر ملصقة على هذا. الآن يرتدي ألوان التطبيق نفسها: البحري
-// أرضيةً للأيقونة، والكريمي جرسًا — واللونان مستعملان أصلًا في الواجهة.
+// أرضيةً للأيقونة، والكريمي جرسًا، واللونان مستعملان أصلًا في الواجهة.
 
 // The launcher's ground is @color/brand_teal and the bell on it is
-// @color/brand_cream — the same teal the app uses for its primary action. They
+// @color/brand_cream: the same teal the app uses for its primary action. They
 // live in colors.xml because only XML resources need them; nothing in Compose
 // draws the mark in anything but a theme colour.
 
@@ -143,17 +143,17 @@ object Space {
 
 // ---------------------------------------------------------------- الخط
 // Tajawal (SIL OFL 1.1): a warm, geometric-humanist Arabic face, the strongest
-// premium-feeling choice for a modern Saudi product — cleaner and more
+// premium-feeling choice for a modern Saudi product, cleaner and more
 // distinctive than a neutral corporate sans, with open counters and clear
 // Arabic-Indic numerals that stay legible at large sizes for older eyes.
 // Four static weights map to a restrained four-step hierarchy; the heaviest
 // (ExtraBold) carries the wordmark and the date, the one place identity speaks.
 
 val AppFont = FontFamily(
-    Font(R.font.tajawal_regular, FontWeight.Normal),   // 400 — reading
-    Font(R.font.tajawal_medium, FontWeight.Medium),    // 500 — labels
-    Font(R.font.tajawal_bold, FontWeight.SemiBold),    // 700 — headings, rows
-    Font(R.font.tajawal_extrabold, FontWeight.Bold),   // 800 — wordmark, date
+    Font(R.font.tajawal_regular, FontWeight.Normal),   // 400: reading
+    Font(R.font.tajawal_medium, FontWeight.Medium),    // 500: labels
+    Font(R.font.tajawal_bold, FontWeight.SemiBold),    // 700: headings, rows
+    Font(R.font.tajawal_extrabold, FontWeight.Bold),   // 800: wordmark, date
 )
 
 // Arabic script wants taller line-heights than Material's Latin defaults, and
@@ -163,7 +163,7 @@ val AppFont = FontFamily(
 //
 // Every style sets letterSpacing to zero. Material's defaults track Latin text
 // apart by fractions of an em; Arabic is joined script, and tracking pulls the
-// joins apart — the single most common way an Arabic UI ends up looking subtly
+// joins apart: the single most common way an Arabic UI ends up looking subtly
 // broken. Titles and body are also separated by a full step now (18/16 against
 // 17/15) so hierarchy comes from size, not only from weight.
 private fun face(
@@ -197,7 +197,7 @@ val BalTypography = Typography(
 
 // Corners are calmer than before: rows and cards no longer read as large
 // bubbles. Tightening the radius is part of making the app feel intentional
-// rather than decorative — not everything needs to be a big pill.
+// rather than decorative: not everything needs to be a big pill.
 val BalShapes = Shapes(
     extraSmall = RoundedCornerShape(8.dp),
     small = RoundedCornerShape(10.dp),

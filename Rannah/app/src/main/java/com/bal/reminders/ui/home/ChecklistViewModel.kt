@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 /**
- * An occurrence that is finished for today — confirmed or deliberately skipped.
+ * An occurrence that is finished for today, confirmed or deliberately skipped.
  * [returnsAt] is the next time this reminder will ring, so a skipped recurring
  * reminder says out loud that tomorrow is untouched.
  */
@@ -38,11 +38,11 @@ data class ClosedItem(
 data class ChecklistState(
     /**
      * One-time reminders whose day is behind us and which were never answered.
-     * They ride above the day with their real date — filing a three-week-old
+     * They ride above the day with their real date, filing a three-week-old
      * errand under «اليوم» with nothing but a clock time was simply untrue.
      */
     val overdue: List<ReminderOccurrence> = emptyList(),
-    /** Everything due today: waiting, postponed, and still to come — in time order. */
+    /** Everything due today: waiting, postponed, and still to come, in time order. */
     val today: List<ReminderOccurrence> = emptyList(),
     val upcoming: List<ReminderOccurrence> = emptyList(),
     val closed: List<ClosedItem> = emptyList(),
@@ -97,7 +97,7 @@ class ChecklistViewModel @Inject constructor(
         ChecklistGrouping.group(reminders, records, clock.instant(), clock.zone)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), ChecklistState())
 
-    /** «تم» on a row — the ring, or the swipe. Idempotent and undoable. */
+    /** «تم» on a row: the ring, or the swipe. Idempotent and undoable. */
     fun complete(item: ReminderOccurrence) {
         val occ = item.occurrenceAt ?: return
         viewModelScope.launch {
@@ -114,7 +114,7 @@ class ChecklistViewModel @Inject constructor(
     /**
      * «تخطي اليوم» on a daily or recurring row: this occurrence is closed without
      * claiming it was done, and the reminder keeps every day after it. The undo
-     * message names the scope out loud — «لليوم فقط» — because the one thing a
+     * message names the scope out loud: «لليوم فقط», because the one thing a
      * person needs to be sure of here is that they did not just end the series.
      */
     fun skipToday(item: ReminderOccurrence) {

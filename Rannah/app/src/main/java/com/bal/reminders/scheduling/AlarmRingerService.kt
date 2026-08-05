@@ -33,7 +33,7 @@ import kotlinx.coroutines.launch
 /**
  * The ringer: a foreground service (systemExempted type, started from the exact
  * alarm broadcast) that loops the device alarm ringtone on the alarm stream,
- * vibrates, ramps the volume up gently, and gives up quietly after a timeout —
+ * vibrates, ramps the volume up gently, and gives up quietly after a timeout, 
  * leaving the occurrence unresolved («يحتاج تأكيدك») rather than deciding
  * anything for the user. تأجيل and تم always route through the scheduler from the
  * alarm screen.
@@ -197,7 +197,7 @@ class AlarmRingerService : Service() {
 
     /**
      * The alarm rang its full length unanswered: stop quietly. The occurrence
-     * stays «يحتاج تأكيدك» — رَنّة decides nothing for the user — but the fact
+     * stays «يحتاج تأكيدك»: رَنّة decides nothing for the user, but the fact
      * that it rang out is written down, so an ignored ring leaves a trace in the
      * reminder's history instead of vanishing when the day turns.
      */

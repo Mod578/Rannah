@@ -76,7 +76,7 @@ import java.time.ZoneId
 import kotlinx.coroutines.delay
 
 /**
- * The home screen answers one question — «ما الذي عليّ اليوم؟» — and it answers
+ * The home screen answers one question, «ما الذي عليّ اليوم؟», and it answers
  * it with one list.
  *
  * Everything due today sits under «اليوم» in clock order, with what is waiting
@@ -100,7 +100,7 @@ fun ChecklistScreen(
     val undoLabel = stringResource(R.string.action_undo)
 
     // The one undo surface. Completing happens here; deleting happens in the
-    // details screen, which closes straight after — both arrive through the same
+    // details screen, which closes straight after, both arrive through the same
     // channel, so there is exactly one place «تراجع» ever appears. Each offer is
     // taken before the snackbar shows, so it is never replayed.
     LaunchedEffect(Unit) {
@@ -356,7 +356,7 @@ private fun metaFor(
 
 /**
  * «مكتمل · ٩:٠٠ صباحًا» for a one-time reminder, «تم تخطيه · القادمة غدًا، ٦:٠٠
- * صباحًا» for a repeating one — the state first, then the only thing still worth
+ * صباحًا» for a repeating one: the state first, then the only thing still worth
  * knowing: when it rings next. The next ring comes from the schedule, never from
  * a fixed phrase.
  */
@@ -379,7 +379,7 @@ private fun closedMeta(
     return "$state · $tail"
 }
 
-/** «استئناف» — the one action a paused row offers, and it is not destructive. */
+/** «استئناف»: the one action a paused row offers, and it is not destructive. */
 @Composable
 private fun ResumeButton(title: String, onClick: () -> Unit) {
     val label = stringResource(R.string.action_resume)

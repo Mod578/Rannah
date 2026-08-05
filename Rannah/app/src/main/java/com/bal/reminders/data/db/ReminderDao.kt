@@ -91,8 +91,8 @@ interface ReminderDao {
     /**
      * Records «تم» or «تخطي اليوم» for one occurrence, and refuses if that
      * occurrence already has *either* answer. The unique index alone cannot
-     * express this — it is per (reminder, occurrence, status), so a COMPLETED and
-     * a SKIPPED row for the same occurrence are both legal to SQLite — and a
+     * express this: it is per (reminder, occurrence, status), so a COMPLETED and
+     * a SKIPPED row for the same occurrence are both legal to SQLite, and a
      * plain unique index on (reminder, occurrence) would forbid the MISSED row
      * that legitimately precedes a late answer. So the invariant lives here, in
      * one transaction: read, decide, write.
@@ -175,7 +175,7 @@ interface ReminderDao {
     /**
      * Drops occurrence records that are past on both axes: recorded before
      * [before] *and* for an occurrence before it. The second condition protects a
-     * reminder completed ahead of time — its record is young but its occurrence
+     * reminder completed ahead of time: its record is young but its occurrence
      * is still in the future, and it is the only thing marking that occurrence
      * resolved.
      */

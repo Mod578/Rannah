@@ -6,7 +6,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 /**
- * Readiness reports only what is actionable, worst first — and every blocking
+ * Readiness reports only what is actionable, worst first, and every blocking
  * issue it reports must have somewhere to go.
  *
  * `ALARM_CHANNEL` used to fail that second rule: the summary named it in red,

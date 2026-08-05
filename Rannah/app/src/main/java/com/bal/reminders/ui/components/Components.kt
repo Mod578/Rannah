@@ -59,13 +59,13 @@ import kotlinx.coroutines.launch
 
 /**
  * The «رَنّة» mark: a bell caught mid-swing. The body leans 12°, and the clapper
- * hangs the other way — the lag of a bell that has just been struck. That is the
+ * hangs the other way: the lag of a bell that has just been struck. That is the
  * whole idea: **ringing is said by posture**, not by hairlines beside the bell.
  *
  * The mark it replaced carried two wi-fi-style arcs 2.5% of the icon wide, a
  * clapper floating free below the rim, and a notch cut out of the bell's
  * shoulder to make room for the arcs. All three were the first things to vanish
- * — or to look like damage — at the sizes that decide whether an icon is
+ * or to look like damage: at the sizes that decide whether an icon is
  * recognised: 24dp in the status bar, 48dp on a home screen, one flat tint under
  * a themed-icon mask.
  *
@@ -76,7 +76,7 @@ import kotlinx.coroutines.launch
  * redraws the bell.
  *
  * One colour, always. The crown and the clapper **overlap** the body, so the
- * mark is a single solid shape at any scale and under any tint — there is no
+ * mark is a single solid shape at any scale and under any tint: there is no
  * second colour left to lose, and nothing that can come apart.
  */
 @Composable
@@ -94,7 +94,7 @@ fun AppMark(
 }
 
 /**
- * The bell, leaning, with its crown and clapper — one closed silhouette on a
+ * The bell, leaning, with its crown and clapper, one closed silhouette on a
  * 0..24 grid. Optically centred on (12, 12); its bounds are x [4.71, 17.64] and
  * y [2.23, 20.06].
  */
@@ -111,7 +111,7 @@ private const val PATH_MARK =
 // ------------------------------------------------------------- the colophon
 
 /**
- * «صُنع في السعودية» — the origin line, set as a colophon: two hairlines and the
+ * «صُنع في السعودية»: the origin line, set as a colophon of two hairlines and the
  * words between them, in the brass accent, at label size. Quiet enough to belong
  * at the foot of a screen, deliberate enough to read as part of the identity.
  *
@@ -179,8 +179,8 @@ fun SectionTitle(text: String, count: Int? = null) {
 enum class RowTone { Normal, Waiting, Snoozed, Overdue, Muted }
 
 /**
- * One reminder on the list: what kind it is, when it rings, and — where it means
- * something — the answers that belong to **today only**.
+ * One reminder on the list: what kind it is, when it rings, and (where it means
+ * something) the answers that belong to **today only**.
  *
  * [kindLabel] is always shown, so the kind of reminder a row describes («مرة
  * واحدة», «يومي», «أيام العمل», «شهري») never has to be inferred from an icon or
@@ -188,7 +188,7 @@ enum class RowTone { Normal, Waiting, Snoozed, Overdue, Muted }
  *
  * The ring and the swipe both mean «تم» and both answer **this occurrence only**;
  * they are latched so a double activation cannot double-process, and an undo
- * snackbar covers a mis-tap. [onSkip] is «تخطي اليوم» — a labelled secondary
+ * snackbar covers a mis-tap. [onSkip] is «تخطي اليوم», a labelled secondary
  * action, not an overflow menu holding a single item, and never offered on a
  * one-time reminder, which has no tomorrow to keep.
  *
@@ -332,7 +332,7 @@ fun ChecklistRow(
 
 /**
  * «تخطي اليوم» on a row. It replaced an overflow menu whose entire contents were
- * this one item — two taps and a guess for one action, and the trigger said
+ * this one item: two taps and a guess for one action, and the trigger said
  * "more" rather than what it did. A labelled button is one tap, says its own
  * name, and matches «استئناف» in the same slot on a paused row.
  */
@@ -387,7 +387,7 @@ private fun CompleteRing(waiting: Boolean, label: String, onComplete: () -> Unit
 }
 
 /**
- * An occurrence that is finished for today — completed, or deliberately skipped.
+ * An occurrence that is finished for today, completed, or deliberately skipped.
  *
  * The two outcomes are told apart three ways at once: the mark (a check or a
  * skip arrow), the leading word of [meta] («مكتمل» / «تم تخطيه»), and the fill
@@ -483,7 +483,7 @@ internal fun Modifier.forwardShift(x: () -> Float): Modifier = this.then(
 
 /**
  * The signature empty state: the «رَنّة» bell drawn calm and large, standing on
- * its own. No stock illustration, and no container behind it — the mark is the
+ * its own. No stock illustration, and no container behind it, the mark is the
  * mark, on whatever surface it lands.
  */
 @Composable

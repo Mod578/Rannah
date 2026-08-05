@@ -96,8 +96,8 @@ abstract class BalDatabase : RoomDatabase() {
          * v4: drops `stopMarksCompleted`.
          *
          * The column let «إيقاف الصوت» record a completion. That made one verb
-         * mean two things — silence a ringer, and assert that an obligation in
-         * the world was met — and which one it meant depended on a switch buried
+         * mean two things: silence a ringer, and assert that an obligation in
+         * the world was met, and which one it meant depended on a switch buried
          * in customization. رَنّة now has exactly one rule: stopping a sound
          * stops a sound. Completion is always its own deliberate act.
          *
@@ -183,13 +183,13 @@ abstract class BalDatabase : RoomDatabase() {
         /**
          * v6: one answer per occurrence, and one global snooze length.
          *
-         * The table shape does not change — this migration is entirely about
+         * The table shape does not change: this migration is entirely about
          * data that older builds could produce and 1.1 no longer can:
          *
          * - An occurrence could hold **both** a `completed` and a `skipped`
          *   record. The unique index is per (reminder, occurrence, status), so
          *   SQLite always allowed the pair, and two surfaces racing could write
-         *   it. «تم» is the stronger claim — it asserts the task happened — so a
+         *   it. «تم» is the stronger claim: it asserts the task happened, so a
          *   contradicting `skipped` row is dropped and the completion stands.
          * - A `missed` record alongside an answer said two things about one
          *   occurrence. The answer is the later and truer one; the `missed` row

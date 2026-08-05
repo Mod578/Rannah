@@ -29,7 +29,7 @@ import com.bal.reminders.ui.components.MadeInSaudi
 
 /**
  * A single calm welcome: the bell, one line about what رَنّة is, and the one
- * thing setup actually needs — permission to notify. No tour, no carousel.
+ * thing setup actually needs: permission to notify. No tour, no carousel.
  */
 @Composable
 fun OnboardingScreen(

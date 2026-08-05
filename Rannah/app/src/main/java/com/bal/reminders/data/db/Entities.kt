@@ -14,19 +14,19 @@ data class ReminderEntity(
     val priority: Int,
     /** one of: once, daily, weekly, monthly, yearly */
     val recurrenceType: String,
-    /** gregorian or hijri — the calendar the once/monthly/yearly dates live in */
+    /** gregorian or hijri: the calendar the once/monthly/yearly dates live in */
     @ColumnInfo(defaultValue = "gregorian") val calendar: String = "gregorian",
     /** trigger time as minutes from midnight */
     val timeMinutes: Int,
-    /** ISO local date — Gregorian one-time only */
+    /** ISO local date: Gregorian one-time only */
     val date: String?,
-    /** Hijri year — Hijri one-time only */
+    /** Hijri year: Hijri one-time only */
     val year: Int?,
-    /** month 1..12 — yearly and Hijri one-time */
+    /** month 1..12: yearly and Hijri one-time */
     val month: Int?,
-    /** bitmask, bit (isoDayOfWeek - 1) — only for weekly */
+    /** bitmask, bit (isoDayOfWeek - 1), only for weekly */
     val daysOfWeek: Int,
-    /** 1..31 — monthly, yearly and Hijri one-time */
+    /** 1..31: monthly, yearly and Hijri one-time */
     val dayOfMonth: Int?,
     val enabled: Boolean,
     /** standard or alarm */

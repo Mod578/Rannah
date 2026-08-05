@@ -12,8 +12,8 @@ import kotlinx.coroutines.flow.map
 
 /**
  * In-memory stand-ins for the three seams [ReminderScheduler] talks through.
- * [FakeRepository] mirrors the DAO's real contracts — including the transactional
- * "one answer per occurrence" rule — so a test that passes here is testing the
+ * [FakeRepository] mirrors the DAO's real contracts, including the transactional
+ * "one answer per occurrence" rule, so a test that passes here is testing the
  * behaviour the database actually enforces, not a looser version of it.
  */
 internal class FakeRepository : ReminderRepository {

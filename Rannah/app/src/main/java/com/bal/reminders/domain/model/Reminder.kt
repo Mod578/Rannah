@@ -6,7 +6,7 @@ import java.time.Instant
  * A single reminder. رَنّة has one alerting behaviour: every reminder rings as a
  * full-screen alarm at its time, and is either postponed («تأجيل») or confirmed
  * done («تم»). There is no per-reminder alert style, follow-up policy, ringtone
- * or snooze length to configure — the whole point of the app is that it just
+ * or snooze length to configure: the whole point of the app is that it just
  * rings, and that «مدة التأجيل الافتراضية» in settings means what it says for
  * every reminder, not only for the ones created after it was changed.
  */
@@ -19,7 +19,7 @@ data class Reminder(
     /** Set while a fired occurrence is snoozed; overrides the natural next occurrence. */
     val snoozedUntil: Instant? = null,
     /**
-     * The occurrence a snooze is postponing — its identity, kept across any number
+     * The occurrence a snooze is postponing, its identity, kept across any number
      * of «تأجيل» taps. Postponing moves *when* رَنّة asks again; it never turns the
      * 9:00 occurrence into a 9:10 one. Completing later therefore resolves the
      * occurrence that actually rang, so it cannot come back as «يحتاج تأكيدك».
