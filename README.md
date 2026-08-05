@@ -9,6 +9,11 @@
 
 لكل موعد رَنّة
 
+[![CI](https://github.com/Mod578/Rannah/actions/workflows/ci.yml/badge.svg)](https://github.com/Mod578/Rannah/actions/workflows/ci.yml)
+![Android 8.0+](https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white)
+![Kotlin](https://img.shields.io/badge/Kotlin-2.1-7F52FF?logo=kotlin&logoColor=white)
+![Jetpack Compose](https://img.shields.io/badge/Compose-Material%203-4285F4?logo=jetpackcompose&logoColor=white)
+
 </div>
 
 <div dir="rtl">
@@ -45,6 +50,25 @@
 ## المتطلبات
 
 أندرويد 8.0 أو أحدث.
+
+## البناء من المصدر
+
+يحتاج البناء إلى JDK 17 و Android SDK بمستوى 35.
+
+```bash
+cd Rannah
+./gradlew testDebugUnitTest   # الاختبارات
+./gradlew lintDebug           # الفحص
+./gradlew assembleDebug       # نسخة تجريبية للتثبيت
+```
+
+الناتج في `app/build/outputs/apk/debug/`. نسخة الإصدار تحتاج مفتاح توقيع خارج المستودع، وتفاصيله في [ARCHITECTURE.md](Rannah/docs/ARCHITECTURE.md).
+
+## التقنيات
+
+Kotlin، Jetpack Compose، Material 3، Room، Hilt، WorkManager، AlarmManager.
+
+البنية الداخلية وقرارات التصميم في [ARCHITECTURE.md](Rannah/docs/ARCHITECTURE.md).
 
 ## المطوّر
 
