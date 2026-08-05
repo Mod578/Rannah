@@ -13,7 +13,7 @@
 
 </div>
 
-**رَنّة** is an Arabic reminders app for Android. It handles the three things a reminder actually needs: ring at the right moment, survive a reboot, and let you answer it once. One-time, daily and recurring reminders, snooze, completion confirmation, and Hijri dates next to Gregorian.
+**Rannah** (رَنّة) is an Arabic reminders app for Android. It handles the three things a reminder actually needs: ring at the right moment, survive a reboot, and let you answer it once. One-time, daily and recurring reminders, snooze, completion confirmation, and Hijri dates next to Gregorian.
 
 It works entirely offline. There is no account, no analytics, and the app declares no internet permission at all.
 
