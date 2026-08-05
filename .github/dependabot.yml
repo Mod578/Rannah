@@ -28,9 +28,10 @@ updates:
         update-types: [version-update:semver-major, version-update:semver-minor]
       - dependency-name: androidx.room:*
         update-types: [version-update:semver-major, version-update:semver-minor]
-      - dependency-name: androidx.compose*
-        update-types: [version-update:semver-major, version-update:semver-minor]
-      - dependency-name: androidx.lifecycle:*
+      # The app compiles against SDK 35. Current AndroidX releases expect 36,
+      # so their minor updates fail the build until the platform moves. Patch
+      # updates still arrive, and anything that passes CI still gets merged.
+      - dependency-name: androidx.*
         update-types: [version-update:semver-major, version-update:semver-minor]
 
   - package-ecosystem: github-actions
