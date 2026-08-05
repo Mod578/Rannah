@@ -8,6 +8,16 @@ updates:
     open-pull-requests-limit: 5
     commit-message:
       prefix: build
+    # Major upgrades of the build plugins move the whole toolchain with them
+    # (AGP 9 wants a newer Gradle and JDK), so they are a deliberate decision
+    # rather than a monthly chore. Patch and minor updates still arrive.
+    ignore:
+      - dependency-name: com.android.application
+        update-types: [version-update:semver-major]
+      - dependency-name: com.google.dagger:hilt-android-gradle-plugin
+        update-types: [version-update:semver-major]
+      - dependency-name: org.jetbrains.kotlin.android
+        update-types: [version-update:semver-major]
 
   - package-ecosystem: github-actions
     directory: /

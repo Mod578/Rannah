@@ -6,7 +6,7 @@
 </picture>
 
 <p>
-  <a href="https://github.com/Mod578/Rannah/actions/workflows/ci.yml"><img src="https://github.com/Mod578/Rannah/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
+  <a href="https://github.com/Mod578/Rannah/actions/workflows/ci.yml"><img src="https://github.com/Mod578/Rannah/actions/workflows/ci.yml/badge.svg?branch=master" alt="CI status"></a>
   <a href="https://github.com/Mod578/Rannah/releases/latest"><img src="https://img.shields.io/github/v/release/Mod578/Rannah?label=release" alt="Latest release"></a>
   <img src="https://img.shields.io/badge/Android-8.0%2B-3DDC84?logo=android&logoColor=white" alt="Android 8.0 and above">
 </p>
