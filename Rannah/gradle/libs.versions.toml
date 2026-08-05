@@ -16,7 +16,7 @@ workManager = "2.10.0"
 coroutines = "1.9.0"
 junit = "4.13.2"
 sqliteJdbc = "3.53.2.1"
-gson = "2.11.0"
+gson = "2.14.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
