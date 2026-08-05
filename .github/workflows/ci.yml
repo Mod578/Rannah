@@ -35,6 +35,12 @@ jobs:
       - name: Debug build
         run: ./gradlew assembleDebug --no-daemon
 
+      # The release variant is where minification and resource shrinking run,
+      # so it is the one that catches a missing ProGuard keep rule. It
+      # assembles unsigned here: the signing key lives outside the repository.
+      - name: Release build
+        run: ./gradlew assembleRelease --no-daemon
+
       - name: Upload reports on failure
         if: failure()
         uses: actions/upload-artifact@v7
