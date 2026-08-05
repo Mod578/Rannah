@@ -16,10 +16,6 @@ updates:
     # patch updates arrive automatically for this group. Everything else in
     # the catalog still gets minor and patch updates.
     ignore:
-      # The Gradle wrapper itself: Gradle 9 requires an AGP this build is not
-      # on yet, so it moves with the rest of the group.
-      - dependency-name: gradle
-        update-types: [version-update:semver-major, version-update:semver-minor]
       - dependency-name: com.android.*
         update-types: [version-update:semver-major, version-update:semver-minor]
       - dependency-name: org.jetbrains.kotlin*
@@ -31,6 +27,10 @@ updates:
       - dependency-name: androidx.hilt:*
         update-types: [version-update:semver-major, version-update:semver-minor]
       - dependency-name: androidx.room:*
+        update-types: [version-update:semver-major, version-update:semver-minor]
+      - dependency-name: androidx.compose*
+        update-types: [version-update:semver-major, version-update:semver-minor]
+      - dependency-name: androidx.lifecycle:*
         update-types: [version-update:semver-major, version-update:semver-minor]
 
   - package-ecosystem: github-actions
