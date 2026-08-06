@@ -61,7 +61,7 @@ class ReminderSchedulerTest {
         date.atTime(time).atZone(zone).toInstant()
 
     /**
-     * The occurrence a surface would act on — exactly what the resolver hands the
+     * The occurrence a surface would act on, exactly what the resolver hands the
      * home and the details screens, so the tests answer the same occurrence the
      * app does rather than inventing one.
      */

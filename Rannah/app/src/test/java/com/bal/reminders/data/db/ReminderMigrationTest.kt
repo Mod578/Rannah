@@ -45,9 +45,9 @@ class ReminderMigrationTest {
     // ── The legacy fixture ─────────────────────────────────────────────────
 
     private fun seedRepresentativeV4Data() {
-        // 1 — an ordinary active daily reminder: the control.
+        // 1: an ordinary active daily reminder: the control.
         insertReminder(id = 1, title = "دواء الضغط", recurrenceType = "daily", timeMinutes = 480)
-        // 2 — a recurring series stopped by the removed «إنهاء التكرار», which
+        // 2: a recurring series stopped by the removed «إنهاء التكرار», which
         //     recorded itself as a completion while staying enabled.
         insertReminder(
             id = 2,
@@ -57,7 +57,7 @@ class ReminderMigrationTest {
             timeMinutes = 600,
             completedAtMillis = ENDED_AT,
         )
-        // 3 — a reminder the user paused the other way, with enabled = 0.
+        // 3: a reminder the user paused the other way, with enabled = 0.
         insertReminder(
             id = 3,
             title = "قراءة الورد",
@@ -65,7 +65,7 @@ class ReminderMigrationTest {
             timeMinutes = 1_140,
             enabled = false,
         )
-        // 4 — a one-time appointment that genuinely happened. Its completion is
+        // 4: a one-time appointment that genuinely happened. Its completion is
         //     a fact about the world, not a legacy encoding of "stopped".
         insertReminder(
             id = 4,
@@ -75,7 +75,7 @@ class ReminderMigrationTest {
             timeMinutes = 555,
             completedAtMillis = APPOINTMENT_DONE_AT,
         )
-        // 5 — snoozed at the moment of the update.
+        // 5: snoozed at the moment of the update.
         insertReminder(
             id = 5,
             title = "صلاة الاستخارة",
@@ -83,7 +83,7 @@ class ReminderMigrationTest {
             timeMinutes = 300,
             snoozedUntilMillis = SNOOZED_UNTIL,
         )
-        // 6 — Hijri reminder data written before v5.
+        // 6: Hijri reminder data written before v5.
         insertReminder(
             id = 6,
             title = "زكاة الشهر",
@@ -92,7 +92,7 @@ class ReminderMigrationTest {
             dayOfMonth = 15,
             timeMinutes = 720,
         )
-        // 7 — both legacy stop encodings at once.
+        // 7: both legacy stop encodings at once.
         insertReminder(
             id = 7,
             title = "فاتورة الكهرباء",
@@ -102,7 +102,7 @@ class ReminderMigrationTest {
             enabled = false,
             completedAtMillis = BILL_ENDED_AT,
         )
-        // 8 — every optional field populated, in Arabic, so "content preserved"
+        // 8: every optional field populated, in Arabic, so "content preserved"
         //     means something stronger than "the row survived".
         insertReminder(
             id = 8,
@@ -126,7 +126,7 @@ class ReminderMigrationTest {
             completionLabel = "هل هنّأتها؟",
             snoozeMinutes = 20,
         )
-        // 9 — a one-time reminder that was disabled but never completed.
+        // 9: a one-time reminder that was disabled but never completed.
         insertReminder(
             id = 9,
             title = "تسليم التقرير",

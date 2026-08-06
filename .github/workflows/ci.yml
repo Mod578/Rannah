@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: Rannah
+
+jobs:
+  build:
+    name: Unit tests, lint and debug build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
+      - name: Unit tests
+        run: ./gradlew testDebugUnitTest --no-daemon
+
+      - name: Android Lint
+        run: ./gradlew lintDebug --no-daemon
+
+      - name: Debug build
+        run: ./gradlew assembleDebug --no-daemon
+
+      # The release variant is where minification and resource shrinking run,
+      # so it is the one that catches a missing ProGuard keep rule. It
+      # assembles unsigned here: the signing key lives outside the repository.
+      - name: Release build
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Upload reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: reports
+          path: |
+            Rannah/app/build/reports/
+          retention-days: 7

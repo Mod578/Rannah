@@ -1,0 +1,43 @@
+version: 2
+updates:
+  # The Gradle build, including the version catalog in gradle/libs.versions.toml.
+  - package-ecosystem: gradle
+    directory: /Rannah
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: build
+    # AGP, Kotlin, KSP, Hilt and Room move as one toolchain: the first
+    # Dependabot round proposed AGP 9.3.1, Hilt 2.60.1, Room 2.8.4 and
+    # hilt-androidx 1.4.0, and every one of them failed the build against
+    # AGP 8.7.3 and Kotlin 2.1.0, the Hilt plugin not even applying. Moving
+    # them is a deliberate, coordinated upgrade, not a monthly chore, so only
+    # patch updates arrive automatically for this group. Everything else in
+    # the catalog still gets minor and patch updates.
+    ignore:
+      - dependency-name: com.android.*
+        update-types: [version-update:semver-major, version-update:semver-minor]
+      - dependency-name: org.jetbrains.kotlin*
+        update-types: [version-update:semver-major, version-update:semver-minor]
+      - dependency-name: com.google.devtools.ksp*
+        update-types: [version-update:semver-major, version-update:semver-minor]
+      - dependency-name: com.google.dagger:*
+        update-types: [version-update:semver-major, version-update:semver-minor]
+      - dependency-name: androidx.hilt:*
+        update-types: [version-update:semver-major, version-update:semver-minor]
+      - dependency-name: androidx.room:*
+        update-types: [version-update:semver-major, version-update:semver-minor]
+      # The app compiles against SDK 35. Current AndroidX releases expect 36,
+      # so their minor updates fail the build until the platform moves. Patch
+      # updates still arrive, and anything that passes CI still gets merged.
+      - dependency-name: androidx.*
+        update-types: [version-update:semver-major, version-update:semver-minor]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+    commit-message:
+      prefix: ci

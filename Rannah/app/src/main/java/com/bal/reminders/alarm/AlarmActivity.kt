@@ -76,8 +76,8 @@ import kotlinx.coroutines.delay
  * The full-screen alarm surface, shown over the lock screen while the ringer
  * sounds. It offers exactly two answers: «تأجيل» postpones and closes; «تم»
  * reveals a deliberate slide-to-confirm, and only completing that slide records
- * the occurrence as done. Nothing here — a background tap, the back gesture,
- * leaving the screen — ever counts as completion.
+ * the occurrence as done. Nothing here: a background tap, the back gesture,
+ * leaving the screen: ever counts as completion.
  */
 @AndroidEntryPoint
 class AlarmActivity : ComponentActivity() {
@@ -199,7 +199,7 @@ private fun AlarmScreen(viewModel: AlarmViewModel) {
             }
         }
         // The label reads the setting, so it is always describing what the
-        // button will actually do — including right after the user changed it.
+        // button will actually do: including right after the user changed it.
         val snoozeLabel = context.resources.getQuantityString(
             R.plurals.notification_snooze_minutes,
             state.defaultSnoozeMinutes,
@@ -217,7 +217,7 @@ private fun AlarmScreen(viewModel: AlarmViewModel) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            // While the ring sounds, the mark breathes — a slow swell, the one
+            // While the ring sounds, the mark breathes: a slow swell, the one
             // place motion says "this is happening now". It used to rotate
             // about a point 14% down the height, which was a bell's hanging
             // loop; the mark has no loop to hang from, and a tilted نون reads
@@ -312,7 +312,7 @@ private fun AlarmScreen(viewModel: AlarmViewModel) {
                     )
                 }
                 Spacer(Modifier.height(8.dp))
-                // «مدة أخرى»: one quiet, ordinary, focusable button — not a
+                // «مدة أخرى»: one quiet, ordinary, focusable button: not a
                 // long-press, which TalkBack and switch access cannot reach and
                 // nobody discovers. Everything it offers lives one layer down,
                 // so the ringing screen keeps its two large answers.

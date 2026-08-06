@@ -71,7 +71,7 @@ import com.bal.reminders.ui.theme.Space
  * **«اليوم»** acts on today's occurrence and nothing else: «تم» closes it as
  * done, «تخطي اليوم» closes it without pretending it was, and both leave every
  * future day exactly where it was. **«التذكير»** acts on the whole thing: edit
- * it, pause it, delete it. Two headings, two scopes — which is the entire
+ * it, pause it, delete it. Two headings, two scopes, which is the entire
  * difference between a repeating reminder and today's ring, taught by layout
  * rather than by explanation.
  *
@@ -202,7 +202,7 @@ fun DetailsScreen(
                                 }
                             }
                             // A live postponement can be moved or taken back
-                            // here — the two things the ringing screen has no
+                            // here: the two things the ringing screen has no
                             // room for, offered where there is daylight and space.
                             if (state.snoozed) {
                                 OutlinedButton(
@@ -351,7 +351,7 @@ fun DetailsScreen(
 
 private const val HISTORY_LIMIT = 8
 
-/** Title, kind, cadence and state — the whole reminder in one card. */
+/** Title, kind, cadence and state, the whole reminder in one card. */
 @Composable
 private fun SummaryCard(
     title: String,
@@ -497,7 +497,7 @@ private fun statusLine(context: android.content.Context, occurrence: ReminderOcc
 }
 
 /**
- * The phase line's colour, from the status roles — the same green for «أُنجزت»
+ * The phase line's colour, from the status roles: the same green for «أُنجزت»
  * and the same red for «متأخرة» that the history rows and the list use.
  */
 @Composable

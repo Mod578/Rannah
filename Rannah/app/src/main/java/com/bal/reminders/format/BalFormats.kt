@@ -23,7 +23,7 @@ object BalFormats {
 
     val arabicLocale: Locale = Locale("ar")
 
-    /** ٩:٠٠ — converts ASCII digits to Arabic-Indic. */
+    /** ٩:٠٠: converts ASCII digits to Arabic-Indic. */
     fun arabicDigits(text: String): String =
         buildString(text.length) {
             text.forEach { ch -> append(if (ch in '0'..'9') '٠' + (ch - '0') else ch) }
@@ -67,7 +67,7 @@ object BalFormats {
 
     fun dayName(day: DayOfWeek): String = day.getDisplayName(TextStyle.FULL, arabicLocale)
 
-    /** «أحد» — the bare name, for «كل أحد» where the article would be wrong. */
+    /** «أحد»: the bare name, for «كل أحد» where the article would be wrong. */
     fun bareDayName(day: DayOfWeek): String = dayName(day).removePrefix("ال")
 
     /** «٩:٠٠ صباحًا» for an instant in [zone]. */
@@ -85,7 +85,7 @@ object BalFormats {
     /** «الأربعاء» for the date's actual weekday (calendar-independent). */
     fun weekdayName(date: LocalDate): String = dayName(date.dayOfWeek)
 
-    /** «السبت، ١٨ يوليو» — the stable home header (weekday + day + month, no year). */
+    /** «السبت، ١٨ يوليو»: the stable home header (weekday + day + month, no year). */
     fun headerDate(date: LocalDate): String =
         weekdayName(date) + "، " + arabicDigits(date.format(DAY_MONTH))
 
@@ -126,7 +126,7 @@ object BalFormats {
         "${weekdayName(date)} ${gregorianDate(date)}" to hijriFull(date)
 
     fun dayNames(days: Set<DayOfWeek>): String {
-        // Saturday-first ordering — the Arabic week.
+        // Saturday-first ordering: the Arabic week.
         val ordered = listOf(
             DayOfWeek.SATURDAY, DayOfWeek.SUNDAY, DayOfWeek.MONDAY, DayOfWeek.TUESDAY,
             DayOfWeek.WEDNESDAY, DayOfWeek.THURSDAY, DayOfWeek.FRIDAY,
@@ -155,7 +155,7 @@ object BalFormats {
     private val ALL_DAYS = DayOfWeek.entries.toSet()
 
     /**
-     * The kind badge every surface wears — creation, home, details — so nobody
+     * The kind badge every surface wears (creation, home, details), so nobody
      * has to open documentation, or infer from a chip, to know what they made:
      * «مرة واحدة», «يومي», «أيام العمل», «كل أحد», «الأحد والثلاثاء», «أسبوعي»,
      * «شهري», «سنوي».
@@ -246,7 +246,7 @@ object BalFormats {
     }
 
     /**
-     * A moment in the shortest words that are still exact — the one formatter
+     * A moment in the shortest words that are still exact, the one formatter
      * every surface uses for "when": the home rows, the closed rows, the details
      * status lines, the history and the widget.
      *
@@ -256,7 +256,7 @@ object BalFormats {
      * The weekday form is used only inside the coming week, where «الأحد» can
      * only mean one Sunday; a date in the past or further out is named outright,
      * so nothing ever reads as a relative day it is not. Everything is derived
-     * from the instant that was actually scheduled — there is no fixed phrase
+     * from the instant that was actually scheduled, there is no fixed phrase
      * anywhere that assumes "tomorrow".
      */
     fun dateTime(

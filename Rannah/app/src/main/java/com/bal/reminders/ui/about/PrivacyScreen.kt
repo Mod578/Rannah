@@ -35,7 +35,7 @@ import com.bal.reminders.ui.theme.Space
 
 /**
  * Three facts, one line each. Every claim was checked against the manifest and
- * the dependency list — including the uncomfortable one: رَنّة sends nothing
+ * the dependency list, including the uncomfortable one: رَنّة sends nothing
  * anywhere, but Android's own backup can still copy the database to the user's
  * Google account. "Everything stays on your device" would have been the
  * comfortable sentence and the false one.

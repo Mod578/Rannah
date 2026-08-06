@@ -55,8 +55,8 @@ import com.bal.reminders.ui.theme.BalTheme
 
 /**
  * The «رَنّة» mark: the نون that carries the sound in the name, drawn as one
- * calligraphic stroke — thin where the pen enters, heavy through the bowl,
- * lifting again on the way out — with its dot set clear of the rising terminal.
+ * calligraphic stroke: thin where the pen enters, heavy through the bowl,
+ * lifting again on the way out: with its dot set clear of the rising terminal.
  *
  * The dot sits above that terminal rather than above the centre of the bowl.
  * That is a designed departure from the letter: it puts the mark on a diagonal,
@@ -85,10 +85,10 @@ fun AppMark(
 // ------------------------------------------------------------- the colophon
 
 /**
- * «صُنع في السعودية» — the origin line, set as a colophon: two hairlines and the
+ * «صُنع في السعودية»: the origin line, set as a colophon: two hairlines and the
  * words between them, in the quiet slate accent, at label size. Quiet enough to
  * belong at the foot of a screen, deliberate enough to read as part of the
- * identity — and never in a status colour, which would make it look like news.
+ * identity: and never in a status colour, which would make it look like news.
  *
  * This is **not** the «صنع في السعودية» programme mark. That logo is a
  * registered mark of the Saudi Made programme: it may be used only by a
@@ -173,8 +173,8 @@ fun SectionTitle(text: String, count: Int? = null) {
 enum class RowTone { Normal, Waiting, Snoozed, Overdue, Muted }
 
 /**
- * One reminder on the list: what kind it is, when it rings, and — where it means
- * something — the answers that belong to **today only**.
+ * One reminder on the list: what kind it is, when it rings, and: where it means
+ * something: the answers that belong to **today only**.
  *
  * [kindLabel] is always shown, so the kind of reminder a row describes («مرة
  * واحدة», «يومي», «أيام العمل», «شهري») never has to be inferred from an icon or
@@ -187,7 +187,7 @@ enum class RowTone { Normal, Waiting, Snoozed, Overdue, Muted }
  * fact, so it is gone; the ring is latched against double activation, and an
  * undo snackbar still covers a mis-tap.
  *
- * [onSkip] is «تخطي اليوم» — a labelled secondary action, not an overflow menu
+ * [onSkip] is «تخطي اليوم»: a labelled secondary action, not an overflow menu
  * holding a single item, and never offered on a one-time reminder, which has no
  * tomorrow to keep.
  *
@@ -271,7 +271,7 @@ fun ChecklistRow(
 
 /**
  * «تخطي اليوم» on a row. It replaced an overflow menu whose entire contents were
- * this one item — two taps and a guess for one action, and the trigger said
+ * this one item: two taps and a guess for one action, and the trigger said
  * "more" rather than what it did. A labelled button is one tap, says its own
  * name, and matches «استئناف» in the same slot on a paused row.
  */
@@ -339,7 +339,7 @@ private fun CompleteRing(waiting: Boolean, label: String, onComplete: () -> Unit
 }
 
 /**
- * An occurrence that is finished for today — completed, or deliberately skipped.
+ * An occurrence that is finished for today: completed, or deliberately skipped.
  *
  * The two outcomes are told apart three ways at once: the mark (a check or a
  * skip arrow), the leading word of [meta] («مكتمل» / «تم تخطيه»), and the fill
@@ -435,7 +435,7 @@ internal fun Modifier.forwardShift(x: () -> Float): Modifier = this.then(
 
 /**
  * The signature empty state: the «رَنّة» mark drawn calm and large, standing on
- * its own. No stock illustration, and no container behind it — the mark is the
+ * its own. No stock illustration, and no container behind it: the mark is the
  * mark, on whatever surface it lands.
  */
 @Composable

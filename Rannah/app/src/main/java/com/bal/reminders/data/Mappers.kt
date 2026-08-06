@@ -23,7 +23,7 @@ private const val TYPE_HIJRI_MONTHLY_LEGACY = "hijri_monthly"
 
 /**
  * رَنّة dropped categories, priorities, alert modes, follow-up, per-reminder
- * alarm options and — since 1.1 — the per-reminder snooze length. The columns
+ * alarm options and, since 1.1, the per-reminder snooze length. The columns
  * survive so old databases migrate losslessly (and a downgrade would still
  * read); every new row writes these neutral defaults, and nothing in the app
  * reads them back. Hijri schedule columns are also preserved so reminders saved

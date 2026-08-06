@@ -2,7 +2,7 @@ package com.bal.reminders.parser
 
 /**
  * A normalized view over Arabic input that supports consuming matched spans and
- * recovering the untouched remainder *from the original string* — so titles
+ * recovering the untouched remainder *from the original string*, so titles
  * keep their original spelling (ة، همزات، تشكيل) even though matching runs on
  * normalized text.
  *

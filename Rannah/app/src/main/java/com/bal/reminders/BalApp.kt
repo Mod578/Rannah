@@ -29,8 +29,8 @@ class BalApp : Application(), Configuration.Provider {
         super.onCreate()
         notificationPresenter.ensureChannels()
         ReconcileWorker.ensureScheduled(this)
-        // Restore alarms whenever the process starts — covers the case where a
-        // force-stop wiped them and the user just reopened the app — and clean up
+        // Restore alarms whenever the process starts, covers the case where a
+        // force-stop wiped them and the user just reopened the app, and clean up
         // one-time reminders that were completed on a previous day.
         appScope.launch {
             scheduler.pruneFinished()

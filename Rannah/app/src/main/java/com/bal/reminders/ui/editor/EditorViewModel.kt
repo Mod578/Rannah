@@ -251,8 +251,8 @@ class EditorViewModel @Inject constructor(
                         // silently starting to ring again.
                         enabled = base?.enabled ?: true,
                         createdAt = base?.createdAt ?: clock.instant(),
-                        // A completed reminder is never editable — details offers
-                        // «تراجع» or «حذف» instead — so this is always already null.
+                        // A completed reminder is never editable, details offers
+                        // «تراجع» or «حذف» instead, so this is always already null.
                         completedAt = null,
                     ),
                 )

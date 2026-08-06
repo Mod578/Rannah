@@ -57,7 +57,7 @@ class MainActivity : ComponentActivity() {
                 }
                 // The system bars carry the app's appearance, not the system's.
                 // Someone running رَنّة in «نهاري» on a dark-themed phone was
-                // getting light icons over a light background — invisible.
+                // getting light icons over a light background: invisible.
                 SideEffect { applyBarAppearance(dark) }
                 BalTheme(darkTheme = dark) {
                     BalRoot(

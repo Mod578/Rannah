@@ -1,6 +1,6 @@
 package com.bal.reminders.ui.components
 
-// مولَّد من tools/brand/build_brand.py — لا يُحرَّر يدويًا.
+// مولَّد من tools/brand/build_brand.py: لا يُحرَّر يدويًا.
 
 /**
  * هندسة علامة «رَنّة» على شبكة ٢٤×٢٤: حوض النون بقلم متفاوت العرض، ونقطته.

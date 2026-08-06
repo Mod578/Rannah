@@ -96,7 +96,7 @@
     <string name="state_paused">متوقف مؤقتًا</string>
     <string name="next_short">القادمة %1$s</string>
 
-    <!-- رسائل التراجع — تذكر دائمًا نطاق ما حدث: اليوم فقط، أم التذكير كله -->
+    <!-- رسائل التراجع: تذكر دائمًا نطاق ما حدث: اليوم فقط، أم التذكير كله -->
     <string name="undo_completed">تم إنجاز «%1$s»</string>
     <string name="undo_completed_today">تم إنجاز «%1$s» لليوم فقط</string>
     <string name="undo_skipped_today">تم تخطي «%1$s» لليوم فقط</string>

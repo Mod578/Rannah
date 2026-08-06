@@ -16,8 +16,8 @@ interface ReminderParser {
 /**
  * Either رَنّة understood a whole reminder, or it did not offer one.
  *
- * There used to be a third answer — a partial draft with the missing part named
- * — built on every keystroke and read by nobody: the editor handles [Success]
+ * There used to be a third answer: a partial draft with the missing part named
+ * built on every keystroke and read by nobody: the editor handles [Success]
  * and discards everything else, and the pickers it would have pre-filled are
  * already on screen. A half-understood sentence now simply produces no
  * suggestion, which is what the user saw all along.

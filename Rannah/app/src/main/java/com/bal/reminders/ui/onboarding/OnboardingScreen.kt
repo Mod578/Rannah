@@ -32,7 +32,7 @@ import com.bal.reminders.ui.components.MadeInSaudi
 
 /**
  * A single calm welcome: the mark, one line about what رَنّة is, and the one
- * thing setup actually needs — permission to notify. No tour, no carousel.
+ * thing setup actually needs: permission to notify. No tour, no carousel.
  *
  * The button says «ابدأ» and a line above it says what the next tap will ask
  * for. It used to say «فعّل التنبيهات وابدأ», promising two things in one
@@ -41,7 +41,7 @@ import com.bal.reminders.ui.components.MadeInSaudi
  *
  * The column takes `safeDrawingPadding` because this screen has no Scaffold to
  * do it: on Android 15 the window is edge-to-edge whether the app asks or not,
- * and without this the start button can sit under the navigation bar — on the
+ * and without this the start button can sit under the navigation bar: on the
  * very first screen anyone sees.
  */
 @Composable

@@ -1,0 +1,20 @@
+# Normalise line endings in the repository, check out native on Windows.
+* text=auto
+
+# Scripts and wrappers that must keep LF whatever the platform.
+gradlew text eol=lf
+*.sh text eol=lf
+
+# Windows batch files need CRLF.
+*.bat text eol=crlf
+
+# Binary assets, never diffed or line-ending converted.
+*.jar binary
+*.ttf binary
+*.png binary
+*.apk binary
+*.aab binary
+*.keystore binary
+
+# Fonts are third party, keep them out of the language statistics.
+Rannah/app/src/main/res/font/* linguist-vendored

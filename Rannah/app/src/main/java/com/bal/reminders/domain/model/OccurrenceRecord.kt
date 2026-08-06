@@ -15,8 +15,8 @@ enum class OccurrenceStatus(val id: String) {
 
     /**
      * «تم تجاهله»: the alert reached the user and was pushed away without an
-     * answer. Nothing writes this any more — it belonged to the removed
-     * follow-up feature — but databases from those versions still hold such
+     * answer. Nothing writes this any more: it belonged to the removed
+     * follow-up feature, but databases from those versions still hold such
      * rows, so it stays readable rather than being silently re-read as
      * something it was not.
      */
@@ -33,8 +33,8 @@ enum class OccurrenceStatus(val id: String) {
          * An unrecognised value reads as [MISSED], never as [COMPLETED].
          *
          * The fallback used to be "completed", which meant a row written by a
-         * build this one does not know about — a downgrade, a restored backup, a
-         * future status — would be read as *the user asserting the task was
+         * build this one does not know about, a downgrade, a restored backup, a
+         * future status, would be read as *the user asserting the task was
          * done*, and would silently resolve the occurrence. Guessing wrong
          * towards "unanswered" costs one extra ring; guessing wrong towards
          * "done" loses the reminder.

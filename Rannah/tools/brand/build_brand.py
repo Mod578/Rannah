@@ -27,10 +27,10 @@ ASSETS = os.path.join(ROOT, "docs", "assets")
 
 # ---------------------------------------------------------------- الألوان
 # القيم نفسها الموجودة في res/values/colors.xml وui/theme/Theme.kt.
-INK = "#0F4C7A"        # brandPrimary — النهار
-INK_NIGHT = "#8ACBEF"  # brandPrimary — الليل
-PAPER = "#F6F3EC"      # surfaceBase — النهار
-NIGHT = "#0F1418"      # surfaceBase — الليل
+INK = "#0F4C7A"        # brandPrimary: النهار
+INK_NIGHT = "#8ACBEF"  # brandPrimary: الليل
+PAPER = "#F6F3EC"      # surfaceBase: النهار
+NIGHT = "#0F1418"      # surfaceBase: الليل
 
 # ---------------------------------------------------------------- الهندسة
 # حوض النون: قوس مركزه (12, 12.4) ونصف قطره 7.3، من ‎-26°‎ إلى ‎214°‎،
@@ -199,7 +199,7 @@ VECTOR = """<?xml version="1.0" encoding="utf-8"?>
 <!--
 {note}
 
-  مولَّد من tools/brand/build_brand.py — لا يُحرَّر يدويًا. الهندسة نفسها في
+  مولَّد من tools/brand/build_brand.py: لا يُحرَّر يدويًا. الهندسة نفسها في
   كل نسخة، ويثبتها اختبار MarkGeometryTest.
 
   VectorPath: المسار ٩٥٣ محرفًا، فوق حدّ lint البالغ ٨٠٠. اختُصر من ١٥٠١ بخفض
@@ -234,7 +234,7 @@ SVG = """<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="{px}
 
 KOTLIN = '''package com.bal.reminders.ui.components
 
-// مولَّد من tools/brand/build_brand.py — لا يُحرَّر يدويًا.
+// مولَّد من tools/brand/build_brand.py: لا يُحرَّر يدويًا.
 
 /**
  * هندسة علامة «رَنّة» على شبكة ٢٤×٢٤: حوض النون بقلم متفاوت العرض، ونقطته.

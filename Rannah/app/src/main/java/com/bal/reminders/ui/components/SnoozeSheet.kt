@@ -55,7 +55,7 @@ import java.time.ZoneId
  *
  * The choice made here applies to **this occurrence only** and is never
  * remembered. The next ring goes back to «مدة التأجيل الافتراضية», so the big
- * button's label is always telling the truth — a duration silently inherited
+ * button's label is always telling the truth, a duration silently inherited
  * from a decision made at 3am is worse than no flexibility at all.
  *
  * [limit] is the last instant this occurrence may be postponed to. A choice past
@@ -164,7 +164,7 @@ fun SnoozeSheet(
 
 /**
  * «حتى وقت محدد». The resolved instant is spelled out in full before anything is
- * confirmed — «اليوم، ٨:٣٠ مساءً» or «غدًا، ٦:٠٠ صباحًا» — so whether the chosen
+ * confirmed: «اليوم، ٨:٣٠ مساءً» or «غدًا، ٦:٠٠ صباحًا», so whether the chosen
  * clock time belongs to today or tomorrow is *stated*, never left for the user
  * to work out from a bare time and a hope.
  */
@@ -223,7 +223,7 @@ private fun UntilTimePicker(
     }
 }
 
-/** The next occurrence of [time] strictly after [now] — today if it is still ahead, else tomorrow. */
+/** The next occurrence of [time] strictly after [now], today if it is still ahead, else tomorrow. */
 internal fun resolveNext(time: LocalTime, now: Instant, zone: ZoneId): Instant {
     val today = now.atZone(zone).toLocalDate()
     val candidate = today.atTime(time).atZone(zone).toInstant()
