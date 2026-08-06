@@ -1,10 +1,8 @@
 package com.bal.reminders.ui.components
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,7 +29,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,39 +37,43 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import com.bal.reminders.R
-import kotlinx.coroutines.launch
+import com.bal.reminders.ui.theme.BalTheme
 
-// ------------------------------------------------------------ the orbit mark
+// ------------------------------------------------------------- the رَنّة mark
 
 /**
- * The «رَنّة» mark is a moment with an orbit: a compact centre (the appointment)
- * and two deliberately unequal wakes (the ring arriving and travelling on).
- * Its broken circle also hints at the descending gesture of Arabic «ر» without
- * turning the letter into a literal monogram.
+ * The «رَنّة» mark: the نون that carries the sound in the name, drawn as one
+ * calligraphic stroke — thin where the pen enters, heavy through the bowl,
+ * lifting again on the way out — with its dot set clear of the rising terminal.
  *
- * It is built from three broad solids on a 24-unit grid. No stroke, hairline,
- * tiny cut-out or colour dependency is needed, so the same geometry survives
- * the launcher mask, themed icons, the notification bar and 20dp inline use.
+ * The dot sits above that terminal rather than above the centre of the bowl.
+ * That is a designed departure from the letter: it puts the mark on a diagonal,
+ * so it never reads as a face, and it lets the dot read as the one thing the
+ * bowl has released. The ring is said by that posture, not by drawn waves.
+ *
+ * Two broad solids on a 24-unit grid, no hairline and no colour dependency, so
+ * the same geometry survives the launcher mask, themed icons, the 24dp status
+ * bar and 20dp inline use. The geometry itself lives in [MARK_PATH_DATA],
+ * generated once and shared with every drawable.
  */
 @Composable
 fun AppMark(
     tint: Color,
     modifier: Modifier = Modifier,
 ) {
-    val path = remember { PathParser().parsePathString(PATH_MARK).toPath() }
+    val path = remember { PathParser().parsePathString(MARK_PATH_DATA).toPath() }
     Canvas(modifier) {
         val scale = size.minDimension / 24f
         withTransform({ scale(scale, scale, pivot = Offset.Zero) }) {
@@ -81,24 +82,13 @@ fun AppMark(
     }
 }
 
-/**
- * Two opposing orbital wakes and their centre, optically centred on (12, 12).
- */
-private const val PATH_MARK =
-    "M11.80,2.80 C17.20,2.80 21.20,6.90 21.20,12.00 L17.35,12.00 " +
-        "C17.35,9.00 15.00,6.65 11.80,6.65 Z " +
-        "M12.20,21.20 C6.80,21.20 2.80,17.10 2.80,12.00 L6.65,12.00 " +
-        "C6.65,15.00 9.00,17.35 12.20,17.35 Z " +
-        "M12.00,8.10 C14.25,8.10 15.90,9.75 15.90,12.00 " +
-        "C15.90,14.25 14.25,15.90 12.00,15.90 C9.75,15.90 8.10,14.25 8.10,12.00 " +
-        "C8.10,9.75 9.75,8.10 12.00,8.10 Z"
-
 // ------------------------------------------------------------- the colophon
 
 /**
  * «صُنع في السعودية» — the origin line, set as a colophon: two hairlines and the
- * words between them, in the brass accent, at label size. Quiet enough to belong
- * at the foot of a screen, deliberate enough to read as part of the identity.
+ * words between them, in the quiet slate accent, at label size. Quiet enough to
+ * belong at the foot of a screen, deliberate enough to read as part of the
+ * identity — and never in a status colour, which would make it look like news.
  *
  * This is **not** the «صنع في السعودية» programme mark. That logo is a
  * registered mark of the Saudi Made programme: it may be used only by a
@@ -136,10 +126,29 @@ private fun Hairline() {
 
 // ---------------------------------------------------------------- the section
 
+/**
+ * A section heading and how many reminders sit under it.
+ *
+ * The count is a bare numeral on screen, which is right for the eye and wrong
+ * for TalkBack: read out, «اليوم ٣» is a heading followed by a number with no
+ * noun. The whole row therefore carries one spoken description that names what
+ * is being counted, and the two visible texts are muted so the number is not
+ * announced twice.
+ */
 @Composable
 fun SectionTitle(text: String, count: Int? = null) {
+    val spoken = if (count != null && count > 0) {
+        "$text، ${pluralStringResource(R.plurals.reminders_count, count, count)}"
+    } else {
+        text
+    }
     Row(
-        modifier = Modifier.padding(horizontal = 4.dp, vertical = 4.dp),
+        modifier = Modifier
+            .padding(horizontal = 4.dp, vertical = 4.dp)
+            .semantics(mergeDescendants = true) {
+                heading()
+                contentDescription = spoken
+            },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
@@ -152,7 +161,7 @@ fun SectionTitle(text: String, count: Int? = null) {
             Text(
                 text = com.bal.reminders.format.BalFormats.arabicDigits(count.toString()),
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
     }
@@ -171,11 +180,16 @@ enum class RowTone { Normal, Waiting, Snoozed, Overdue, Muted }
  * واحدة», «يومي», «أيام العمل», «شهري») never has to be inferred from an icon or
  * remembered from the editor.
  *
- * The ring and the swipe both mean «تم» and both answer **this occurrence only**;
- * they are latched so a double activation cannot double-process, and an undo
- * snackbar covers a mis-tap. [onSkip] is «تخطي اليوم» — a labelled secondary
- * action, not an overflow menu holding a single item, and never offered on a
- * one-time reminder, which has no tomorrow to keep.
+ * The leading ring means «تم» and answers **this occurrence only**. It is the
+ * one way to complete from the list: the row used to also complete on a
+ * horizontal drag, which is how a finger sliding down a list could record that
+ * medicine was taken when it was not. A hidden gesture is a bad way to assert a
+ * fact, so it is gone; the ring is latched against double activation, and an
+ * undo snackbar still covers a mis-tap.
+ *
+ * [onSkip] is «تخطي اليوم» — a labelled secondary action, not an overflow menu
+ * holding a single item, and never offered on a one-time reminder, which has no
+ * tomorrow to keep.
  *
  * [onComplete] null means this occurrence cannot be answered yet (a future day,
  * a paused reminder): no ring, no swipe, so the row never offers an affordance
@@ -195,11 +209,8 @@ fun ChecklistRow(
 ) {
     val shape = MaterialTheme.shapes.large
     val haptics = LocalHapticFeedback.current
-    val scope = rememberCoroutineScope()
-    val rtl = LocalLayoutDirection.current == LayoutDirection.Rtl
 
     val confirmed = remember(title, meta) { mutableStateOf(false) }
-    val offset = remember(title, meta) { Animatable(0f) }
 
     fun fire() {
         if (confirmed.value) return
@@ -209,70 +220,11 @@ fun ChecklistRow(
     }
 
     Box(modifier.fillMaxWidth()) {
-        // The reveal behind the row: a teal panel with a check on the leading
-        // side, shown only while the row is being dragged toward completion.
-        if (onComplete != null) {
-            Surface(
-                shape = shape,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .matchParentSize()
-                    .clearAndSetSemantics {},
-            ) {
-                Row(
-                    Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 26.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    Icon(
-                        Icons.Rounded.Check,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                    )
-                    Text(
-                        text = stringResource(R.string.action_done),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onPrimary,
-                    )
-                }
-            }
-        }
-
-        val dragModifier = if (onComplete != null) {
-            Modifier.pointerInput(title, meta) {
-                val travel = size.width.toFloat().coerceAtLeast(1f)
-                detectHorizontalDragGestures(
-                    onDragEnd = {
-                        if (!confirmed.value) {
-                            if (offset.value >= travel * 0.5f) fire()
-                            else scope.launch { offset.animateTo(0f, tween(200)) }
-                        }
-                    },
-                    onDragCancel = {
-                        if (!confirmed.value) scope.launch { offset.animateTo(0f, tween(200)) }
-                    },
-                ) { change, dragAmount ->
-                    change.consume()
-                    if (confirmed.value) return@detectHorizontalDragGestures
-                    val forward = if (rtl) -dragAmount else dragAmount
-                    val next = (offset.value + forward).coerceIn(0f, travel)
-                    scope.launch { offset.snapTo(next) }
-                }
-            }
-        } else {
-            Modifier
-        }
-
         Surface(
             shape = shape,
             color = MaterialTheme.colorScheme.surfaceContainer,
             onClick = onClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .forwardShift { offset.value }
-                .then(dragModifier),
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Row(
                 Modifier.padding(
@@ -300,10 +252,12 @@ fun ChecklistRow(
                     Text(
                         text = "$kindLabel · $meta",
                         style = MaterialTheme.typography.bodyMedium,
+                        // Status colour comes from the status roles, never from
+                        // whatever Material role the brand happens to occupy.
                         color = when (tone) {
                             RowTone.Waiting -> MaterialTheme.colorScheme.primary
-                            RowTone.Snoozed -> MaterialTheme.colorScheme.tertiary
-                            RowTone.Overdue -> MaterialTheme.colorScheme.error
+                            RowTone.Snoozed -> BalTheme.status.snoozed
+                            RowTone.Overdue -> BalTheme.status.overdue
                             else -> MaterialTheme.colorScheme.onSurfaceVariant
                         },
                     )
@@ -345,6 +299,11 @@ private fun SkipButton(title: String, onClick: () -> Unit) {
  * The leading ring: an empty circle, and the accessible way to say «تم». The
  * visible ring stays small and calm; its touch target is a full 48dp so it is
  * reachable without becoming a big loud button.
+ *
+ * A row waiting for an answer differs from a listed one by **three** things,
+ * not one: a heavier stroke, a filled centre, and the action colour. It used to
+ * differ by border colour alone, which is invisible to a red-green colour
+ * deficiency and to anyone reading the screen in sunlight.
  */
 @Composable
 private fun CompleteRing(waiting: Boolean, label: String, onComplete: () -> Unit) {
@@ -360,14 +319,22 @@ private fun CompleteRing(waiting: Boolean, label: String, onComplete: () -> Unit
         Surface(
             shape = CircleShape,
             color = Color.Transparent,
-            // A row that is waiting for an answer wears the action colour, so the
-            // one thing to do next is the first thing the eye lands on.
-            border = androidx.compose.foundation.BorderStroke(
-                2.dp,
+            border = BorderStroke(
+                if (waiting) 3.dp else 2.dp,
                 if (waiting) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
             ),
             modifier = Modifier.size(30.dp).clearAndSetSemantics {},
-        ) {}
+        ) {
+            if (waiting) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Surface(
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(10.dp),
+                    ) {}
+                }
+            }
+        }
     }
 }
 
@@ -405,7 +372,7 @@ fun ClosedRow(
             Surface(
                 shape = CircleShape,
                 color = if (completed) {
-                    MaterialTheme.colorScheme.primary.copy(alpha = 0.9f)
+                    BalTheme.status.done
                 } else {
                     MaterialTheme.colorScheme.surfaceContainerHighest
                 },
@@ -416,7 +383,7 @@ fun ClosedRow(
                         if (completed) Icons.Rounded.Check else Icons.AutoMirrored.Rounded.Redo,
                         contentDescription = null,
                         tint = if (completed) {
-                            MaterialTheme.colorScheme.onPrimary
+                            MaterialTheme.colorScheme.surfaceContainerLowest
                         } else {
                             MaterialTheme.colorScheme.onSurfaceVariant
                         },
@@ -451,9 +418,9 @@ fun ClosedRow(
 }
 
 /**
- * Shift a node along the reading direction. One helper, used by every draggable
- * surface in the app: `placeRelative` already mirrors for RTL, so the caller
- * supplies "how far onward" and never a sign.
+ * Shift a node along the reading direction. The one draggable surface left in
+ * the app is the alarm screen's slide-to-confirm, and `placeRelative` already
+ * mirrors for RTL, so the caller supplies "how far onward" and never a sign.
  */
 internal fun Modifier.forwardShift(x: () -> Float): Modifier = this.then(
     Modifier.layout { measurable, constraints ->
@@ -467,7 +434,7 @@ internal fun Modifier.forwardShift(x: () -> Float): Modifier = this.then(
 // ------------------------------------------------------------ empty state
 
 /**
- * The signature empty state: the «رَنّة» bell drawn calm and large, standing on
+ * The signature empty state: the «رَنّة» mark drawn calm and large, standing on
  * its own. No stock illustration, and no container behind it — the mark is the
  * mark, on whatever surface it lands.
  */

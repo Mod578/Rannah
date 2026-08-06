@@ -1,20 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- موارد XML من هوية «مدار الرنّة»؛ لوحة Compose في Theme.kt. -->
-    <color name="brand_iris">#5B3FD0</color>
-    <color name="brand_apricot">#FFB09F</color>
-    <color name="brand_moon">#FFF8FF</color>
+    <!--
+      ما تحتاجه موارد XML وحدها من لوحة «حبر على ورق». بقية اللوحة تعيش في
+      ui/theme/Theme.kt، والقيم هنا نسخة حرفية من قيمها هناك.
 
-    <color name="bal_haze">#F7F5FF</color>
-    <color name="bal_night">#13101F</color>
+      brand_ink هو اللون الأساسي نفسه: خلفية أيقونة التطبيق، وعلامة شاشة
+      البداية، ولون الزر الأساسي داخل التطبيق. لون واحد لا ثلاثة متقاربة.
+    -->
+    <color name="brand_ink">#0F4C7A</color>       <!-- الفعل، وخلفية الأيقونة -->
+    <color name="brand_on_ink">#F6F3EC</color>    <!-- العلامة فوق خلفية الأيقونة -->
+
+    <color name="bal_paper">#F6F3EC</color>       <!-- أرضية النهار -->
+    <color name="bal_night">#0F1418</color>       <!-- أرضية الليل: الداكن الوحيد -->
 
     <!-- شاشة البداية: أرضية التطبيق نفسها، فلا قفزة لونية عند أول إطار -->
-    <color name="splash_background">@color/bal_haze</color>
-    <color name="splash_mark">@color/brand_iris</color>
+    <color name="splash_background">@color/bal_paper</color>
+    <color name="splash_mark">@color/brand_ink</color>
 
     <!-- الودجت: يتبع مظهر النظام مثل بقية التطبيق -->
-    <color name="widget_surface">#FFFBFF</color>
-    <color name="widget_on_surface">#201A32</color>
-    <color name="widget_on_surface_variant">#5C566B</color>
-    <color name="widget_accent">#5B3FD0</color>
+    <color name="widget_surface">#FFFDF8</color>
+    <color name="widget_on_surface">#14202B</color>
+    <color name="widget_on_surface_variant">#4A5763</color>
+    <color name="widget_accent">#0F4C7A</color>
 </resources>

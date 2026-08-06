@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -27,6 +28,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -41,11 +43,11 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -55,6 +57,7 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.bal.reminders.R
+import com.bal.reminders.applyBarAppearance
 import com.bal.reminders.data.ThemeMode
 import com.bal.reminders.format.BalFormats
 import com.bal.reminders.scheduling.AlarmRingerService
@@ -100,6 +103,10 @@ class AlarmActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Android 15 draws this window edge-to-edge whether it is asked to or
+        // not. Declaring it here means the inset values are real, so the screen
+        // can pad itself instead of hoping its fixed margins clear the bars.
+        enableEdgeToEdge()
         showOverLockScreen()
         readIntent(intent)
 
@@ -118,6 +125,7 @@ class AlarmActivity : ComponentActivity() {
                 ThemeMode.DARK -> true
                 ThemeMode.SYSTEM -> isSystemInDarkTheme()
             }
+            SideEffect { applyBarAppearance(dark) }
             BalTheme(darkTheme = dark) {
                 AlarmScreen(viewModel = viewModel)
             }
@@ -201,29 +209,37 @@ private fun AlarmScreen(viewModel: AlarmViewModel) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                // Outside the scroll, so «تم» and «تأجيل» can never be pushed
+                // under the navigation bar however long the title is.
+                .safeDrawingPadding()
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 24.dp, vertical = 32.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
-            // While the ring sounds, the bell swings from its loop — a calm
-            // pendulum, the one place motion says "this is happening now".
-            val swing by rememberInfiniteTransition(label = "swing").animateFloat(
-                initialValue = -9f,
-                targetValue = 9f,
+            // While the ring sounds, the mark breathes — a slow swell, the one
+            // place motion says "this is happening now". It used to rotate
+            // about a point 14% down the height, which was a bell's hanging
+            // loop; the mark has no loop to hang from, and a tilted نون reads
+            // as a mistake rather than as movement. Scale carries the same
+            // meaning and stays true whatever the identity is.
+            val pulse by rememberInfiniteTransition(label = "pulse").animateFloat(
+                initialValue = 0.94f,
+                targetValue = 1.06f,
                 animationSpec = infiniteRepeatable(
-                    animation = tween(620, easing = FastOutSlowInEasing),
+                    animation = tween(760, easing = FastOutSlowInEasing),
                     repeatMode = RepeatMode.Reverse,
                 ),
-                label = "swing-angle",
+                label = "pulse-scale",
             )
             AppMark(
-                tint = MaterialTheme.colorScheme.onBackground,
+                tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
                     .size(56.dp)
                     .graphicsLayer {
-                        rotationZ = if (state.confirming) 0f else swing
-                        transformOrigin = TransformOrigin(0.5f, 0.14f)
+                        val s = if (state.confirming) 1f else pulse
+                        scaleX = s
+                        scaleY = s
                     },
             )
             Spacer(Modifier.height(16.dp))

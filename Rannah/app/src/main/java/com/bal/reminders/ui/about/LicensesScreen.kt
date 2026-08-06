@@ -81,7 +81,7 @@ fun LicensesScreen(onBack: () -> Unit) {
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = Space.screen),
+                .padding(start = Space.screen, end = Space.screen, bottom = Space.scrollBottom),
             verticalArrangement = Arrangement.spacedBy(Space.sm),
         ) {
             Text(

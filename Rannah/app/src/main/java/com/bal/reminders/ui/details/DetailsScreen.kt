@@ -62,6 +62,7 @@ import com.bal.reminders.ui.components.SnoozeSheet
 import com.bal.reminders.ui.components.color
 import com.bal.reminders.ui.components.icon
 import com.bal.reminders.ui.components.labelRes
+import com.bal.reminders.ui.theme.BalTheme
 import com.bal.reminders.ui.theme.Space
 
 /**
@@ -495,12 +496,17 @@ private fun statusLine(context: android.content.Context, occurrence: ReminderOcc
     }
 }
 
+/**
+ * The phase line's colour, from the status roles — the same green for «أُنجزت»
+ * and the same red for «متأخرة» that the history rows and the list use.
+ */
 @Composable
 private fun statusColor(phase: ReminderPhase?): Color = when (phase) {
     ReminderPhase.NEEDS_CONFIRMATION, ReminderPhase.UPCOMING -> MaterialTheme.colorScheme.primary
-    ReminderPhase.OVERDUE -> MaterialTheme.colorScheme.error
-    ReminderPhase.SNOOZED -> MaterialTheme.colorScheme.tertiary
-    ReminderPhase.COMPLETED -> MaterialTheme.colorScheme.secondary
+    ReminderPhase.OVERDUE -> BalTheme.status.overdue
+    ReminderPhase.SNOOZED -> BalTheme.status.snoozed
+    ReminderPhase.COMPLETED -> BalTheme.status.done
+    ReminderPhase.PAUSED -> BalTheme.status.paused
     else -> MaterialTheme.colorScheme.onSurfaceVariant
 }
 

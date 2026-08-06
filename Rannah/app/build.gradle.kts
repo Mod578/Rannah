@@ -104,11 +104,22 @@ ksp {
     arg("room.generateKotlin", "true")
 }
 
-// The migration tests build their legacy databases from these exported schemas,
-// so a schema change re-runs them.
+val markResources: Directory = layout.projectDirectory.dir("src/main/res")
+val brandDocs: Directory = layout.projectDirectory.dir("../docs")
+
+// The migration tests build their legacy databases from the exported schemas,
+// and MarkGeometryTest reads the shipped drawables, so a change to either
+// re-runs the tests that guard it.
 tasks.withType<Test>().configureEach {
     systemProperty("rannah.schemaDir", roomSchemas.asFile.absolutePath)
     inputs.dir(roomSchemas).withPropertyName("roomSchemas")
+        .withPathSensitivity(PathSensitivity.RELATIVE)
+
+    // MarkGeometryTest reads the shipped drawables and brand assets directly, so
+    // a hand-edited icon fails the build instead of reaching a device.
+    systemProperty("rannah.resDir", markResources.asFile.absolutePath)
+    systemProperty("rannah.docsDir", brandDocs.asFile.absolutePath)
+    inputs.dir(markResources).withPropertyName("markResources")
         .withPathSensitivity(PathSensitivity.RELATIVE)
 }
 

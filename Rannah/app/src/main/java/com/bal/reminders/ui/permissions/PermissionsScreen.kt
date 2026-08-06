@@ -96,7 +96,7 @@ fun PermissionsScreen(onBack: () -> Unit) {
                 .fillMaxSize()
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = Space.screen),
+                .padding(start = Space.screen, end = Space.screen, bottom = Space.scrollBottom),
             verticalArrangement = Arrangement.spacedBy(Space.sm),
         ) {
             // The verdict first, in one sentence, before any of the machinery:

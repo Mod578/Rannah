@@ -7,8 +7,10 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.bal.reminders.data.ThemeMode
@@ -53,6 +55,10 @@ class MainActivity : ComponentActivity() {
                     ThemeMode.DARK -> true
                     ThemeMode.SYSTEM -> androidx.compose.foundation.isSystemInDarkTheme()
                 }
+                // The system bars carry the app's appearance, not the system's.
+                // Someone running رَنّة in «نهاري» on a dark-themed phone was
+                // getting light icons over a light background — invisible.
+                SideEffect { applyBarAppearance(dark) }
                 BalTheme(darkTheme = dark) {
                     BalRoot(
                         showOnboarding = !state.onboardingDone,
@@ -75,5 +81,20 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         const val EXTRA_REMINDER_ID = "reminder_id"
+    }
+}
+
+/**
+ * Match the status- and navigation-bar icon appearance to the app's own theme.
+ *
+ * `enableEdgeToEdge()` decides light or dark icons from the *system* setting at
+ * the moment it is called. رَنّة lets the user pick an appearance independently
+ * of the system, and that choice can also change while the activity is alive,
+ * so the bars are re-stated whenever it does.
+ */
+internal fun ComponentActivity.applyBarAppearance(dark: Boolean) {
+    WindowInsetsControllerCompat(window, window.decorView).apply {
+        isAppearanceLightStatusBars = !dark
+        isAppearanceLightNavigationBars = !dark
     }
 }
