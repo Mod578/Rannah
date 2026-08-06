@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- نفس الأسماء بقيم الليل: مرجع واحد في الثيم يحلّ حسب المظهر. -->
-    <color name="splash_background">@color/bal_coal</color>
-    <color name="splash_mark">#5FCFBE</color>
+    <!-- الأسماء نفسها بقيم الليل: مرجع واحد في الثيم يحلّ حسب المظهر. -->
+    <color name="splash_background">@color/bal_night</color>
+    <color name="splash_mark">#8ACBEF</color>
 
-    <color name="widget_surface">#232219</color>
-    <color name="widget_on_surface">#ECE8DD</color>
-    <color name="widget_on_surface_variant">#C7C3B6</color>
-    <color name="widget_accent">#E1B667</color>
+    <color name="widget_surface">#171D23</color>
+    <color name="widget_on_surface">#EDEAE3</color>
+    <color name="widget_on_surface_variant">#B6BFC7</color>
+    <color name="widget_accent">#8ACBEF</color>
 </resources>

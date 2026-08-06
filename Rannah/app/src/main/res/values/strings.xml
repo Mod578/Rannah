@@ -69,20 +69,30 @@
     <string name="home_today">اليوم</string>
     <string name="home_overdue">متأخرة</string>
     <string name="home_upcoming">قادم</string>
-    <string name="home_closed_today">انتهت اليوم</string>
-    <string name="home_closed_expand">عرض ما انتهى اليوم</string>
-    <string name="home_closed_collapse">طيّ ما انتهى اليوم</string>
+    <string name="home_closed_today">أُجيبت اليوم</string>
+    <string name="home_closed_expand">عرض ما أُجيب اليوم</string>
+    <string name="home_closed_collapse">طيّ ما أُجيب اليوم</string>
     <string name="home_paused">متوقفة مؤقتًا</string>
     <string name="home_nothing_today">لا شيء اليوم</string>
     <string name="home_empty_title">لا تذكيرات بعد</string>
     <string name="home_empty_subtitle">أضف أول تذكير</string>
     <string name="home_next_reminder">الرنّة القادمة</string>
 
+    <!-- عدد تذكيرات القسم، لقارئ الشاشة: «اليوم، ٣ تذكيرات» لا «اليوم ٣» -->
+    <plurals name="reminders_count">
+        <item quantity="zero">لا تذكيرات</item>
+        <item quantity="one">تذكير واحد</item>
+        <item quantity="two">تذكيران</item>
+        <item quantity="few">%d تذكيرات</item>
+        <item quantity="many">%d تذكيرًا</item>
+        <item quantity="other">%d تذكير</item>
+    </plurals>
+
     <!-- حالة الصف -->
-    <string name="state_waiting">ينتظر تأكيدك</string>
-    <string name="state_waiting_at">%1$s · ينتظر تأكيدك</string>
-    <string name="state_overdue_at">كان موعده %1$s · لم يُغلق بعد</string>
-    <string name="state_snoozed_until">مؤجل حتى %1$s</string>
+    <string name="state_waiting">تنتظر إجابتك</string>
+    <string name="state_waiting_at">%1$s · تنتظر إجابتك</string>
+    <string name="state_overdue_at">كان موعدها %1$s · ما زالت تنتظر إجابتك</string>
+    <string name="state_snoozed_until">مؤجّلة حتى %1$s</string>
     <string name="state_paused">متوقف مؤقتًا</string>
     <string name="next_short">القادمة %1$s</string>
 
@@ -104,7 +114,7 @@
     <string name="editor_day_of_month_clamp_note">في الأشهر الأقصر تصلك الرنّة في آخر يوم</string>
     <string name="editor_add_note">إضافة ملاحظة</string>
     <string name="editor_field_notes">ملاحظة (اختياري)</string>
-    <string name="editor_apply_understood">فهمت: %1$s، اضغط للتطبيق</string>
+    <string name="editor_apply_understood">اضغط لاستخدام: %1$s</string>
     <string name="editor_error_title">اكتب نص التذكير أولًا</string>
     <string name="editor_error_past">هذا الوقت مضى، اختر وقتًا قادمًا</string>
     <string name="editor_error_days">اختر يومًا واحدًا على الأقل</string>
@@ -124,19 +134,19 @@
     <string name="details_once_note">تذكير لمرة واحدة: بعد «تم» ينتهي، ويمكنك التراجع في اليوم نفسه.</string>
     <string name="details_pause_note">الإيقاف المؤقت يوقف كل الرنّات حتى تستأنفه.</string>
     <string name="details_delete_note">الحذف يزيل التذكير وكل رنّاته القادمة.</string>
-    <string name="details_today_done">اكتمل اليوم</string>
-    <string name="details_today_skipped">تم تخطيه اليوم</string>
+    <string name="details_today_done">أُنجزت اليوم</string>
+    <string name="details_today_skipped">تم تخطيها اليوم</string>
     <string name="details_next_at">الرنّة القادمة: %1$s</string>
-    <string name="details_snoozed_until">مؤجل حتى %1$s</string>
-    <string name="details_overdue_at">كان موعده %1$s</string>
+    <string name="details_snoozed_until">مؤجّلة حتى %1$s</string>
+    <string name="details_overdue_at">كان موعدها %1$s</string>
     <string name="details_paused_resumes">متوقف مؤقتًا · بعد الاستئناف %1$s</string>
     <string name="details_history">السجل</string>
 
     <!-- حالات الحدوث في السجل -->
-    <string name="status_completed">مكتمل</string>
-    <string name="status_skipped">تم تخطيه</string>
-    <string name="status_ignored">تم تجاهله</string>
-    <string name="status_missed">فات موعده</string>
+    <string name="status_completed">أُنجزت</string>
+    <string name="status_skipped">تم تخطيها</string>
+    <string name="status_ignored">مرّت دون إجابة</string>
+    <string name="status_missed">مرّت دون إجابة</string>
 
     <!-- الإعدادات -->
     <string name="settings_theme">المظهر</string>
@@ -157,17 +167,17 @@
     <string name="about_developer_label">المطوّر</string>
     <string name="about_developer_name">محمد المطيري</string>
     <string name="about_linkedin">LinkedIn</string>
-    <string name="about_linkedin_description">فتح صفحة المطوّر على LinkedIn</string>
+    <string name="about_linkedin_description">فتح صفحة المطوّر على &#x2066;LinkedIn&#x2069;</string>
     <string name="about_email">البريد الإلكتروني</string>
     <string name="about_email_description">مراسلة المطوّر بالبريد الإلكتروني</string>
-    <string name="about_github">المشروع على GitHub</string>
-    <string name="about_github_description">فتح صفحة المشروع على GitHub</string>
+    <string name="about_github">المشروع على &#x2066;GitHub&#x2069;</string>
+    <string name="about_github_description">فتح صفحة المشروع على &#x2066;GitHub&#x2069;</string>
     <string name="about_link_failed">لا يوجد تطبيق يفتح هذا الرابط</string>
     <string name="licenses_title">تراخيص البرامج مفتوحة المصدر</string>
     <string name="licenses_intro">يستخدم التطبيق أعمالًا مفتوحة المصدر تشترط رخصها إرفاق نصّها.</string>
     <string name="licenses_tajawal">خط تجوّل</string>
     <string name="licenses_tajawal_license">SIL Open Font License 1.1</string>
-    <string name="licenses_androidx">AndroidX و Jetpack Compose و Room</string>
+    <string name="licenses_androidx">&#x2066;AndroidX&#x2069; و&#x2066;Jetpack Compose&#x2069; و&#x2066;Room&#x2069;</string>
     <string name="licenses_androidx_license">Apache License 2.0</string>
     <!-- عبارة أصالة بخط التطبيق، وليست شعار برنامج «صنع في السعودية» المسجَّل -->
     <string name="made_in_saudi">صُنع في السعودية</string>
@@ -201,8 +211,9 @@
     <string name="permissions_note">تستخدم الرنّة صوت المنبّه: الصامت لا يكتمها، وعدم الإزعاج يكتمها فقط إن كتمت «المنبّهات».</string>
 
     <!-- الترحيب -->
-    <string name="onboarding_body">تذكيرات عربية بسيطة تعمل على جهازك. فعّل التنبيهات لتصلك الرنّة في وقتها.</string>
-    <string name="onboarding_start">فعّل التنبيهات وابدأ</string>
+    <string name="onboarding_body">تذكيرات تعمل على جهازك وحده.</string>
+    <string name="onboarding_permission_note">الخطوة التالية تطلب إذن التنبيهات، وبدونه لا تصلك أي رنّة.</string>
+    <string name="onboarding_start">ابدأ</string>
 
     <!-- الودجت -->
     <string name="widget_label">التاريخ والرنّة القادمة</string>
@@ -216,7 +227,7 @@
     <string name="readiness_notifications_title">لن تصلك أي تذكيرات</string>
     <string name="readiness_notifications_body">إشعارات رَنّة موقوفة، فعّلها لتعمل.</string>
     <string name="readiness_exact_title">قد تتأخر تذكيراتك</string>
-    <string name="readiness_exact_body">تحتاج رَنّة إذن المنبّهات الدقيقة.</string>
+    <string name="readiness_exact_body">امنح رَنّة إذن التنبيه في وقته بالضبط، لا بعده.</string>
     <string name="readiness_alarm_channel_title">الرنّات صامتة</string>
     <string name="readiness_alarm_channel_body">تنبيهات «المنبّهات» موقوفة، فلن تسمع صوتًا.</string>
     <string name="readiness_fullscreen_title">لن تظهر شاشة الرنّة فوق القفل</string>
@@ -241,7 +252,7 @@
 
     <!-- شاشة الرنّة -->
     <string name="alarm_ringing_now">يرنّ الآن</string>
-    <string name="alarm_slide_to_confirm">اسحب للتأكيد</string>
+    <string name="alarm_slide_to_confirm">اسحب لتأكيد الإنجاز</string>
     <string name="alarm_slide_hint">اسحب حتى النهاية</string>
 
     <!-- التأجيل بمدة أخرى -->

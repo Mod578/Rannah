@@ -42,6 +42,15 @@ reports/
 *.rej
 *~
 
+# Python scratch from tools/
+__pycache__/
+*.pyc
+.venv/
+
+# Generated visual previews: the brand assets are generated, contact sheets are not committed
+/Rannah/tools/**/out/
+*.contact-sheet.png
+
 # OS noise
 .DS_Store
 Thumbs.db

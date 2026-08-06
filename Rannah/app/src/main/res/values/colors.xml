@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-      هوية «رَنّة»: جرس على أرضية حجرية. لوحة واحدة للتطبيق وللشعار معًا —
-      الأخضر البحري للفعل، والنحاس للمسات، والحجر أرضيةً. ما كان للشعار لونٌ
-      خاص (حِبري وأحمر) لا يظهر في أي شاشة، فصار الشعار يرتدي ألوان المنتج.
+      ما تحتاجه موارد XML وحدها من لوحة «حبر على ورق». بقية اللوحة تعيش في
+      ui/theme/Theme.kt، والقيم هنا نسخة حرفية من قيمها هناك.
 
-      بقية اللوحة تعيش في ui/theme/Theme.kt؛ هنا فقط ما تحتاجه موارد XML.
+      brand_ink هو اللون الأساسي نفسه: خلفية أيقونة التطبيق، وعلامة شاشة
+      البداية، ولون الزر الأساسي داخل التطبيق. لون واحد لا ثلاثة متقاربة.
     -->
-    <color name="brand_teal">#0B6B5F</color>      <!-- اللون الأساسي: خلفية الأيقونة -->
-    <color name="brand_cream">#FEF9EE</color>     <!-- الجرس على الأيقونة -->
+    <color name="brand_ink">#0F4C7A</color>       <!-- الفعل، وخلفية الأيقونة -->
+    <color name="brand_on_ink">#F6F3EC</color>    <!-- العلامة فوق خلفية الأيقونة -->
 
-    <color name="bal_stone">#F4F1EA</color>       <!-- أرضية نهار -->
-    <color name="bal_coal">#1A1915</color>        <!-- أرضية ليل: الأرضية الداكنة الوحيدة -->
+    <color name="bal_paper">#F6F3EC</color>       <!-- أرضية النهار -->
+    <color name="bal_night">#0F1418</color>       <!-- أرضية الليل: الداكن الوحيد -->
 
     <!-- شاشة البداية: أرضية التطبيق نفسها، فلا قفزة لونية عند أول إطار -->
-    <color name="splash_background">@color/bal_stone</color>
-    <color name="splash_mark">#0B6B5F</color>
+    <color name="splash_background">@color/bal_paper</color>
+    <color name="splash_mark">@color/brand_ink</color>
 
     <!-- الودجت: يتبع مظهر النظام مثل بقية التطبيق -->
-    <color name="widget_surface">#FCFBF6</color>
-    <color name="widget_on_surface">#1B1D19</color>
-    <color name="widget_on_surface_variant">#52564D</color>
-    <color name="widget_accent">#9A6B1E</color>
+    <color name="widget_surface">#FFFDF8</color>
+    <color name="widget_on_surface">#14202B</color>
+    <color name="widget_on_surface_variant">#4A5763</color>
+    <color name="widget_accent">#0F4C7A</color>
 </resources>
