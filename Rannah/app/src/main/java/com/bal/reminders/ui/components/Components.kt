@@ -55,29 +55,17 @@ import androidx.compose.ui.unit.dp
 import com.bal.reminders.R
 import kotlinx.coroutines.launch
 
-// ------------------------------------------------------------- the bell mark
+// ------------------------------------------------------------ the orbit mark
 
 /**
- * The «رَنّة» mark: a bell caught mid-swing. The body leans 12°, and the clapper
- * hangs the other way — the lag of a bell that has just been struck. That is the
- * whole idea: **ringing is said by posture**, not by hairlines beside the bell.
+ * The «رَنّة» mark is a moment with an orbit: a compact centre (the appointment)
+ * and two deliberately unequal wakes (the ring arriving and travelling on).
+ * Its broken circle also hints at the descending gesture of Arabic «ر» without
+ * turning the letter into a literal monogram.
  *
- * The mark it replaced carried two wi-fi-style arcs 2.5% of the icon wide, a
- * clapper floating free below the rim, and a notch cut out of the bell's
- * shoulder to make room for the arcs. All three were the first things to vanish
- * — or to look like damage — at the sizes that decide whether an icon is
- * recognised: 24dp in the status bar, 48dp on a home screen, one flat tint under
- * a themed-icon mask.
- *
- * The geometry is one canonical path on a 0..24 grid, and every surface wears it
- * unchanged: the launcher tile, the monochrome layer, the splash, the status-bar
- * glyph and every place the mark appears inside the app. The four XML vectors
- * carry the same string verbatim, because XML cannot import Kotlin; nothing else
- * redraws the bell.
- *
- * One colour, always. The crown and the clapper **overlap** the body, so the
- * mark is a single solid shape at any scale and under any tint — there is no
- * second colour left to lose, and nothing that can come apart.
+ * It is built from three broad solids on a 24-unit grid. No stroke, hairline,
+ * tiny cut-out or colour dependency is needed, so the same geometry survives
+ * the launcher mask, themed icons, the notification bar and 20dp inline use.
  */
 @Composable
 fun AppMark(
@@ -94,19 +82,16 @@ fun AppMark(
 }
 
 /**
- * The bell, leaning, with its crown and clapper — one closed silhouette on a
- * 0..24 grid. Optically centred on (12, 12); its bounds are x [4.71, 17.64] and
- * y [2.23, 20.06].
+ * Two opposing orbital wakes and their centre, optically centred on (12, 12).
  */
 private const val PATH_MARK =
-    "M4.73,14.86 C5.57,14.02 7.30,12.14 7.76,10.19 C8.45,6.96 10.86,4.51 13.55,5.08 " +
-        "C16.24,5.65 17.45,8.88 16.76,12.10 C16.39,14.07 17.21,16.49 17.64,17.61 " +
-        "C17.52,18.14 16.99,18.49 16.45,18.38 L5.50,16.05 C4.96,15.93 4.61,15.40 4.73,14.86 Z " +
-        "M13.85,2.22 C14.65,2.22 15.29,2.87 15.29,3.66 C15.29,4.46 14.65,5.10 13.85,5.10 " +
-        "C13.06,5.10 12.41,4.46 12.41,3.66 C12.41,2.87 13.06,2.22 13.85,2.22 Z " +
-        "M10.60,15.39 L12.05,15.70 L9.94,18.73 L8.37,18.40 Z " +
-        "M9.15,17.06 C9.98,17.06 10.65,17.73 10.65,18.56 C10.65,19.39 9.98,20.06 9.15,20.06 " +
-        "C8.32,20.06 7.65,19.39 7.65,18.56 C7.65,17.73 8.32,17.06 9.15,17.06 Z"
+    "M11.80,2.80 C17.20,2.80 21.20,6.90 21.20,12.00 L17.35,12.00 " +
+        "C17.35,9.00 15.00,6.65 11.80,6.65 Z " +
+        "M12.20,21.20 C6.80,21.20 2.80,17.10 2.80,12.00 L6.65,12.00 " +
+        "C6.65,15.00 9.00,17.35 12.20,17.35 Z " +
+        "M12.00,8.10 C14.25,8.10 15.90,9.75 15.90,12.00 " +
+        "C15.90,14.25 14.25,15.90 12.00,15.90 C9.75,15.90 8.10,14.25 8.10,12.00 " +
+        "C8.10,9.75 9.75,8.10 12.00,8.10 Z"
 
 // ------------------------------------------------------------- the colophon
 

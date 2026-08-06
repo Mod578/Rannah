@@ -21,107 +21,102 @@ import androidx.compose.ui.unit.sp
 import com.bal.reminders.R
 
 // ---------------------------------------------------------------- الألوان
-// هوية «رَنّة»: جرس نحاسي على حجر. أخضر بحري عميق للفعل والثقة، ونحاس دافئ
-// للجرس والرنّة، على أرضية حجرية نهارًا وفحمية دافئة ليلًا. الأخضر هنا ليس
-// أخضر عامًّا بل «بترولي/بحري» عميق، والدفء يبقى في الحجر والنحاس.
+// «مدار الرنّة»: بنفسجي كهربائي للحضور والفعل، ومشمشي حيّ للحظة والتنبيه.
+// المحايدات ليلكية لا رمادية؛ لذلك تظل الهوية حاضرة حتى حين لا يظهر لون
+// العلامة. اللونان المشبعان محدودان بالأفعال والحالات المهمة كي يبقى التطبيق
+// هادئًا خلال الاستخدام اليومي، لا لوحة نيون.
 
-// نهار
-val Stone = Color(0xFFF4F1EA)        // أرضية حجرية دافئة
-val StoneCard = Color(0xFFFCFBF6)    // بطاقة
-val StoneHigh = Color(0xFFEDEAE0)
-val StoneHighest = Color(0xFFE6E2D6)
-val StoneVariant = Color(0xFFE3DFD3)
-val Ink = Color(0xFF1B1D19)          // نص أساسي
-val InkSoft = Color(0xFF52564D)      // نص ثانوي
-val Teal = Color(0xFF0B6B5F)         // اللون الأساسي: أخضر بحري عميق
-val TealContainer = Color(0xFFB7E7DD)
-val Brass = Color(0xFF9A6B1E)        // النحاس: الرنّة، لمسات دافئة
-val BrassContainer = Color(0xFFF5E4C4)
+// نهار — ضباب ليلكي وورق أبيض بارد
+val Haze = Color(0xFFF7F5FF)
+val Paper = Color(0xFFFFFBFF)
+val HazeHigh = Color(0xFFF0EDFA)
+val HazeHighest = Color(0xFFE9E5F5)
+val HazeVariant = Color(0xFFE7E2F2)
+val MidnightInk = Color(0xFF201A32)
+val MidnightInkSoft = Color(0xFF5C566B)
+val Iris = Color(0xFF5B3FD0)
+val IrisContainer = Color(0xFFE4DEFF)
+val Persimmon = Color(0xFFB94332)
+val PersimmonContainer = Color(0xFFFFDAD3)
 
-// ليل
-val Coal = Color(0xFF1A1915)         // أرضية فحمية دافئة
-val CoalCard = Color(0xFF232219)
-val CoalHigh = Color(0xFF2C2A20)
-val CoalHighest = Color(0xFF353327)
-val CoalVariant = Color(0xFF322F27)
-val Cream = Color(0xFFECE8DD)        // نص فاتح
-val CreamSoft = Color(0xFFC7C3B6)
-val TealNight = Color(0xFF5FCFBE)    // أخضر بحري مضيء
-val TealNightContainer = Color(0xFF0C514A)
-val BrassNight = Color(0xFFE1B667)   // نحاس مضيء
-val BrassNightContainer = Color(0xFF57431A)
+// ليل — حبر بنفسجي عميق، لا أسود خالص
+val Night = Color(0xFF13101F)
+val NightCard = Color(0xFF1D192C)
+val NightHigh = Color(0xFF262137)
+val NightHighest = Color(0xFF302A43)
+val NightVariant = Color(0xFF312B43)
+val Moon = Color(0xFFF0ECFA)
+val MoonSoft = Color(0xFFCBC3D8)
+val IrisNight = Color(0xFFC8BFFF)
+val IrisNightContainer = Color(0xFF422A9D)
+val ApricotNight = Color(0xFFFFB4A6)
+val ApricotNightContainer = Color(0xFF7D2A20)
 
 val LightColors = lightColorScheme(
-    primary = Teal,
+    primary = Iris,
     onPrimary = Color.White,
-    primaryContainer = TealContainer,
-    onPrimaryContainer = Color(0xFF00201C),
-    secondary = Brass,
+    primaryContainer = IrisContainer,
+    onPrimaryContainer = Color(0xFF1B0061),
+    secondary = Persimmon,
     onSecondary = Color.White,
-    secondaryContainer = BrassContainer,
-    onSecondaryContainer = Color(0xFF3A2A06),
-    tertiary = Brass,
+    secondaryContainer = PersimmonContainer,
+    onSecondaryContainer = Color(0xFF410002),
+    tertiary = Color(0xFF6A5900),
     onTertiary = Color.White,
-    background = Stone,
-    onBackground = Ink,
-    surface = Stone,
-    onSurface = Ink,
-    surfaceVariant = StoneVariant,
-    onSurfaceVariant = InkSoft,
-    surfaceContainerLowest = Color.White,
-    surfaceContainer = StoneCard,
-    surfaceContainerHigh = StoneHigh,
-    surfaceContainerHighest = StoneHighest,
-    outline = Color(0xFF787B70),
-    outlineVariant = Color(0xFFD4D0C3),
-    error = Color(0xFFA5342A),
+    background = Haze,
+    onBackground = MidnightInk,
+    surface = Haze,
+    onSurface = MidnightInk,
+    surfaceVariant = HazeVariant,
+    onSurfaceVariant = MidnightInkSoft,
+    surfaceContainerLowest = Color(0xFFFFFFFF),
+    surfaceContainer = Paper,
+    surfaceContainerHigh = HazeHigh,
+    surfaceContainerHighest = HazeHighest,
+    outline = Color(0xFF797184),
+    outlineVariant = Color(0xFFD0C8DB),
+    error = Color(0xFFBA1A1A),
     onError = Color.White,
     errorContainer = Color(0xFFF7DDD8),
     onErrorContainer = Color(0xFF410E0A),
-    inverseSurface = Color(0xFF303029),
-    inverseOnSurface = Color(0xFFF2EFE7),
+    inverseSurface = Color(0xFF322D40),
+    inverseOnSurface = Color(0xFFF5EFFF),
 )
 
 val DarkColors = darkColorScheme(
-    primary = TealNight,
-    onPrimary = Color(0xFF00382F),
-    primaryContainer = TealNightContainer,
-    onPrimaryContainer = Color(0xFFAAEDE1),
-    secondary = BrassNight,
-    onSecondary = Color(0xFF3C2C05),
-    secondaryContainer = BrassNightContainer,
-    onSecondaryContainer = Color(0xFFFBE3B9),
-    tertiary = BrassNight,
-    onTertiary = Color(0xFF3C2C05),
-    background = Coal,
-    onBackground = Cream,
-    surface = Coal,
-    onSurface = Cream,
-    surfaceVariant = CoalVariant,
-    onSurfaceVariant = CreamSoft,
-    surfaceContainerLowest = Color(0xFF121109),
-    surfaceContainer = CoalCard,
-    surfaceContainerHigh = CoalHigh,
-    surfaceContainerHighest = CoalHighest,
-    outline = Color(0xFF8B877A),
-    outlineVariant = Color(0xFF3C3A30),
+    primary = IrisNight,
+    onPrimary = Color(0xFF2A117F),
+    primaryContainer = IrisNightContainer,
+    onPrimaryContainer = Color(0xFFE6DEFF),
+    secondary = ApricotNight,
+    onSecondary = Color(0xFF680007),
+    secondaryContainer = ApricotNightContainer,
+    onSecondaryContainer = Color(0xFFFFDAD3),
+    tertiary = Color(0xFFE4C444),
+    onTertiary = Color(0xFF382F00),
+    background = Night,
+    onBackground = Moon,
+    surface = Night,
+    onSurface = Moon,
+    surfaceVariant = NightVariant,
+    onSurfaceVariant = MoonSoft,
+    surfaceContainerLowest = Color(0xFF0D0A16),
+    surfaceContainer = NightCard,
+    surfaceContainerHigh = NightHigh,
+    surfaceContainerHighest = NightHighest,
+    outline = Color(0xFF948BA0),
+    outlineVariant = Color(0xFF474052),
     error = Color(0xFFF0B4AC),
     onError = Color(0xFF5E150E),
     errorContainer = Color(0xFF83271D),
     onErrorContainer = Color(0xFFF7DDD8),
-    inverseSurface = Stone,
-    inverseOnSurface = Ink,
+    inverseSurface = Moon,
+    inverseOnSurface = MidnightInk,
 )
 
 // ---------------------------------------------------------------- الشعار
-// لا لوحة ثانية للشعار. كان يرتدي حِبريًّا وأحمرَ لا يظهران في أي شاشة، فبدا
-// كأنه علامة منتج آخر ملصقة على هذا. الآن يرتدي ألوان التطبيق نفسها: البحري
-// أرضيةً للأيقونة، والكريمي جرسًا — واللونان مستعملان أصلًا في الواجهة.
-
-// The launcher's ground is @color/brand_teal and the bell on it is
-// @color/brand_cream — the same teal the app uses for its primary action. They
-// live in colors.xml because only XML resources need them; nothing in Compose
-// draws the mark in anything but a theme colour.
+// العلامة «مدار»: نواة موعد يحيط بها أثران غير متساويين، كنبضة وصلت للتو.
+// لا جرس حرفي ولا موجات زخرفية؛ الصورة تقول الرنّة بالحركة والفراغ.
 
 // ---------------------------------------------------------------- المسافات
 
@@ -199,11 +194,11 @@ val BalTypography = Typography(
 // bubbles. Tightening the radius is part of making the app feel intentional
 // rather than decorative — not everything needs to be a big pill.
 val BalShapes = Shapes(
-    extraSmall = RoundedCornerShape(8.dp),
-    small = RoundedCornerShape(10.dp),
-    medium = RoundedCornerShape(14.dp),
-    large = RoundedCornerShape(16.dp),
-    extraLarge = RoundedCornerShape(24.dp),
+    extraSmall = RoundedCornerShape(9.dp),
+    small = RoundedCornerShape(12.dp),
+    medium = RoundedCornerShape(16.dp),
+    large = RoundedCornerShape(20.dp),
+    extraLarge = RoundedCornerShape(30.dp),
 )
 
 /**
